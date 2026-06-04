@@ -1,0 +1,3 @@
+ohmynic.co {
+  reverse_proxy localhost:3000
+}
