@@ -1,0 +1,250 @@
+/* =============================================
+   OhMyNic! — Design Tokens
+   ohmynic.co
+   ============================================= */
+
+:root {
+
+  /* --- Colori brand --- */
+  --color-notte:      #1e1630;   /* Sfondo scuro, testo principale */
+  --color-prugna:     #3b2f5e;   /* Testo secondario su chiaro */
+  --color-viola:      #7c55d4;   /* Links, tag border, accenti forti */
+  --color-lavanda:    #9b6ff0;   /* Accento primario, CTA, "My" nel logo */
+  --color-nebbia:     #f5f3fb;   /* Sfondo pagina */
+  --color-iris:       #ece7fa;   /* Sfondo card, tag fill */
+
+  /* Toni intermedi */
+  --color-grafite:    #6b5f8a;   /* Body text su sfondo chiaro */
+  --color-lilla:      #8e82b0;   /* Meta, date, testi terziari */
+  --color-bordo:      #d8d0f0;   /* Bordi card, divisori */
+  --color-bordo-soft: #ede9f8;   /* Bordi sottili, hover states */
+
+  /* --- Tipografia --- */
+  --font-serif:   'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --font-sans:    'Inter', system-ui, sans-serif;
+
+  /* Scale tipografica */
+  --text-xs:   11px;
+  --text-sm:   13px;
+  --text-base: 16px;
+  --text-lg:   20px;
+  --text-xl:   26px;
+  --text-2xl:  32px;
+  --text-3xl:  40px;
+  --text-4xl:  56px;
+
+  /* Line heights */
+  --leading-tight:  1.15;
+  --leading-snug:   1.3;
+  --leading-normal: 1.6;
+  --leading-relaxed: 1.75;
+
+  /* Font weights */
+  --weight-normal: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+
+  /* Letter spacing */
+  --tracking-tight:  -0.01em;
+  --tracking-normal:  0;
+  --tracking-wide:    0.04em;
+  --tracking-wider:   0.08em;
+  --tracking-widest:  0.12em;
+
+  /* --- Spaziatura --- */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+
+  /* --- Border radius --- */
+  --radius-sm:   4px;
+  --radius-md:   8px;
+  --radius-lg:   12px;
+  --radius-xl:   16px;
+  --radius-pill: 999px;
+
+  /* --- Layout --- */
+  --max-width-prose:   680px;   /* Colonna articolo */
+  --max-width-content: 960px;   /* Layout generale */
+  --max-width-wide:    1200px;  /* Layout full */
+
+  /* --- Transizioni --- */
+  --transition-fast:   120ms ease;
+  --transition-base:   200ms ease;
+  --transition-slow:   350ms ease;
+
+  /* --- Ombre --- */
+  --shadow-sm: 0 1px 3px rgba(30, 22, 48, 0.06);
+  --shadow-md: 0 4px 16px rgba(30, 22, 48, 0.10);
+  --shadow-lg: 0 8px 32px rgba(30, 22, 48, 0.14);
+
+}
+
+
+/* =============================================
+   Componenti base
+   ============================================= */
+
+/* Tag / Badge */
+.tag {
+  display: inline-block;
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-wider);
+  text-transform: uppercase;
+  color: var(--color-viola);
+  background: var(--color-iris);
+  border-radius: var(--radius-sm);
+  padding: 2px 8px;
+}
+
+/* Card articolo */
+.article-card {
+  background: var(--color-iris);
+  border: 0.5px solid var(--color-bordo);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  transition: box-shadow var(--transition-base),
+              border-color var(--transition-base);
+}
+
+.article-card:hover {
+  border-color: var(--color-lavanda);
+  box-shadow: var(--shadow-md);
+}
+
+/* Titolo display (H1 articolo) */
+.title-display {
+  font-family: var(--font-serif);
+  font-size: var(--text-3xl);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+  color: var(--color-notte);
+  letter-spacing: var(--tracking-tight);
+}
+
+/* Titolo card (H3) */
+.title-card {
+  font-family: var(--font-serif);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-snug);
+  color: var(--color-notte);
+}
+
+/* Eyebrow / label sopra titoli */
+.eyebrow {
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+  color: var(--color-lavanda);
+}
+
+/* Testo body articolo */
+.prose {
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed);
+  color: var(--color-prugna);
+  max-width: var(--max-width-prose);
+}
+
+/* Testo meta (data, minuti lettura) */
+.meta {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--color-lilla);
+}
+
+/* Link */
+a {
+  color: var(--color-viola);
+  text-decoration: none;
+  border-bottom: 1px solid var(--color-bordo);
+  transition: border-color var(--transition-fast),
+              color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--color-lavanda);
+  border-bottom-color: var(--color-lavanda);
+}
+
+/* Bottone primario (dark) */
+.btn-primary {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  background: var(--color-notte);
+  color: var(--color-nebbia);
+  padding: 9px 20px;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  letter-spacing: var(--tracking-wide);
+  transition: background var(--transition-fast);
+}
+
+.btn-primary:hover {
+  background: var(--color-prugna);
+}
+
+/* Bottone accento (viola) */
+.btn-accent {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  background: var(--color-lavanda);
+  color: #fff;
+  padding: 9px 20px;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  letter-spacing: var(--tracking-wide);
+  transition: background var(--transition-fast);
+}
+
+.btn-accent:hover {
+  background: var(--color-viola);
+}
+
+/* Bottone ghost */
+.btn-ghost {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  background: transparent;
+  color: var(--color-notte);
+  padding: 8px 20px;
+  border-radius: var(--radius-md);
+  border: 0.5px solid var(--color-bordo);
+  cursor: pointer;
+  letter-spacing: var(--tracking-wide);
+  transition: border-color var(--transition-fast),
+              background var(--transition-fast);
+}
+
+.btn-ghost:hover {
+  border-color: var(--color-lavanda);
+  background: var(--color-iris);
+}
+
+/* Divisore */
+hr {
+  border: none;
+  border-top: 0.5px solid var(--color-bordo);
+  margin: var(--space-8) 0;
+}
+

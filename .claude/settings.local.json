@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx sv *)",
+      "Bash(npm install *)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('scripts:', list\\(d.get\\('scripts',{}\\).keys\\(\\)\\)\\)\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173/login)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173/admin)",
+      "Bash(kill %1)",
+      "Bash(mkdir -p /Users/niccolo/Sites/OhMyNic/blog/src/routes/\\\\\\(public\\\\\\)/\\\\[slug\\\\])",
+      "Bash(mkdir -p /Users/niccolo/Sites/OhMyNic/blog/src/routes/\\\\\\(public\\\\\\)/tag/\\\\[tag\\\\])",
+      "Bash(curl -s -o /dev/null -w \"/ → %{http_code}\\\\n\" http://localhost:5173/)",
+      "Bash(curl -s -o /dev/null -w \"/login → %{http_code}\\\\n\" http://localhost:5173/login)",
+      "Bash(curl -s -o /dev/null -w \"/admin → %{http_code}\\\\n\" http://localhost:5173/admin)",
+      "Bash(curl -s -o /dev/null -w \"/tag/inesistente → %{http_code}\\\\n\" http://localhost:5173/tag/inesistente)",
+      "Bash(curl -s http://localhost:5175/)",
+      "Bash(curl -s \"http://localhost:5175/__data.json?x-sveltekit-invalidated=11\")",
+      "Bash(pkill -f \"vite dev\")",
+      "Bash(curl -s http://localhost:5173/)",
+      "Bash(curl -s -o /dev/null -w \"/tag/test → %{http_code}\\\\n\" http://localhost:5173/tag/test)"
+    ]
+  }
+}
