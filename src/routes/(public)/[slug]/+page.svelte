@@ -240,6 +240,51 @@
     margin: var(--space-10) 0;
   }
 
+  /* ── toggle (BlockNote toggleListItem → <li><details><summary><p>…) ── */
+  /* rimuovi bullet dall'<li> che wrappa il toggle */
+  :global(.prose li:has(> details)) {
+    list-style: none;
+    padding-left: 0;
+  }
+  :global(.prose ul:has(> li > details)) {
+    padding-left: 0;
+  }
+  /* summary: flex per affiancare icona e testo sulla stessa riga */
+  :global(.prose details summary) {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    cursor: pointer;
+    padding: var(--space-1) 0;
+    color: var(--color-notte);
+    font-weight: var(--weight-medium);
+    user-select: none;
+  }
+  /* nascondi il marker di default (▶ browser) */
+  :global(.prose details summary::-webkit-details-marker) { display: none; }
+  :global(.prose details summary::marker) { content: none; }
+  /* icona personalizzata: ▶ che ruota a ▼ quando aperto */
+  :global(.prose details summary::before) {
+    content: '▶';
+    font-size: 0.65em;
+    flex-shrink: 0;
+    color: var(--color-viola);
+    transition: transform 0.15s ease;
+  }
+  :global(.prose details[open] summary::before) {
+    transform: rotate(90deg);
+  }
+  /* <p> dentro <summary> non deve essere block */
+  :global(.prose details summary p) {
+    display: inline;
+    margin: 0;
+  }
+  /* contenuto interno del toggle */
+  :global(.prose details > :not(summary)) {
+    padding-left: var(--space-5);
+    margin-top: var(--space-2);
+  }
+
   .article-footer {
     padding-top: var(--space-8);
     border-top: 0.5px solid var(--color-bordo);
