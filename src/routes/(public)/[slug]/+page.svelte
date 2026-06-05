@@ -241,32 +241,31 @@
   }
 
   /* ── toggle (BlockNote toggleListItem → <ul><li><details><summary><p>) ── */
-  /* rimuovi bullet dall'<li> che wrappa il toggle */
-  :global(.prose li:has(> details)) {
-    list-style: none;
-    padding-left: 0;
-  }
-  :global(.prose ul:has(> li > details)) {
-    padding-left: 0;
-  }
-  /* summary: display list-item (default browser) tiene il triangolo ▶ inline;
-     NON usare flex — in flex la <p> diventerebbe un flex-item separato */
+  :global(.prose li:has(> details)) { list-style: none; padding-left: 0; }
+  :global(.prose ul:has(> li > details)) { padding-left: 0; }
+
+  :global(.prose details) { margin: 0.5rem 0; }
+
   :global(.prose details summary) {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     cursor: pointer;
-    padding: var(--space-1) 0;
-    color: var(--color-notte);
-    font-weight: var(--weight-medium);
-    user-select: none;
+    list-style: none;
+    font-weight: 500;
   }
-  /* la <p> dentro summary DEVE essere inline, altrimenti va a capo dopo il ▶ */
-  :global(.prose details summary p) {
-    display: inline !important;
-    margin: 0 !important;
+  :global(.prose details summary::-webkit-details-marker) { display: none; }
+  :global(.prose details summary::before) {
+    content: '▶';
+    font-size: 0.65em;
+    color: var(--color-lavanda);
+    transition: transform var(--transition-fast);
+    flex-shrink: 0;
   }
-  /* contenuto interno del toggle */
-  :global(.prose details > :not(summary)) {
-    padding-left: var(--space-5);
-    margin-top: var(--space-2);
+  :global(.prose details[open] summary::before) { transform: rotate(90deg); }
+  :global(.prose details > p) {
+    margin-top: 0.5rem;
+    padding-left: 1.25rem;
   }
 
   .article-footer {
