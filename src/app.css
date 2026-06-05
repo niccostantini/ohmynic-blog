@@ -1,6 +1,12 @@
 @import '$lib/styles/tokens.css';
 
 /* ── Callout (BlockNote custom block) ──────────────────────────────────── */
+.prose::after {
+  content: '';
+  display: table;
+  clear: both;
+}
+
 .prose .callout {
   border-radius: 10px;
   padding: 1rem 1.25rem;
