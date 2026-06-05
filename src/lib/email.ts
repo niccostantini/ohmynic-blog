@@ -24,7 +24,7 @@ export function notifyNewComment({
 
   resend.emails
     .send({
-      from: 'OhMyNic! Blog <noreply@send.ohmynic.co>',
+      from: 'OhMyNic! Blog <onboarding@resend.dev>',
       to: notifyEmail,
       subject: `Nuovo commento su "${articleTitle}"`,
       html: `
