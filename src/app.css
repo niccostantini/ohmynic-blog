@@ -1,5 +1,56 @@
 @import '$lib/styles/tokens.css';
 
+/* ── Callout (BlockNote custom block) ──────────────────────────────────── */
+.prose .callout {
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  border: 0.5px solid transparent;
+  margin: 0.25rem 0 1rem;
+}
+.prose .callout.float-right { float: right;  width: 42%; margin: 0.25rem 0 1rem 1.5rem; }
+.prose .callout.float-left  { float: left;   width: 42%; margin: 0.25rem 1.5rem 1rem 0; }
+.prose .callout.center      { float: none;   width: 70%; margin: 1rem auto; }
+
+.prose .callout.nota       { background: #ece7fa; border-color: #c9b8f0; color: #3b2f5e; }
+.prose .callout.attenzione { background: #faeeda; border-color: #fac775; color: #633806; }
+.prose .callout.info       { background: #e6f1fb; border-color: #b5d4f4; color: #0c447c; }
+
+.prose .callout-inner {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+.prose .callout-icon {
+  font-size: 1.15rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+  opacity: 0.9;
+}
+.prose .callout-body { flex: 1; min-width: 0; }
+.prose .callout-title {
+  font-weight: 600;
+  margin-bottom: 0.25rem !important;
+  font-size: 0.9rem;
+}
+.prose .callout-text { margin: 0 !important; }
+
+/* mobile: float collassa a blockquote-style */
+@media (max-width: 640px) {
+  .prose .callout.float-right,
+  .prose .callout.float-left {
+    float: none;
+    width: 100%;
+    margin: 0 0 1rem;
+    border-left: 3px solid #9b6ff0;
+    border-radius: 0;
+    background: transparent !important;
+    border-top: none;
+    border-right: none;
+    border-bottom: none;
+  }
+}
+/* ─────────────────────────────────────────────────────────────────────────── */
+
 /* ── Toggle BlockNote (struttura: ul > li > details > summary > p) ──────── */
 .prose li:has(> details)       { list-style: none; padding-left: 0; }
 .prose ul:has(> li > details)  { padding-left: 0; }

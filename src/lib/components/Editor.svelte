@@ -24,13 +24,28 @@
     const React = await import('react');
     const { createElement } = React;
     const { createRoot } = await import('react-dom/client');
-    const { useCreateBlockNote } = await import('@blocknote/react');
+    const {
+      useCreateBlockNote,
+      SuggestionMenuController,
+      getDefaultReactSlashMenuItems,
+    } = await import('@blocknote/react');
     const { BlockNoteView } = await import('@blocknote/mantine');
+    const { BlockNoteSchema, defaultBlockSpecs } = await import('@blocknote/core');
+    const { filterSuggestionItems } = await import('@blocknote/core/extensions');
+    const { calloutBlockSpec } = await import('./CalloutBlock.js');
 
     await import('@blocknote/mantine/style.css');
 
+    // Schema con blocco callout custom
+    const schema = BlockNoteSchema.create({
+      blockSpecs: {
+        ...defaultBlockSpecs,
+        callout: calloutBlockSpec(),
+      },
+    });
+
     function EditorWrapper({ html, onChange }: { html: string; onChange: (h: string) => void }) {
-      const editor = useCreateBlockNote();
+      const editor = useCreateBlockNote({ schema } as any);
 
       React.useEffect(() => {
         const blocks = editor.tryParseHTMLToBlocks(html);
@@ -44,11 +59,38 @@
         onChange(h);
       }, [editor]);
 
-      return createElement(BlockNoteView as any, {
-        editor,
-        onChange: handleChange,
-        theme: 'light',
-      });
+      // Slash menu items: default + tre varianti callout
+      const getSlashItems = React.useCallback(async (query: string) => {
+        const defaults = getDefaultReactSlashMenuItems(editor as any);
+        const callouts = (
+          [
+            { key: 'nota',       emoji: '💡', label: 'Callout Nota',       variant: 'nota'       },
+            { key: 'attenzione', emoji: '⚠️', label: 'Callout Attenzione', variant: 'attenzione' },
+            { key: 'info',       emoji: 'ℹ️', label: 'Callout Info',       variant: 'info'       },
+          ] as const
+        ).map(({ emoji, label, variant }) => ({
+          title: label,
+          group: 'Callout',
+          icon: createElement('span', { style: { fontSize: '1.1rem' } }, emoji),
+          onItemClick: () => {
+            editor.insertBlocks(
+              [{ type: 'callout' as any, props: { variant, position: 'center', title: '' }, content: '' }],
+              editor.getTextCursorPosition().block,
+              'after',
+            );
+          },
+        }));
+        return filterSuggestionItems([...defaults, ...callouts] as any, query) as any;
+      }, [editor]);
+
+      return createElement(
+        BlockNoteView as any,
+        { editor, onChange: handleChange, theme: 'light', slashMenu: false },
+        createElement(SuggestionMenuController as any, {
+          triggerCharacter: '/',
+          getItems: getSlashItems,
+        }),
+      );
     }
 
     if (!mountEl) return;
