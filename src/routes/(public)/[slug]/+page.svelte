@@ -22,10 +22,25 @@
   <title>{data.article.title} — OhMyNic!</title>
   <meta name="description" content={data.article.excerpt ?? ''} />
   <link rel="canonical" href="https://ohmynic.co/blog/{data.article.slug}" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="OhMyNic!" />
+  <meta property="og:title" content={data.article.title} />
+  <meta property="og:description" content={data.article.excerpt ?? ''} />
   <meta property="og:url" content="https://ohmynic.co/blog/{data.article.slug}" />
-  {#if data.article.coverImage}
-    <meta property="og:image" content={data.article.coverImage} />
+  <meta property="og:image" content={data.article.coverImage ?? `https://ohmynic.co/blog/api/og/${data.article.slug}`} />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  {#if data.article.publishedAt}
+    <meta property="article:published_time" content={new Date(data.article.publishedAt).toISOString()} />
   {/if}
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={data.article.title} />
+  <meta name="twitter:description" content={data.article.excerpt ?? ''} />
+  <meta name="twitter:image" content={data.article.coverImage ?? `https://ohmynic.co/blog/api/og/${data.article.slug}`} />
 </svelte:head>
 
 <article class="article-wrap">

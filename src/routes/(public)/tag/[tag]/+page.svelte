@@ -10,6 +10,16 @@
 
 <svelte:head>
   <title>#{data.tag.name} — OhMyNic!</title>
+  <meta name="description" content="Articoli su #{data.tag.name} — OhMyNic!" />
+  <link rel="canonical" href="https://ohmynic.co/blog/tag/{data.tag.slug}" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="OhMyNic!" />
+  <meta property="og:title" content="#{data.tag.name} — OhMyNic!" />
+  <meta property="og:description" content="Articoli su #{data.tag.name} — OhMyNic!" />
+  <meta property="og:url" content="https://ohmynic.co/blog/tag/{data.tag.slug}" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="#{data.tag.name} — OhMyNic!" />
+  <meta name="twitter:description" content="Articoli su #{data.tag.name} — OhMyNic!" />
 </svelte:head>
 
 <div class="page-wrap">
