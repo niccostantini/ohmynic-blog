@@ -24,7 +24,7 @@ export const load: PageServerLoad = async ({ params }) => {
 };
 
 export const actions: Actions = {
-  default: async ({ request, params }) => {
+  save: async ({ request, params }) => {
     const data = await request.formData();
     const title = data.get('title');
     const content = data.get('content');

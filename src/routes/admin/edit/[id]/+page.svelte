@@ -57,7 +57,7 @@
 
   {#if form?.error}<p class="error">{form.error}</p>{/if}
 
-  <form method="POST" use:enhance>
+  <form method="POST" action="?/save" use:enhance>
     <input type="hidden" name="content" value={content} />
     <input type="hidden" name="tags" value={selectedTags.join(',')} />
 
