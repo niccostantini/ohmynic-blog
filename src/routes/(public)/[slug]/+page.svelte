@@ -9,7 +9,7 @@
   let { data }: { data: PageData } = $props();
 
   const pageUrl = $derived(
-    typeof window !== 'undefined' ? window.location.href : `https://ohmynic.co/${data.article.slug}`
+    typeof window !== 'undefined' ? window.location.href : `https://ohmynic.co/blog/${data.article.slug}`
   );
 
   function formatDate(d: Date | string | null) {
@@ -21,6 +21,8 @@
 <svelte:head>
   <title>{data.article.title} — OhMyNic!</title>
   <meta name="description" content={data.article.excerpt ?? ''} />
+  <link rel="canonical" href="https://ohmynic.co/blog/{data.article.slug}" />
+  <meta property="og:url" content="https://ohmynic.co/blog/{data.article.slug}" />
   {#if data.article.coverImage}
     <meta property="og:image" content={data.article.coverImage} />
   {/if}
