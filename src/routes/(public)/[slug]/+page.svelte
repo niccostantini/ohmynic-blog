@@ -240,6 +240,68 @@
     margin: var(--space-10) 0;
   }
 
+  /* ── Footnotes ─────────────────────────────────────────────────────────── */
+  :global(.prose sup.footnote a) {
+    color: #7c55d4;
+    text-decoration: none;
+    font-size: 0.75em;
+    vertical-align: super;
+    font-family: var(--font-sans);
+    font-weight: 500;
+    padding: 0 1px;
+  }
+  :global(.prose sup.footnote a:hover) {
+    color: #9b6ff0;
+  }
+  :global(.prose .footnote-divider) {
+    border: none;
+    border-top: 0.5px solid #d8d0f0;
+    margin: 3rem 0 1.5rem;
+  }
+  :global(.prose .footnote-heading) {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #8e82b0;
+    margin: 0 0 1rem;
+  }
+  :global(.prose .footnotes) {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    counter-reset: footnote-counter;
+  }
+  :global(.prose .footnotes li) {
+    font-size: 13px;
+    line-height: 1.6;
+    color: #6b5f8a;
+    padding: 4px 0 4px 1.5rem;
+    position: relative;
+    margin-bottom: 4px;
+  }
+  :global(.prose .footnotes li::before) {
+    content: "[" counter(footnote-counter) "]";
+    counter-increment: footnote-counter;
+    position: absolute;
+    left: 0;
+    color: #7c55d4;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  :global(.prose .footnote-backref) {
+    color: #9b6ff0;
+    text-decoration: none;
+    margin-left: 6px;
+    font-size: 12px;
+    border-bottom: none !important;
+  }
+  :global(.prose .footnote-backref:hover) {
+    color: #7c55d4;
+    border-bottom: none !important;
+  }
+
   .article-footer {
     padding-top: var(--space-8);
     border-top: 0.5px solid var(--color-bordo);

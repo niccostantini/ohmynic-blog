@@ -1,5 +1,7 @@
 @import '$lib/styles/tokens.css';
 
+html { scroll-behavior: smooth; }
+
 /* ── Callout (BlockNote custom block) ──────────────────────────────────── */
 .prose::after {
   content: '';
