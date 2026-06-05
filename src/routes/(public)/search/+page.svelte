@@ -4,7 +4,26 @@
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
+
   let searchInput = $state(data.query);
+
+  const totalPages = $derived(Math.ceil(data.total / data.perPage));
+
+  function tagUrl(slug: string) {
+    const p = new URLSearchParams({ q: data.query });
+    if (data.activeTag !== slug) p.set('tag', slug);
+    return `${base}/search?${p}`;
+  }
+
+  function pageUrl(p: number) {
+    const params = new URLSearchParams({ q: data.query });
+    if (data.activeTag) params.set('tag', data.activeTag);
+    params.set('page', String(p));
+    return `${base}/search?${params}`;
+  }
+
+  // tag con almeno un articolo pubblicato
+  const visibleTags = $derived(data.allTags.filter((t) => t.count > 0));
 </script>
 
 <svelte:head>
@@ -13,9 +32,10 @@
 </svelte:head>
 
 <div class="page-wrap">
+
+  <!-- header: back + search bar -->
   <div class="search-header">
     <a href="{base}/" class="back-link">← Tutti gli articoli</a>
-
     <form method="GET" action="{base}/search" class="search-form">
       <div class="search-input-wrap">
         <input
@@ -37,26 +57,90 @@
     </form>
   </div>
 
+  <!-- tag chips -->
+  {#if visibleTags.length > 0}
+    <div class="tag-chips">
+      {#each visibleTags as tag}
+        <a
+          href={tagUrl(tag.slug)}
+          class="chip"
+          class:active={data.activeTag === tag.slug}
+          aria-pressed={data.activeTag === tag.slug}
+        >
+          {tag.name}
+          {#if data.activeTag === tag.slug}
+            <span class="chip-remove" aria-hidden="true">×</span>
+          {/if}
+        </a>
+      {/each}
+    </div>
+  {/if}
+
   {#if data.results.length === 0}
     <div class="no-results">
       <p class="no-results-msg">
-        Nessun articolo trovato per <strong>"{data.query}"</strong>.
+        Nessun articolo trovato per <strong>"{data.query}"</strong>{data.activeTag ? ` nel tag "${data.activeTag}"` : ''}.
       </p>
-      <a href="{base}/" class="btn-ghost">← Torna alla homepage</a>
+      {#if data.activeTag}
+        <a href="{base}/search?q={encodeURIComponent(data.query)}" class="btn-ghost">
+          Rimuovi filtro tag
+        </a>
+      {:else}
+        <a href="{base}/" class="btn-ghost">← Torna alla homepage</a>
+      {/if}
     </div>
   {:else}
+    <!-- risultati header -->
     <div class="results-header">
       <span class="results-label">
         Risultati per: <strong>{data.query}</strong>
+        {#if data.activeTag}
+          <span class="active-tag-badge">
+            #{data.activeTag}
+            <a href="{base}/search?q={encodeURIComponent(data.query)}" class="remove-tag" aria-label="Rimuovi filtro">×</a>
+          </span>
+        {/if}
       </span>
-      <span class="results-count">{data.results.length} articolo{data.results.length !== 1 ? 'i' : ''}</span>
+      <span class="results-count">{data.total} articolo{data.total !== 1 ? 'i' : ''}</span>
     </div>
 
+    <!-- griglia risultati -->
     <div class="results-grid">
       {#each data.results as item}
         <ArticleCard article={item.article} tags={item.tags} />
       {/each}
     </div>
+
+    <!-- paginazione -->
+    {#if totalPages > 1}
+      <nav class="pagination" aria-label="Paginazione risultati">
+        {#if data.page > 1}
+          <a href={pageUrl(data.page - 1)} class="page-btn">← Precedente</a>
+        {:else}
+          <span class="page-btn disabled">← Precedente</span>
+        {/if}
+
+        <div class="page-numbers">
+          {#each Array.from({ length: totalPages }, (_, i) => i + 1) as p}
+            {#if p === 1 || p === totalPages || Math.abs(p - data.page) <= 1}
+              <a
+                href={pageUrl(p)}
+                class="page-num"
+                class:current={p === data.page}
+              >{p}</a>
+            {:else if Math.abs(p - data.page) === 2}
+              <span class="ellipsis">…</span>
+            {/if}
+          {/each}
+        </div>
+
+        {#if data.page < totalPages}
+          <a href={pageUrl(data.page + 1)} class="page-btn">Successiva →</a>
+        {:else}
+          <span class="page-btn disabled">Successiva →</span>
+        {/if}
+      </nav>
+    {/if}
   {/if}
 </div>
 
@@ -67,11 +151,12 @@
     padding: var(--space-12) var(--space-8);
   }
 
+  /* ── header ── */
   .search-header {
     display: flex;
     align-items: center;
     gap: var(--space-6);
-    margin-bottom: var(--space-10);
+    margin-bottom: var(--space-8);
     flex-wrap: wrap;
   }
 
@@ -122,32 +207,159 @@
   }
   .search-btn:hover { color: var(--color-viola); }
 
+  /* ── tag chips ── */
+  .tag-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-bottom: var(--space-8);
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--color-viola);
+    background: var(--color-iris);
+    border: 0.5px solid transparent;
+    border-radius: var(--radius-pill);
+    padding: 4px 12px;
+    text-decoration: none;
+    transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+  }
+  .chip:hover { background: var(--color-bordo); }
+  .chip.active {
+    background: var(--color-lavanda);
+    color: white;
+    border-color: var(--color-viola);
+  }
+  .chip-remove {
+    font-size: 14px;
+    line-height: 1;
+    margin-left: 2px;
+    opacity: 0.8;
+  }
+
+  /* ── risultati header ── */
   .results-header {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     gap: var(--space-4);
     margin-bottom: var(--space-8);
     flex-wrap: wrap;
   }
 
   .results-label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
     font-family: var(--font-sans);
-    font-size: var(--text-lg);
+    font-size: var(--text-base);
     color: var(--color-notte);
+    flex-wrap: wrap;
   }
+
+  .active-tag-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--color-lavanda);
+    color: white;
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    padding: 2px 10px;
+    border-radius: var(--radius-pill);
+  }
+
+  .remove-tag {
+    color: white;
+    text-decoration: none;
+    font-size: 14px;
+    line-height: 1;
+    opacity: 0.8;
+    transition: opacity var(--transition-fast);
+  }
+  .remove-tag:hover { opacity: 1; }
 
   .results-count {
     font-family: var(--font-sans);
     font-size: var(--text-sm);
     color: var(--color-lilla);
+    margin-left: auto;
   }
 
+  /* ── griglia ── */
   .results-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: var(--space-6);
+    margin-bottom: var(--space-10);
   }
 
+  /* ── paginazione ── */
+  .pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+    padding-top: var(--space-6);
+    border-top: 0.5px solid var(--color-bordo);
+  }
+
+  .page-btn {
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--color-notte);
+    background: white;
+    padding: 7px 16px;
+    border-radius: var(--radius-md);
+    border: 0.5px solid var(--color-bordo);
+    text-decoration: none;
+    transition: border-color var(--transition-fast), background var(--transition-fast);
+  }
+  .page-btn:not(.disabled):hover { border-color: var(--color-lavanda); background: var(--color-iris); }
+  .page-btn.disabled { color: var(--color-lilla); cursor: default; }
+
+  .page-numbers {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+  }
+
+  .page-num {
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    color: var(--color-notte);
+    text-decoration: none;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+    border: 0.5px solid transparent;
+    transition: background var(--transition-fast), border-color var(--transition-fast);
+  }
+  .page-num:hover { background: var(--color-iris); border-color: var(--color-bordo); }
+  .page-num.current {
+    background: var(--color-lavanda);
+    color: white;
+    border-color: var(--color-lavanda);
+  }
+
+  .ellipsis {
+    font-size: var(--text-sm);
+    color: var(--color-lilla);
+    padding: 0 var(--space-1);
+  }
+
+  /* ── no results ── */
   .no-results {
     display: flex;
     flex-direction: column;
@@ -178,7 +390,8 @@
 
   @media (max-width: 640px) {
     .page-wrap { padding: var(--space-8) var(--space-4); }
-    .search-header { gap: var(--space-4); }
     .search-form { width: 100%; }
+    .results-count { margin-left: 0; }
+    .page-numbers { display: none; }
   }
 </style>

@@ -140,28 +140,52 @@ export function sanitizeSearchQuery(raw: string): string {
     .slice(0, 200);
 }
 
-export async function searchArticles(query: string, limit = 20) {
-  const clean = sanitizeSearchQuery(query);
-  if (!clean) return [];
-
+function buildSearchConditions(clean: string, tagSlug?: string) {
   const vector = sql`to_tsvector('italian',
     coalesce(${articles.title}, '') || ' ' ||
     coalesce(${articles.excerpt}, '') || ' ' ||
     coalesce(${articles.content}, ''))`;
-
   const tsq = sql`plainto_tsquery('italian', ${clean})`;
+  const tagFilter = tagSlug
+    ? inArray(
+        articles.id,
+        db.select({ id: articleTags.articleId })
+          .from(articleTags)
+          .innerJoin(tags, eq(tags.id, articleTags.tagId))
+          .where(eq(tags.slug, tagSlug))
+      )
+    : undefined;
+  return { vector, tsq, tagFilter };
+}
+
+export async function searchArticles(
+  query: string,
+  opts: { tagSlug?: string; page?: number; perPage?: number } = {}
+) {
+  const clean = sanitizeSearchQuery(query);
+  if (!clean) return [];
+  const { tagSlug, page = 1, perPage = 12 } = opts;
+  const { vector, tsq, tagFilter } = buildSearchConditions(clean, tagSlug);
 
   return db
     .select()
     .from(articles)
-    .where(
-      and(
-        eq(articles.published, true),
-        sql`${vector} @@ ${tsq}`
-      )
-    )
+    .where(and(eq(articles.published, true), sql`${vector} @@ ${tsq}`, tagFilter))
     .orderBy(desc(sql`ts_rank(${vector}, ${tsq})`))
-    .limit(limit);
+    .limit(perPage)
+    .offset((page - 1) * perPage);
+}
+
+export async function countSearchResults(query: string, tagSlug?: string) {
+  const clean = sanitizeSearchQuery(query);
+  if (!clean) return 0;
+  const { vector, tsq, tagFilter } = buildSearchConditions(clean, tagSlug);
+
+  const result = await db
+    .select({ count: sql<number>`cast(count(*) as int)` })
+    .from(articles)
+    .where(and(eq(articles.published, true), sql`${vector} @@ ${tsq}`, tagFilter));
+  return result[0]?.count ?? 0;
 }
 
 export async function getRelatedArticles(articleId: string, limit = 3) {
