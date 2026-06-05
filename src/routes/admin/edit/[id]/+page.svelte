@@ -76,7 +76,10 @@
           toLocale: data.locale,
         }),
       });
-      if (!res.ok) throw new Error('Errore nella traduzione automatica');
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.message ?? `Errore ${res.status} nella traduzione automatica`);
+      }
       const result = await res.json();
       title = result.title ?? title;
       content = result.content ?? content;
