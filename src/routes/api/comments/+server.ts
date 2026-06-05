@@ -1,6 +1,6 @@
 import { json, error } from '@sveltejs/kit';
 import { createComment } from '$lib/db/queries/comments';
-import { getArticleById } from '$lib/db/queries/articles';
+import { getArticleById, getArticleTranslation } from '$lib/db/queries/articles';
 import { notifyNewComment } from '$lib/email';
 import type { RequestHandler } from './$types';
 
@@ -16,7 +16,11 @@ export const POST: RequestHandler = async ({ request }) => {
   }
 
   const article = await getArticleById(body.articleId);
-  if (!article || !article.published) {
+  if (!article) error(404, 'Articolo non trovato');
+
+  // Use Italian translation for validation and notification (the canonical version)
+  const translation = await getArticleTranslation(body.articleId, 'it');
+  if (!translation || !translation.published) {
     error(404, 'Articolo non trovato');
   }
 
@@ -28,7 +32,7 @@ export const POST: RequestHandler = async ({ request }) => {
   });
 
   notifyNewComment({
-    articleTitle: article.title,
+    articleTitle: translation.title,
     articleSlug: article.slug,
     authorName: comment.authorName ?? undefined,
     authorEmail: comment.authorEmail ?? undefined,

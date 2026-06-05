@@ -9,6 +9,9 @@
 
   let { data }: { data: PageData } = $props();
 
+  const LOCALE_LABELS: Record<string, string> = { it: 'IT', en: 'EN' };
+  const multiLocale = $derived(data.availableLocales.length > 1);
+
   const pageUrl = $derived(
     typeof window !== 'undefined' ? window.location.href : `https://ohmynic.co/blog/${data.article.slug}`
   );
@@ -60,6 +63,14 @@
 
   <!-- JSON-LD -->
   {@html `<script type="application/ld+json">${jsonLd}</script>`}
+
+  <!-- hreflang for multilingual articles -->
+  {#if multiLocale}
+    {#each data.availableLocales as loc}
+      <link rel="alternate" hreflang={loc} href="https://ohmynic.co/blog/{data.article.slug}{loc !== 'it' ? '?lang=' + loc : ''}" />
+    {/each}
+    <link rel="alternate" hreflang="x-default" href="https://ohmynic.co/blog/{data.article.slug}" />
+  {/if}
 </svelte:head>
 
 <article class="article-wrap">
@@ -78,6 +89,20 @@
       <time datetime={String(data.article.publishedAt)}>
         {formatDate(data.article.publishedAt)}
       </time>
+      {#if multiLocale}
+        <div class="lang-switcher">
+          {#each data.availableLocales as loc}
+            <a
+              href="{base}/{data.article.slug}{loc !== 'it' ? '?lang=' + loc : ''}"
+              class="lang-link"
+              class:active={data.locale === loc}
+              aria-current={data.locale === loc ? 'page' : undefined}
+            >
+              {LOCALE_LABELS[loc] ?? loc.toUpperCase()}
+            </a>
+          {/each}
+        </div>
+      {/if}
     </div>
   </div>
 
@@ -161,6 +186,37 @@
     font-family: var(--font-sans);
     font-size: var(--text-sm);
     color: var(--color-lilla);
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+  }
+
+  .lang-switcher {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+
+  .lang-link {
+    font-family: var(--font-sans);
+    font-size: 11px;
+    font-weight: var(--weight-semibold);
+    letter-spacing: 0.05em;
+    padding: 2px 7px;
+    border-radius: 3px;
+    border: 1px solid var(--color-bordo);
+    color: var(--color-lilla);
+    text-decoration: none;
+    transition: border-color var(--transition-fast), color var(--transition-fast);
+  }
+
+  .lang-link:hover { border-color: var(--color-lavanda); color: var(--color-viola); }
+
+  .lang-link.active {
+    border-color: var(--color-lavanda);
+    background: var(--color-iris);
+    color: var(--color-viola);
   }
 
   .article-cover {

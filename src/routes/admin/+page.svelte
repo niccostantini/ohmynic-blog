@@ -4,9 +4,17 @@
 
   let { data }: { data: PageData } = $props();
 
+  const LOCALES = ['it', 'en'];
+
   function formatDate(d: Date | string | null) {
     if (!d) return '—';
     return new Date(d).toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  function translationStatus(article: typeof data.articles[0], locale: string) {
+    const t = article.translations.find((x) => x.locale === locale);
+    if (!t) return 'missing';
+    return t.published ? 'published' : 'draft';
   }
 </script>
 
@@ -23,19 +31,20 @@
   <div class="article-table">
     <div class="table-head">
       <span>Titolo</span>
-      <span>Stato</span>
+      <span>Lingue</span>
       <span>Data</span>
       <span></span>
     </div>
     {#each data.articles as article}
       <div class="table-row">
         <span class="article-title">{article.title}</span>
-        <span>
-          {#if article.published}
-            <span class="badge published">Pubblicato</span>
-          {:else}
-            <span class="badge draft">Bozza</span>
-          {/if}
+        <span class="lang-badges">
+          {#each LOCALES as locale}
+            {@const status = translationStatus(article, locale)}
+            <span class="lang-badge {status}" title="{locale.toUpperCase()}: {status}">
+              {locale.toUpperCase()}
+            </span>
+          {/each}
         </span>
         <span class="meta">{formatDate(article.published ? article.publishedAt : article.createdAt)}</span>
         <span class="actions">
@@ -85,7 +94,7 @@
 
   .table-head, .table-row {
     display: grid;
-    grid-template-columns: 1fr 120px 140px 160px;
+    grid-template-columns: 1fr 90px 140px 160px;
     align-items: center;
     gap: var(--space-4);
     padding: var(--space-4) var(--space-5);
@@ -117,22 +126,39 @@
     text-overflow: ellipsis;
   }
 
-  .badge {
-    display: inline-block;
-    font-size: var(--text-xs);
-    font-weight: var(--weight-medium);
-    padding: 2px 8px;
-    border-radius: var(--radius-pill);
+  .lang-badges {
+    display: flex;
+    gap: 4px;
   }
 
-  .badge.published {
+  .lang-badge {
+    display: inline-block;
+    font-family: var(--font-sans);
+    font-size: 10px;
+    font-weight: var(--weight-semibold);
+    letter-spacing: 0.05em;
+    padding: 2px 6px;
+    border-radius: 3px;
+    line-height: 1.4;
+  }
+
+  .lang-badge.published {
     background: #d1fae5;
     color: #065f46;
+    border: 1px solid #a7f3d0;
   }
 
-  .badge.draft {
-    background: var(--color-iris);
+  .lang-badge.draft {
+    background: transparent;
     color: var(--color-viola);
+    border: 1px dashed var(--color-lavanda);
+  }
+
+  .lang-badge.missing {
+    background: transparent;
+    color: var(--color-lilla);
+    border: 1px dashed var(--color-bordo);
+    opacity: 0.5;
   }
 
   .meta { font-size: var(--text-sm); color: var(--color-lilla); }

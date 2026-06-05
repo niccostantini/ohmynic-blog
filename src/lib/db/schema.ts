@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, boolean, uuid } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, boolean, uuid, uniqueIndex } from 'drizzle-orm/pg-core';
 
 export const users = pgTable('users', {
   id: text('id').primaryKey(),
@@ -15,16 +15,25 @@ export const sessions = pgTable('sessions', {
 
 export const articles = pgTable('articles', {
   id: uuid('id').primaryKey().defaultRandom(),
-  title: text('title').notNull(),
   slug: text('slug').notNull().unique(),
-  content: text('content').notNull(),
-  excerpt: text('excerpt'),
   coverImage: text('cover_image'),
-  published: boolean('published').default(false).notNull(),
-  publishedAt: timestamp('published_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
+
+export const articleTranslations = pgTable('article_translations', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  articleId: uuid('article_id').notNull().references(() => articles.id, { onDelete: 'cascade' }),
+  locale: text('locale').notNull(),
+  title: text('title').notNull(),
+  content: text('content').notNull(),
+  excerpt: text('excerpt'),
+  published: boolean('published').default(false).notNull(),
+  publishedAt: timestamp('published_at'),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (t) => ({
+  articleLocaleUniq: uniqueIndex('article_translations_article_locale_unique').on(t.articleId, t.locale),
+}));
 
 export const tags = pgTable('tags', {
   id: uuid('id').primaryKey().defaultRandom(),
