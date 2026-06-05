@@ -1,5 +1,43 @@
 @import '$lib/styles/tokens.css';
 
+/* ── Toggle BlockNote (struttura: ul > li > details > summary > p) ──────── */
+.prose li:has(> details)       { list-style: none; padding-left: 0; }
+.prose ul:has(> li > details)  { padding-left: 0; }
+
+.prose details { margin: 0.5rem 0; }
+
+.prose details summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  list-style: none;
+  font-weight: 500;
+}
+/* rimuovi il triangolo nativo in tutti i browser */
+.prose details summary::-webkit-details-marker { display: none; }
+.prose details summary::marker              { content: none; }
+
+/* triangolo custom che ruota all'apertura */
+.prose details summary::before {
+  content: '▶';
+  font-size: 0.65em;
+  color: var(--color-lavanda);
+  transition: transform var(--transition-fast);
+  flex-shrink: 0;
+}
+.prose details[open] summary::before { transform: rotate(90deg); }
+
+/* <p> dentro <summary> è un flex-item: azzera margini residui */
+.prose details summary p { margin: 0; }
+
+/* paragrafi del contenuto (figli diretti di details, non summary) */
+.prose details > p {
+  margin-top: 0.5rem;
+  padding-left: 1.25rem;
+}
+/* ─────────────────────────────────────────────────────────────────────────── */
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
