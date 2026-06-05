@@ -4,10 +4,11 @@ import { lucia } from '$lib/auth';
 import { db } from '$lib/db/index';
 import { users } from '$lib/db/schema';
 import { eq } from 'drizzle-orm';
+import { base } from '$app/paths';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
-  if (locals.user) redirect(302, '/admin');
+  if (locals.user) redirect(302, `${base}/admin`);
   return {};
 };
 
@@ -39,6 +40,6 @@ export const actions: Actions = {
       ...sessionCookie.attributes,
     });
 
-    redirect(302, '/admin');
+    redirect(302, `${base}/admin`);
   },
 };
