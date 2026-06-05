@@ -1,6 +1,6 @@
 import { eq, and, desc } from 'drizzle-orm';
 import { db } from '../index';
-import { comments } from '../schema';
+import { comments, articles } from '../schema';
 
 export async function getApprovedComments(articleId: string) {
   return db
@@ -39,4 +39,22 @@ export async function approveComment(id: string) {
 
 export async function deleteComment(id: string) {
   await db.delete(comments).where(eq(comments.id, id));
+}
+
+export async function getAllCommentsWithArticle() {
+  return db
+    .select({
+      id: comments.id,
+      articleId: comments.articleId,
+      articleTitle: articles.title,
+      articleSlug: articles.slug,
+      authorName: comments.authorName,
+      authorEmail: comments.authorEmail,
+      content: comments.content,
+      approved: comments.approved,
+      createdAt: comments.createdAt,
+    })
+    .from(comments)
+    .innerJoin(articles, eq(articles.id, comments.articleId))
+    .orderBy(desc(comments.createdAt));
 }

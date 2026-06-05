@@ -1,6 +1,40 @@
 import { Resend } from 'resend';
 import { env } from '$env/dynamic/private';
 
+export function sendCommentReply({
+  to,
+  articleTitle,
+  articleSlug,
+  replyText,
+}: {
+  to: string;
+  articleTitle: string;
+  articleSlug: string;
+  replyText: string;
+}): void {
+  const apiKey = env.RESEND_API_KEY;
+  if (!apiKey) return;
+
+  const resend = new Resend(apiKey);
+  const articleUrl = `https://ohmynic.co/blog/${articleSlug}`;
+
+  resend.emails
+    .send({
+      from: 'OhMyNic! Blog <onboarding@resend.dev>',
+      to,
+      subject: `Re: il tuo commento su "${articleTitle}"`,
+      html: `
+        <p>${replyText.replace(/\n/g, '<br>')}</p>
+        <p style="margin-top:24px;">
+          <a href="${articleUrl}">Leggi l'articolo</a>
+        </p>
+      `,
+    })
+    .catch((err: unknown) => {
+      console.error('[resend] risposta commento fallita:', err);
+    });
+}
+
 export function notifyNewComment({
   articleTitle,
   articleSlug,
