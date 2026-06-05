@@ -1,6 +1,7 @@
 import { json, error } from '@sveltejs/kit';
 import { createComment } from '$lib/db/queries/comments';
 import { getArticleById } from '$lib/db/queries/articles';
+import { notifyNewComment } from '$lib/email';
 import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ request }) => {
@@ -24,6 +25,13 @@ export const POST: RequestHandler = async ({ request }) => {
     content: body.content.trim(),
     authorName: typeof body.authorName === 'string' && body.authorName.trim() ? body.authorName.trim() : undefined,
     authorEmail: typeof body.authorEmail === 'string' && body.authorEmail.trim() ? body.authorEmail.trim() : undefined,
+  });
+
+  notifyNewComment({
+    articleTitle: article.title,
+    articleSlug: article.slug,
+    authorName: comment.authorName ?? undefined,
+    content: comment.content,
   });
 
   return json({ ok: true, id: comment.id }, { status: 201 });

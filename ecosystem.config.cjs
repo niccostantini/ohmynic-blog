@@ -15,6 +15,8 @@ module.exports = {
         AUTH_SECRET: process.env.AUTH_SECRET,
         ADMIN_USERNAME: process.env.ADMIN_USERNAME,
         ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
+        RESEND_API_KEY: process.env.RESEND_API_KEY,
+        NOTIFY_EMAIL: process.env.NOTIFY_EMAIL,
       },
     },
   ],
