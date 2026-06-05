@@ -1,4 +1,4 @@
-import { eq, desc, and, sql } from 'drizzle-orm';
+import { eq, desc, and, ne, inArray, sql } from 'drizzle-orm';
 import { db } from '../index';
 import { articles, articleTags, tags } from '../schema';
 
@@ -130,6 +130,35 @@ export async function getTagsForArticle(articleId: string) {
     .innerJoin(articleTags, eq(articleTags.tagId, tags.id))
     .where(eq(articleTags.articleId, articleId))
     .then((rows) => rows.map((r) => r.tag));
+}
+
+export async function getRelatedArticles(articleId: string, limit = 3) {
+  const currentTags = await db
+    .select({ tagId: articleTags.tagId })
+    .from(articleTags)
+    .where(eq(articleTags.articleId, articleId));
+
+  if (currentTags.length === 0) return [];
+
+  const tagIds = currentTags.map((t) => t.tagId);
+
+  return db
+    .select({
+      article: articles,
+      sharedCount: sql<number>`cast(count(*) as int)`.as('shared_count'),
+    })
+    .from(articles)
+    .innerJoin(articleTags, eq(articleTags.articleId, articles.id))
+    .where(
+      and(
+        ne(articles.id, articleId),
+        eq(articles.published, true),
+        inArray(articleTags.tagId, tagIds),
+      )
+    )
+    .groupBy(articles.id)
+    .orderBy(desc(sql`count(*)`))
+    .limit(limit);
 }
 
 export async function setArticleTags(articleId: string, tagIds: string[]) {

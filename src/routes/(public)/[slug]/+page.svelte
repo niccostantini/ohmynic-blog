@@ -1,5 +1,6 @@
 <script lang="ts">
   import { base } from '$app/paths';
+  import ArticleCard from '$lib/components/ArticleCard.svelte';
   import CommentForm from '$lib/components/CommentForm.svelte';
   import CommentList from '$lib/components/CommentList.svelte';
   import ShareButtons from '$lib/components/ShareButtons.svelte';
@@ -97,6 +98,17 @@
     {/if}
   </footer>
 </article>
+
+{#if data.related.length > 0}
+  <section class="related-wrap">
+    <h2 class="related-title">Potrebbe interessarti</h2>
+    <div class="related-grid">
+      {#each data.related as item}
+        <ArticleCard article={item.article} tags={item.tags} />
+      {/each}
+    </div>
+  </section>
+{/if}
 
 <div class="comments-wrap">
   <CommentList comments={data.comments} />
@@ -238,14 +250,41 @@
 
   .footer-tags { margin-top: var(--space-2); }
 
+  .related-wrap {
+    max-width: var(--max-width-wide);
+    margin: 0 auto;
+    padding: var(--space-12) var(--space-8);
+    border-top: 0.5px solid var(--color-bordo);
+  }
+
+  .related-title {
+    font-family: var(--font-serif);
+    font-size: var(--text-xl);
+    font-weight: var(--weight-semibold);
+    color: var(--color-notte);
+    margin-bottom: var(--space-6);
+  }
+
+  .related-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-6);
+  }
+
   .comments-wrap {
     max-width: var(--max-width-prose);
     margin: 0 auto;
     padding: var(--space-10) var(--space-8) var(--space-16);
   }
 
+  @media (max-width: 860px) {
+    .related-grid { grid-template-columns: 1fr 1fr; }
+  }
+
   @media (max-width: 640px) {
     .article-wrap, .comments-wrap { padding: var(--space-8) var(--space-4); }
     .article-title { font-size: var(--text-3xl); }
+    .related-wrap { padding: var(--space-8) var(--space-4); }
+    .related-grid { grid-template-columns: 1fr; }
   }
 </style>
