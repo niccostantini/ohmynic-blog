@@ -132,6 +132,38 @@ export async function getTagsForArticle(articleId: string) {
     .then((rows) => rows.map((r) => r.tag));
 }
 
+export function sanitizeSearchQuery(raw: string): string {
+  return raw
+    .trim()
+    .replace(/[<>'";\\]/g, '')  // rimuove caratteri pericolosi
+    .replace(/\s+/g, ' ')
+    .slice(0, 200);
+}
+
+export async function searchArticles(query: string, limit = 20) {
+  const clean = sanitizeSearchQuery(query);
+  if (!clean) return [];
+
+  const vector = sql`to_tsvector('italian',
+    coalesce(${articles.title}, '') || ' ' ||
+    coalesce(${articles.excerpt}, '') || ' ' ||
+    coalesce(${articles.content}, ''))`;
+
+  const tsq = sql`plainto_tsquery('italian', ${clean})`;
+
+  return db
+    .select()
+    .from(articles)
+    .where(
+      and(
+        eq(articles.published, true),
+        sql`${vector} @@ ${tsq}`
+      )
+    )
+    .orderBy(desc(sql`ts_rank(${vector}, ${tsq})`))
+    .limit(limit);
+}
+
 export async function getRelatedArticles(articleId: string, limit = 3) {
   const currentTags = await db
     .select({ tagId: articleTags.tagId })

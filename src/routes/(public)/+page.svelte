@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { base } from '$app/paths';
   import ArticleCard from '$lib/components/ArticleCard.svelte';
   import TagList from '$lib/components/TagList.svelte';
   import type { PageData } from './$types';
@@ -28,6 +29,25 @@
       <h1>Articoli</h1>
       <p class="page-sub">Pensieri e idee messi in ordine.</p>
     </header>
+
+    <form method="GET" action="{base}/search" class="search-form">
+      <div class="search-input-wrap">
+        <input
+          type="search"
+          name="q"
+          placeholder="Cerca tra gli articoli..."
+          class="search-input"
+          autocomplete="off"
+        />
+        <button type="submit" class="search-btn" aria-label="Cerca">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+        </button>
+      </div>
+    </form>
 
     {#if data.articles.length === 0}
       <p class="empty">Nessun articolo pubblicato ancora.</p>
@@ -83,6 +103,46 @@
     color: var(--color-lilla);
   }
   .empty { color: var(--color-lilla); }
+
+  .search-form {
+    margin-bottom: var(--space-8);
+  }
+
+  .search-input-wrap {
+    display: flex;
+    align-items: center;
+    border: 0.5px solid var(--color-bordo);
+    border-radius: var(--radius-md);
+    background: white;
+    overflow: hidden;
+    max-width: 480px;
+    transition: border-color var(--transition-fast);
+  }
+  .search-input-wrap:focus-within { border-color: var(--color-lavanda); }
+
+  .search-input {
+    flex: 1;
+    padding: 10px var(--space-4);
+    border: none;
+    outline: none;
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    color: var(--color-notte);
+    background: transparent;
+  }
+  .search-input::placeholder { color: var(--color-lilla); }
+
+  .search-btn {
+    padding: 10px var(--space-3);
+    background: none;
+    border: none;
+    color: var(--color-lilla);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: color var(--transition-fast);
+  }
+  .search-btn:hover { color: var(--color-viola); }
   .articles-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
