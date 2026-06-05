@@ -7,6 +7,10 @@
   let { data }: { data: PageData } = $props();
 
   const totalPages = $derived(Math.ceil(data.total / 10));
+
+  function tagUrl(slug: string) {
+    return `${base}/search?tags=${encodeURIComponent(slug)}`;
+  }
 </script>
 
 <svelte:head>
@@ -54,7 +58,7 @@
     {:else}
       <div class="articles-grid">
         {#each data.articles as item}
-          <ArticleCard article={item.article} tags={item.tags} />
+          <ArticleCard article={item.article} tags={item.tags} getTagHref={tagUrl} />
         {/each}
       </div>
 

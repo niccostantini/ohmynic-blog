@@ -31,7 +31,7 @@
 </script>
 
 <svelte:head>
-  <title>Ricerca: {data.query} — OhMyNic!</title>
+  <title>{data.query ? `Ricerca: ${data.query}` : data.activeTags.length > 0 ? `Tag: ${data.activeTags.join(', ')}` : 'Ricerca'} — OhMyNic!</title>
   <meta name="robots" content="noindex" />
 </svelte:head>
 
@@ -88,7 +88,11 @@
   {#if data.results.length === 0}
     <div class="no-results">
       <p class="no-results-msg">
-        Nessun articolo trovato per <strong>"{data.query}"</strong>{data.activeTags.length > 0 ? ` con i tag selezionati` : ''}.
+        {#if data.query}
+          Nessun articolo trovato per <strong>"{data.query}"</strong>{data.activeTags.length > 0 ? ` con i tag selezionati` : ''}.
+        {:else}
+          Nessun articolo trovato con i tag selezionati.
+        {/if}
       </p>
       {#if data.activeTags.length > 0}
         <a href={buildUrl({ tags: [] })} class="btn-ghost">Rimuovi filtri tag</a>
@@ -100,7 +104,7 @@
     <!-- risultati header -->
     <div class="results-header">
       <span class="results-label">
-        Risultati per: <strong>{data.query}</strong>
+        {#if data.query}Risultati per: <strong>{data.query}</strong>{:else}Tutti gli articoli{/if}
         {#each data.activeTags as slug}
           <span class="active-tag-badge">
             #{slug}

@@ -14,12 +14,13 @@ const PER_PAGE = 12;
 export const load: PageServerLoad = async ({ url }) => {
   const raw = url.searchParams.get('q') ?? '';
   const query = sanitizeSearchQuery(raw);
-  if (!query) redirect(302, `${base}/`);
-
   const tagsParam = url.searchParams.get('tags') ?? '';
   const activeTags = tagsParam
     ? tagsParam.split(',').map((s) => s.trim()).filter(Boolean)
     : [];
+
+  // redirect only if truly nothing to show
+  if (!query && activeTags.length === 0) redirect(302, `${base}/`);
 
   const page = Math.max(1, Number(url.searchParams.get('page')) || 1);
 

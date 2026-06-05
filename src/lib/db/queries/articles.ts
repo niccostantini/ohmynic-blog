@@ -140,27 +140,18 @@ export function sanitizeSearchQuery(raw: string): string {
     .slice(0, 200);
 }
 
-function buildSearchConditions(clean: string, tagSlugs?: string[]) {
-  const vector = sql`to_tsvector('italian',
-    coalesce(${articles.title}, '') || ' ' ||
-    coalesce(${articles.excerpt}, '') || ' ' ||
-    coalesce(${articles.content}, ''))`;
-  const tsq = sql`plainto_tsquery('italian', ${clean})`;
-  // AND semantics: l'articolo deve avere TUTTI i tag selezionati
-  const tagFilter =
-    tagSlugs && tagSlugs.length > 0
-      ? inArray(
-          articles.id,
-          db
-            .select({ id: articleTags.articleId })
-            .from(articleTags)
-            .innerJoin(tags, eq(tags.id, articleTags.tagId))
-            .where(inArray(tags.slug, tagSlugs))
-            .groupBy(articleTags.articleId)
-            .having(sql`count(distinct ${articleTags.tagId}) = ${tagSlugs.length}`)
-        )
-      : undefined;
-  return { vector, tsq, tagFilter };
+function buildTagFilter(tagSlugs: string[]) {
+  if (tagSlugs.length === 0) return undefined;
+  return inArray(
+    articles.id,
+    db
+      .select({ id: articleTags.articleId })
+      .from(articleTags)
+      .innerJoin(tags, eq(tags.id, articleTags.tagId))
+      .where(inArray(tags.slug, tagSlugs))
+      .groupBy(articleTags.articleId)
+      .having(sql`count(distinct ${articleTags.tagId}) = ${tagSlugs.length}`)
+  );
 }
 
 export async function searchArticles(
@@ -168,9 +159,25 @@ export async function searchArticles(
   opts: { tagSlugs?: string[]; page?: number; perPage?: number } = {}
 ) {
   const clean = sanitizeSearchQuery(query);
-  if (!clean) return [];
-  const { tagSlugs, page = 1, perPage = 12 } = opts;
-  const { vector, tsq, tagFilter } = buildSearchConditions(clean, tagSlugs);
+  const { tagSlugs = [], page = 1, perPage = 12 } = opts;
+  const tagFilter = buildTagFilter(tagSlugs);
+
+  if (!clean) {
+    // tag-only mode: return all published articles matching the tag filter, sorted by date
+    return db
+      .select()
+      .from(articles)
+      .where(and(eq(articles.published, true), tagFilter))
+      .orderBy(desc(articles.publishedAt))
+      .limit(perPage)
+      .offset((page - 1) * perPage);
+  }
+
+  const vector = sql`to_tsvector('italian',
+    coalesce(${articles.title}, '') || ' ' ||
+    coalesce(${articles.excerpt}, '') || ' ' ||
+    coalesce(${articles.content}, ''))`;
+  const tsq = sql`plainto_tsquery('italian', ${clean})`;
 
   return db
     .select()
@@ -183,8 +190,21 @@ export async function searchArticles(
 
 export async function countSearchResults(query: string, tagSlugs?: string[]) {
   const clean = sanitizeSearchQuery(query);
-  if (!clean) return 0;
-  const { vector, tsq, tagFilter } = buildSearchConditions(clean, tagSlugs);
+  const tagFilter = buildTagFilter(tagSlugs ?? []);
+
+  if (!clean) {
+    const result = await db
+      .select({ count: sql<number>`cast(count(*) as int)` })
+      .from(articles)
+      .where(and(eq(articles.published, true), tagFilter));
+    return result[0]?.count ?? 0;
+  }
+
+  const vector = sql`to_tsvector('italian',
+    coalesce(${articles.title}, '') || ' ' ||
+    coalesce(${articles.excerpt}, '') || ' ' ||
+    coalesce(${articles.content}, ''))`;
+  const tsq = sql`plainto_tsquery('italian', ${clean})`;
 
   const result = await db
     .select({ count: sql<number>`cast(count(*) as int)` })
