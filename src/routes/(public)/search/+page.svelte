@@ -8,22 +8,26 @@
   let searchInput = $state(data.query);
 
   const totalPages = $derived(Math.ceil(data.total / data.perPage));
+  const visibleTags = $derived(data.allTags.filter((t) => t.count > 0));
 
-  function tagUrl(slug: string) {
+  function buildUrl(overrides: { tags?: string[]; page?: number }) {
     const p = new URLSearchParams({ q: data.query });
-    if (data.activeTag !== slug) p.set('tag', slug);
+    const tags = overrides.tags ?? data.activeTags;
+    if (tags.length > 0) p.set('tags', tags.join(','));
+    const page = overrides.page ?? 1;
+    if (page > 1) p.set('page', String(page));
     return `${base}/search?${p}`;
   }
 
-  function pageUrl(p: number) {
-    const params = new URLSearchParams({ q: data.query });
-    if (data.activeTag) params.set('tag', data.activeTag);
-    params.set('page', String(p));
-    return `${base}/search?${params}`;
+  function tagUrl(slug: string) {
+    const current = new Set(data.activeTags);
+    if (current.has(slug)) current.delete(slug); else current.add(slug);
+    return buildUrl({ tags: [...current] });
   }
 
-  // tag con almeno un articolo pubblicato
-  const visibleTags = $derived(data.allTags.filter((t) => t.count > 0));
+  function pageUrl(p: number) {
+    return buildUrl({ page: p });
+  }
 </script>
 
 <svelte:head>
@@ -64,27 +68,30 @@
         <a
           href={tagUrl(tag.slug)}
           class="chip"
-          class:active={data.activeTag === tag.slug}
-          aria-pressed={data.activeTag === tag.slug}
+          class:active={data.activeTags.includes(tag.slug)}
+          aria-pressed={data.activeTags.includes(tag.slug)}
         >
           {tag.name}
-          {#if data.activeTag === tag.slug}
+          {#if data.activeTags.includes(tag.slug)}
             <span class="chip-remove" aria-hidden="true">×</span>
           {/if}
         </a>
       {/each}
+      {#if data.activeTags.length > 0}
+        <a href={buildUrl({ tags: [] })} class="chip chip-clear">
+          Azzera filtri ×
+        </a>
+      {/if}
     </div>
   {/if}
 
   {#if data.results.length === 0}
     <div class="no-results">
       <p class="no-results-msg">
-        Nessun articolo trovato per <strong>"{data.query}"</strong>{data.activeTag ? ` nel tag "${data.activeTag}"` : ''}.
+        Nessun articolo trovato per <strong>"{data.query}"</strong>{data.activeTags.length > 0 ? ` con i tag selezionati` : ''}.
       </p>
-      {#if data.activeTag}
-        <a href="{base}/search?q={encodeURIComponent(data.query)}" class="btn-ghost">
-          Rimuovi filtro tag
-        </a>
+      {#if data.activeTags.length > 0}
+        <a href={buildUrl({ tags: [] })} class="btn-ghost">Rimuovi filtri tag</a>
       {:else}
         <a href="{base}/" class="btn-ghost">← Torna alla homepage</a>
       {/if}
@@ -94,12 +101,12 @@
     <div class="results-header">
       <span class="results-label">
         Risultati per: <strong>{data.query}</strong>
-        {#if data.activeTag}
+        {#each data.activeTags as slug}
           <span class="active-tag-badge">
-            #{data.activeTag}
-            <a href="{base}/search?q={encodeURIComponent(data.query)}" class="remove-tag" aria-label="Rimuovi filtro">×</a>
+            #{slug}
+            <a href={buildUrl({ tags: data.activeTags.filter(t => t !== slug) })} class="remove-tag" aria-label="Rimuovi tag">×</a>
           </span>
-        {/if}
+        {/each}
       </span>
       <span class="results-count">{data.total} articolo{data.total !== 1 ? 'i' : ''}</span>
     </div>
@@ -238,6 +245,13 @@
     color: white;
     border-color: var(--color-viola);
   }
+  .chip-clear {
+    color: var(--color-lilla);
+    background: transparent;
+    border-color: var(--color-bordo);
+    margin-left: var(--space-2);
+  }
+  .chip-clear:hover { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
   .chip-remove {
     font-size: 14px;
     line-height: 1;

@@ -140,32 +140,37 @@ export function sanitizeSearchQuery(raw: string): string {
     .slice(0, 200);
 }
 
-function buildSearchConditions(clean: string, tagSlug?: string) {
+function buildSearchConditions(clean: string, tagSlugs?: string[]) {
   const vector = sql`to_tsvector('italian',
     coalesce(${articles.title}, '') || ' ' ||
     coalesce(${articles.excerpt}, '') || ' ' ||
     coalesce(${articles.content}, ''))`;
   const tsq = sql`plainto_tsquery('italian', ${clean})`;
-  const tagFilter = tagSlug
-    ? inArray(
-        articles.id,
-        db.select({ id: articleTags.articleId })
-          .from(articleTags)
-          .innerJoin(tags, eq(tags.id, articleTags.tagId))
-          .where(eq(tags.slug, tagSlug))
-      )
-    : undefined;
+  // AND semantics: l'articolo deve avere TUTTI i tag selezionati
+  const tagFilter =
+    tagSlugs && tagSlugs.length > 0
+      ? inArray(
+          articles.id,
+          db
+            .select({ id: articleTags.articleId })
+            .from(articleTags)
+            .innerJoin(tags, eq(tags.id, articleTags.tagId))
+            .where(inArray(tags.slug, tagSlugs))
+            .groupBy(articleTags.articleId)
+            .having(sql`count(distinct ${articleTags.tagId}) = ${tagSlugs.length}`)
+        )
+      : undefined;
   return { vector, tsq, tagFilter };
 }
 
 export async function searchArticles(
   query: string,
-  opts: { tagSlug?: string; page?: number; perPage?: number } = {}
+  opts: { tagSlugs?: string[]; page?: number; perPage?: number } = {}
 ) {
   const clean = sanitizeSearchQuery(query);
   if (!clean) return [];
-  const { tagSlug, page = 1, perPage = 12 } = opts;
-  const { vector, tsq, tagFilter } = buildSearchConditions(clean, tagSlug);
+  const { tagSlugs, page = 1, perPage = 12 } = opts;
+  const { vector, tsq, tagFilter } = buildSearchConditions(clean, tagSlugs);
 
   return db
     .select()
@@ -176,10 +181,10 @@ export async function searchArticles(
     .offset((page - 1) * perPage);
 }
 
-export async function countSearchResults(query: string, tagSlug?: string) {
+export async function countSearchResults(query: string, tagSlugs?: string[]) {
   const clean = sanitizeSearchQuery(query);
   if (!clean) return 0;
-  const { vector, tsq, tagFilter } = buildSearchConditions(clean, tagSlug);
+  const { vector, tsq, tagFilter } = buildSearchConditions(clean, tagSlugs);
 
   const result = await db
     .select({ count: sql<number>`cast(count(*) as int)` })

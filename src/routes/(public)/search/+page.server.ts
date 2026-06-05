@@ -16,12 +16,16 @@ export const load: PageServerLoad = async ({ url }) => {
   const query = sanitizeSearchQuery(raw);
   if (!query) redirect(302, `${base}/`);
 
-  const activeTag = url.searchParams.get('tag') || undefined;
+  const tagsParam = url.searchParams.get('tags') ?? '';
+  const activeTags = tagsParam
+    ? tagsParam.split(',').map((s) => s.trim()).filter(Boolean)
+    : [];
+
   const page = Math.max(1, Number(url.searchParams.get('page')) || 1);
 
   const [rawResults, total, allTags] = await Promise.all([
-    searchArticles(query, { tagSlug: activeTag, page, perPage: PER_PAGE }),
-    countSearchResults(query, activeTag),
+    searchArticles(query, { tagSlugs: activeTags, page, perPage: PER_PAGE }),
+    countSearchResults(query, activeTags),
     getTagsWithCount(),
   ]);
 
@@ -38,7 +42,7 @@ export const load: PageServerLoad = async ({ url }) => {
     total,
     page,
     perPage: PER_PAGE,
-    activeTag: activeTag ?? null,
+    activeTags,
     allTags,
   };
 };
