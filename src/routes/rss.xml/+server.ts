@@ -1,7 +1,7 @@
 import { getPublishedArticles, countPublishedArticles } from '$lib/db/queries/articles';
 import type { RequestHandler } from './$types';
 
-const SITE_URL = 'https://ohmynic.co';
+const SITE_URL = 'https://ohmynic.co/blog';
 const SITE_TITLE = 'OhMyNic!';
 const SITE_DESCRIPTION = 'Pensieri, idee e articoli di OhMyNic!';
 
