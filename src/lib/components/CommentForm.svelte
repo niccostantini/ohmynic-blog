@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { base } from '$app/paths';
+
   let { articleId }: { articleId: string } = $props();
 
   let submitted = $state(false);
@@ -15,7 +17,7 @@
     loading = true;
     error = '';
     try {
-      const res = await fetch('/api/comments', {
+      const res = await fetch(`${base}/api/comments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ articleId, authorName: name || undefined, authorEmail: email || undefined, content }),
