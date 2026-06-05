@@ -41,6 +41,13 @@ export async function deleteComment(id: string) {
   await db.delete(comments).where(eq(comments.id, id));
 }
 
+export async function saveReply(id: string, replyText: string) {
+  await db
+    .update(comments)
+    .set({ replyText, repliedAt: new Date() })
+    .where(eq(comments.id, id));
+}
+
 export async function getAllCommentsWithArticle() {
   return db
     .select({
@@ -52,6 +59,8 @@ export async function getAllCommentsWithArticle() {
       authorEmail: comments.authorEmail,
       content: comments.content,
       approved: comments.approved,
+      replyText: comments.replyText,
+      repliedAt: comments.repliedAt,
       createdAt: comments.createdAt,
     })
     .from(comments)

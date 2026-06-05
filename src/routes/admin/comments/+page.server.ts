@@ -3,6 +3,7 @@ import {
   getAllCommentsWithArticle,
   approveComment,
   deleteComment,
+  saveReply,
 } from '$lib/db/queries/comments';
 import { getArticleById } from '$lib/db/queries/articles';
 import { sendCommentReply } from '$lib/email';
@@ -44,6 +45,8 @@ export const actions: Actions = {
     const comment = all.find((c) => c.id === id);
     if (!comment) return fail(404, { replyError: 'Commento non trovato.', replyId: id });
     if (!comment.authorEmail) return fail(400, { replyError: 'Il commentatore non ha fornito un\'email.', replyId: id });
+
+    await saveReply(id, replyText.trim());
 
     sendCommentReply({
       to: comment.authorEmail,

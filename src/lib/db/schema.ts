@@ -44,5 +44,7 @@ export const comments = pgTable('comments', {
   authorEmail: text('author_email'),
   content: text('content').notNull(),
   approved: boolean('approved').default(false).notNull(),
+  replyText: text('reply_text'),
+  repliedAt: timestamp('replied_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
