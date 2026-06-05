@@ -107,6 +107,13 @@
     );
   }
 
+  /** Ricarica l'editor con nuovo HTML (chiamabile dal parent via bind:this) */
+  export function reload(html: string) {
+    content = html;
+    sourceValue = html;
+    mountEditor(html);
+  }
+
   onMount(() => {
     mountEditor(content);
   });

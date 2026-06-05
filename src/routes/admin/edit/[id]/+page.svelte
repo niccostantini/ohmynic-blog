@@ -19,6 +19,9 @@
   let tagInput = $state('');
   let selectedTags = $state<string[]>(data.articleTags.map((t) => t.name));
 
+  // Editor ref for programmatic reload
+  let editorRef = $state<{ reload: (html: string) => void } | null>(null);
+
   // Auto-translate state
   let translating = $state(false);
   let translateError = $state('');
@@ -82,8 +85,10 @@
       }
       const result = await res.json();
       title = result.title ?? title;
-      content = result.content ?? content;
       excerpt = result.excerpt ?? excerpt;
+      if (result.content) {
+        editorRef?.reload(result.content);
+      }
     } catch (err) {
       translateError = err instanceof Error ? err.message : 'Errore sconosciuto';
     } finally {
@@ -181,7 +186,7 @@
         </div>
 
         <div class="field">
-          <Editor bind:content />
+          <Editor bind:content bind:this={editorRef} />
         </div>
 
         <div class="meta-fields">
