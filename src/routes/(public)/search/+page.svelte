@@ -114,7 +114,7 @@
     <!-- griglia risultati -->
     <div class="results-grid">
       {#each data.results as item}
-        <ArticleCard article={item.article} tags={item.tags} />
+        <ArticleCard article={item.article} tags={item.tags} getTagHref={tagUrl} />
       {/each}
     </div>
 

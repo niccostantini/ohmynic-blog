@@ -7,7 +7,11 @@
     coverImage: string | null; publishedAt: Date | string | null; createdAt: Date | string;
   };
 
-  let { article, tags = [] }: { article: Article; tags: Tag[] } = $props();
+  let { article, tags = [], getTagHref }: {
+    article: Article;
+    tags: Tag[];
+    getTagHref?: (slug: string) => string;
+  } = $props();
 
   function formatDate(d: Date | string | null) {
     if (!d) return '';
@@ -25,7 +29,7 @@
     {#if tags.length > 0}
       <div class="card-tags">
         {#each tags as tag}
-          <a href="{base}/tag/{tag.slug}" class="tag">{tag.name}</a>
+          <a href={getTagHref ? getTagHref(tag.slug) : `${base}/tag/${tag.slug}`} class="tag">{tag.name}</a>
         {/each}
       </div>
     {/if}
