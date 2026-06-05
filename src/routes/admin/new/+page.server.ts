@@ -1,4 +1,5 @@
 import { fail, redirect } from '@sveltejs/kit';
+import { base } from '$app/paths';
 import { createArticle, generateSlug, setArticleTags } from '$lib/db/queries/articles';
 import { findOrCreateTag, getAllTags } from '$lib/db/queries/tags';
 import type { Actions, PageServerLoad } from './$types';
@@ -49,6 +50,6 @@ export const actions: Actions = {
       await setArticleTags(article.id, tagIds);
     }
 
-    redirect(302, '/admin');
+    redirect(302, `${base}/admin`);
   },
 };

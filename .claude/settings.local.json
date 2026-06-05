@@ -17,7 +17,10 @@
       "Bash(curl -s \"http://localhost:5175/__data.json?x-sveltekit-invalidated=11\")",
       "Bash(pkill -f \"vite dev\")",
       "Bash(curl -s http://localhost:5173/)",
-      "Bash(curl -s -o /dev/null -w \"/tag/test → %{http_code}\\\\n\" http://localhost:5173/tag/test)"
+      "Bash(curl -s -o /dev/null -w \"/tag/test → %{http_code}\\\\n\" http://localhost:5173/tag/test)",
+      "Bash(curl -s -o /dev/null -w \"/rss.xml → %{http_code}\\\\n\" http://localhost:5173/rss.xml)",
+      "Bash(curl -s http://localhost:5173/rss.xml)",
+      "Bash(ssh root@64.225.70.212 \"pm2 env 0 2>&1 | grep -E 'DATABASE_URL|AUTH_SECRET|NODE_ENV|PORT'\")"
     ]
   }
 }

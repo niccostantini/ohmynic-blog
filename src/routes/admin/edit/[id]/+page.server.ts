@@ -1,4 +1,5 @@
 import { fail, redirect, error } from '@sveltejs/kit';
+import { base } from '$app/paths';
 import {
   getArticleById,
   updateArticle,
@@ -67,11 +68,11 @@ export const actions: Actions = {
       await setArticleTags(params.id, tagIds);
     }
 
-    redirect(302, '/admin');
+    redirect(302, `${base}/admin`);
   },
 
   delete: async ({ params }) => {
     await deleteArticle(params.id);
-    redirect(302, '/admin');
+    redirect(302, `${base}/admin`);
   },
 };

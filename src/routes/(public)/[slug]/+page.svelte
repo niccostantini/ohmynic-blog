@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { base } from '$app/paths';
   import CommentForm from '$lib/components/CommentForm.svelte';
   import CommentList from '$lib/components/CommentList.svelte';
   import ShareButtons from '$lib/components/ShareButtons.svelte';
@@ -30,7 +31,7 @@
     {#if data.tags.length > 0}
       <div class="article-tags">
         {#each data.tags as tag}
-          <a href="/tag/{tag.slug}" class="tag">{tag.name}</a>
+          <a href="{base}/tag/{tag.slug}" class="tag">{tag.name}</a>
         {/each}
       </div>
     {/if}

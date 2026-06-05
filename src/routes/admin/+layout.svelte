@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { base } from '$app/paths';
   import type { LayoutData } from './$types';
   import type { Snippet } from 'svelte';
 
@@ -7,13 +8,13 @@
 
 <div class="admin-shell">
   <header class="admin-header">
-    <a href="/admin" class="logo-link">Oh<em>My</em>Nic!</a>
+    <a href="{base}/admin" class="logo-link">Oh<em>My</em>Nic!</a>
     <nav class="admin-nav">
-      <a href="/admin">Articoli</a>
-      <a href="/admin/comments">Commenti</a>
-      <a href="/" target="_blank">Sito →</a>
+      <a href="{base}/admin">Articoli</a>
+      <a href="{base}/admin/comments">Commenti</a>
+      <a href="https://ohmynic.co/blog/" target="_blank">Sito →</a>
     </nav>
-    <form method="POST" action="/api/logout">
+    <form method="POST" action="{base}/api/logout">
       <button type="submit" class="btn-ghost">Esci</button>
     </form>
   </header>

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { base } from '$app/paths';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
@@ -13,11 +14,11 @@
 
 <div class="page-header">
   <h1>Articoli</h1>
-  <a href="/admin/new" class="btn-accent">+ Nuovo articolo</a>
+  <a href="{base}/admin/new" class="btn-accent">+ Nuovo articolo</a>
 </div>
 
 {#if data.articles.length === 0}
-  <p class="empty">Nessun articolo ancora. <a href="/admin/new">Scrivi il primo →</a></p>
+  <p class="empty">Nessun articolo ancora. <a href="{base}/admin/new">Scrivi il primo →</a></p>
 {:else}
   <div class="article-table">
     <div class="table-head">
@@ -38,9 +39,9 @@
         </span>
         <span class="meta">{formatDate(article.published ? article.publishedAt : article.createdAt)}</span>
         <span class="actions">
-          <a href="/admin/edit/{article.id}">Modifica</a>
+          <a href="{base}/admin/edit/{article.id}">Modifica</a>
           {#if article.published}
-            <a href="/{article.slug}" target="_blank">Vedi →</a>
+            <a href="{base}/{article.slug}" target="_blank">Vedi →</a>
           {/if}
         </span>
       </div>
@@ -51,7 +52,7 @@
 {#if data.pendingCount > 0}
   <div class="pending-banner">
     <span>💬 {data.pendingCount} commento{data.pendingCount > 1 ? 'i' : ''} in attesa di approvazione</span>
-    <a href="/admin/comments">Gestisci →</a>
+    <a href="{base}/admin/comments">Gestisci →</a>
   </div>
 {/if}
 

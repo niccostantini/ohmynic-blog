@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { base } from '$app/paths';
   import Logo from '$lib/components/Logo.svelte';
 
   let { children }: { children: import('svelte').Snippet } = $props();
@@ -7,9 +8,9 @@
 <div class="site">
   <header class="site-header">
     <div class="header-inner">
-      <a href="/" class="logo-link"><Logo /></a>
+      <a href="{base}/" class="logo-link"><Logo /></a>
       <nav class="site-nav">
-        <a href="/">Articoli</a>
+        <a href="{base}/">Articoli</a>
       </nav>
     </div>
   </header>

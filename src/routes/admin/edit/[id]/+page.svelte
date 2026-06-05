@@ -1,5 +1,6 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
+  import { base } from '$app/paths';
   import Editor from '$lib/components/Editor.svelte';
   import type { PageData, ActionData } from './$types';
 
@@ -49,7 +50,7 @@
     <h1>Modifica articolo</h1>
     <div class="header-actions">
       {#if data.article.published}
-        <a href="/{data.article.slug}" target="_blank" class="btn-ghost">Vedi pubblicato →</a>
+        <a href="{base}/{data.article.slug}" target="_blank" class="btn-ghost">Vedi pubblicato →</a>
       {/if}
     </div>
   </div>

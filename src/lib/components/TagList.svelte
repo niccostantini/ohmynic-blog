@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { base } from '$app/paths';
+
   type Tag = { id: string; name: string; slug: string; count?: number };
   let { tags, currentSlug = '' }: { tags: Tag[]; currentSlug?: string } = $props();
 </script>
@@ -9,7 +11,7 @@
     <div class="tags">
       {#each tags as tag}
         <a
-          href="/tag/{tag.slug}"
+          href="{base}/tag/{tag.slug}"
           class="tag"
           class:active={tag.slug === currentSlug}
         >

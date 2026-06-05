@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { base } from '$app/paths';
   import ArticleCard from '$lib/components/ArticleCard.svelte';
   import TagList from '$lib/components/TagList.svelte';
   import type { PageData } from './$types';
@@ -14,7 +15,7 @@
 <div class="page-wrap">
   <div class="content-col">
     <header class="page-header">
-      <a href="/" class="back-link">← Tutti gli articoli</a>
+      <a href="{base}/" class="back-link">← Tutti gli articoli</a>
       <h1><span class="hash">#</span>{data.tag.name}</h1>
       <p class="page-sub">{data.total} articolo{data.total !== 1 ? 'i' : ''}</p>
     </header>

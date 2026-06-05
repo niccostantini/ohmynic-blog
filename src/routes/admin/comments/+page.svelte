@@ -1,5 +1,6 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
+  import { base } from '$app/paths';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
@@ -31,7 +32,7 @@
             <span class="email">{comment.authorEmail}</span>
           {/if}
           <span class="date">{formatDate(comment.createdAt)}</span>
-          <a href="/{data.articleSlugs[comment.articleId] ?? ''}" target="_blank" class="article-link">
+          <a href="{base}/{data.articleSlugs[comment.articleId] ?? ''}" target="_blank" class="article-link">
             Articolo →
           </a>
         </div>

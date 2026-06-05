@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { base } from '$app/paths';
+
   type Tag = { id: string; name: string; slug: string };
   type Article = {
     id: string; title: string; slug: string; excerpt: string | null;
@@ -15,7 +17,7 @@
 
 <div class="card">
   {#if article.coverImage}
-    <a href="/{article.slug}" class="card-image-link" tabindex="-1" aria-hidden="true">
+    <a href="{base}/{article.slug}" class="card-image-link" tabindex="-1" aria-hidden="true">
       <img src={article.coverImage} alt={article.title} class="card-cover" />
     </a>
   {/if}
@@ -23,12 +25,12 @@
     {#if tags.length > 0}
       <div class="card-tags">
         {#each tags as tag}
-          <a href="/tag/{tag.slug}" class="tag">{tag.name}</a>
+          <a href="{base}/tag/{tag.slug}" class="tag">{tag.name}</a>
         {/each}
       </div>
     {/if}
     <h2 class="card-title">
-      <a href="/{article.slug}" class="card-title-link">{article.title}</a>
+      <a href="{base}/{article.slug}" class="card-title-link">{article.title}</a>
     </h2>
     {#if article.excerpt}
       <p class="card-excerpt">{article.excerpt}</p>
