@@ -1,6 +1,6 @@
 import { eq, and, desc } from 'drizzle-orm';
 import { db } from '../index';
-import { comments, articles, articleTranslations } from '../schema';
+import { comments, articles } from '../schema';
 
 export async function getApprovedComments(articleId: string) {
   return db
@@ -53,7 +53,7 @@ export async function getAllCommentsWithArticle() {
     .select({
       id: comments.id,
       articleId: comments.articleId,
-      articleTitle: articleTranslations.title,
+      articleTitle: articles.title,
       articleSlug: articles.slug,
       authorName: comments.authorName,
       authorEmail: comments.authorEmail,
@@ -65,9 +65,5 @@ export async function getAllCommentsWithArticle() {
     })
     .from(comments)
     .innerJoin(articles, eq(articles.id, comments.articleId))
-    .innerJoin(
-      articleTranslations,
-      and(eq(articleTranslations.articleId, articles.id), eq(articleTranslations.locale, 'it')),
-    )
     .orderBy(desc(comments.createdAt));
 }

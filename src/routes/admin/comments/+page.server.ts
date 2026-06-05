@@ -5,6 +5,7 @@ import {
   deleteComment,
   saveReply,
 } from '$lib/db/queries/comments';
+import { getArticleById } from '$lib/db/queries/articles';
 import { sendCommentReply } from '$lib/email';
 import type { Actions, PageServerLoad } from './$types';
 

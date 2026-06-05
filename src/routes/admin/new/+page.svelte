@@ -9,7 +9,6 @@
   let content = $state('');
   let excerpt = $state('');
   let coverImage = $state('');
-  let locale = $state('it');
   let tagInput = $state('');
   let selectedTags = $state<string[]>([]);
 
@@ -54,7 +53,6 @@
   <form method="POST" use:enhance>
     <input type="hidden" name="content" value={content} />
     <input type="hidden" name="tags" value={selectedTags.join(',')} />
-    <input type="hidden" name="locale" value={locale} />
 
     <div class="field">
       <input
@@ -72,28 +70,6 @@
     </div>
 
     <div class="meta-fields">
-      <div class="field">
-        <label>Lingua dell'articolo</label>
-        <div class="locale-selector">
-          <button
-            type="button"
-            class="locale-btn"
-            class:active={locale === 'it'}
-            onclick={() => (locale = 'it')}
-          >
-            🇮🇹 Italiano
-          </button>
-          <button
-            type="button"
-            class="locale-btn"
-            class:active={locale === 'en'}
-            onclick={() => (locale = 'en')}
-          >
-            🇬🇧 English
-          </button>
-        </div>
-      </div>
-
       <div class="field">
         <label>Estratto (opzionale)</label>
         <textarea
@@ -199,30 +175,6 @@
     font-weight: var(--weight-medium);
     color: var(--color-prugna);
     margin-bottom: var(--space-2);
-  }
-
-  .locale-selector {
-    display: flex;
-    gap: var(--space-2);
-  }
-
-  .locale-btn {
-    font-family: var(--font-sans);
-    font-size: var(--text-sm);
-    font-weight: var(--weight-medium);
-    padding: 7px 16px;
-    border-radius: var(--radius-md);
-    border: 0.5px solid var(--color-bordo);
-    background: white;
-    color: var(--color-prugna);
-    cursor: pointer;
-    transition: border-color var(--transition-fast), background var(--transition-fast);
-  }
-
-  .locale-btn.active {
-    border-color: var(--color-lavanda);
-    background: var(--color-iris);
-    color: var(--color-viola);
   }
 
   textarea, input[type="url"], input[type="text"]:not(.title-input) {

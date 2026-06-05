@@ -1,6 +1,6 @@
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { db } from '../index';
-import { tags, articleTags, articles, articleTranslations } from '../schema';
+import { tags, articleTags, articles } from '../schema';
 
 export async function getAllTags() {
   return db.select().from(tags).orderBy(tags.name);
@@ -41,14 +41,7 @@ export async function getTagsWithCount() {
     .from(tags)
     .leftJoin(articleTags, eq(articleTags.tagId, tags.id))
     .leftJoin(articles, eq(articles.id, articleTags.articleId))
-    .leftJoin(
-      articleTranslations,
-      and(
-        eq(articleTranslations.articleId, articles.id),
-        eq(articleTranslations.locale, 'it'),
-      ),
-    )
-    .where(sql`${articleTranslations.published} = true OR ${articles.id} IS NULL`)
+    .where(sql`${articles.published} = true OR ${articles.id} IS NULL`)
     .groupBy(tags.id, tags.name, tags.slug)
     .orderBy(tags.name);
 }
