@@ -1,87 +1,108 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
-  import { Editor } from '@tiptap/core';
-  import StarterKit from '@tiptap/starter-kit';
-  import Link from '@tiptap/extension-link';
-  import Image from '@tiptap/extension-image';
 
   let {
     content = $bindable(''),
-    placeholder = 'Scrivi il tuo articolo...',
   }: {
     content: string;
-    placeholder?: string;
   } = $props();
 
-  let editorEl: HTMLDivElement;
-  let editor: Editor | null = null;
+  let mountEl: HTMLDivElement;
+  let rootRef: import('react-dom/client').Root | null = null;
+  let showSource = $state(false);
+  let sourceValue = $state(content);
+
+  function applySource() {
+    content = sourceValue;
+    showSource = false;
+    mountEditor(sourceValue);
+  }
+
+  async function mountEditor(initialHtml: string) {
+    if (rootRef) { rootRef.unmount(); rootRef = null; }
+
+    const React = await import('react');
+    const { createElement } = React;
+    const { createRoot } = await import('react-dom/client');
+    const { useCreateBlockNote } = await import('@blocknote/react');
+    const { BlockNoteView } = await import('@blocknote/mantine');
+
+    await import('@blocknote/mantine/style.css');
+
+    function EditorWrapper({ html, onChange }: { html: string; onChange: (h: string) => void }) {
+      const editor = useCreateBlockNote();
+
+      React.useEffect(() => {
+        const blocks = editor.tryParseHTMLToBlocks(html);
+        if (blocks.length > 0) {
+          editor.replaceBlocks(editor.document, blocks);
+        }
+      }, []);
+
+      const handleChange = React.useCallback(async () => {
+        const h = await editor.blocksToHTMLLossy(editor.document);
+        onChange(h);
+      }, [editor]);
+
+      return createElement(BlockNoteView as any, {
+        editor,
+        onChange: handleChange,
+        theme: 'light',
+      });
+    }
+
+    if (!mountEl) return;
+
+    rootRef = createRoot(mountEl);
+    rootRef.render(
+      createElement(EditorWrapper, {
+        html: initialHtml,
+        onChange: (h: string) => {
+          content = h;
+          sourceValue = h;
+        },
+      })
+    );
+  }
 
   onMount(() => {
-    editor = new Editor({
-      element: editorEl,
-      extensions: [
-        StarterKit,
-        Link.configure({ openOnClick: false }),
-        Image,
-      ],
-      content,
-      onUpdate: ({ editor }) => {
-        content = editor.getHTML();
-      },
-    });
+    mountEditor(content);
   });
 
   onDestroy(() => {
-    editor?.destroy();
+    rootRef?.unmount();
   });
-
-  function toggleBold() { editor?.chain().focus().toggleBold().run(); }
-  function toggleItalic() { editor?.chain().focus().toggleItalic().run(); }
-  function toggleH2() { editor?.chain().focus().toggleHeading({ level: 2 }).run(); }
-  function toggleH3() { editor?.chain().focus().toggleHeading({ level: 3 }).run(); }
-  function toggleBlockquote() { editor?.chain().focus().toggleBlockquote().run(); }
-  function toggleCode() { editor?.chain().focus().toggleCodeBlock().run(); }
-  function toggleBulletList() { editor?.chain().focus().toggleBulletList().run(); }
-  function toggleOrderedList() { editor?.chain().focus().toggleOrderedList().run(); }
-
-  function setLink() {
-    const url = window.prompt('URL del link:');
-    if (url) {
-      editor?.chain().focus().setLink({ href: url }).run();
-    } else if (url === '') {
-      editor?.chain().focus().unsetLink().run();
-    }
-  }
-
-  function addImage() {
-    const url = window.prompt('URL immagine:');
-    if (url) {
-      editor?.chain().focus().setImage({ src: url }).run();
-    }
-  }
-
-  function isActive(name: string, attrs?: Record<string, unknown>) {
-    return editor?.isActive(name, attrs) ?? false;
-  }
 </script>
 
 <div class="editor-wrap">
-  <div class="toolbar">
-    <button type="button" class:active={isActive('bold')} onclick={toggleBold} title="Bold">B</button>
-    <button type="button" class:active={isActive('italic')} onclick={toggleItalic} title="Italic"><em>I</em></button>
-    <button type="button" class:active={isActive('heading', { level: 2 })} onclick={toggleH2} title="Titolo H2">H2</button>
-    <button type="button" class:active={isActive('heading', { level: 3 })} onclick={toggleH3} title="Titolo H3">H3</button>
-    <span class="sep"></span>
-    <button type="button" class:active={isActive('link')} onclick={setLink} title="Link">🔗</button>
-    <button type="button" onclick={addImage} title="Immagine">🖼</button>
-    <span class="sep"></span>
-    <button type="button" class:active={isActive('blockquote')} onclick={toggleBlockquote} title="Citazione">"</button>
-    <button type="button" class:active={isActive('codeBlock')} onclick={toggleCode} title="Codice">&lt;/&gt;</button>
-    <span class="sep"></span>
-    <button type="button" class:active={isActive('bulletList')} onclick={toggleBulletList} title="Lista">•</button>
-    <button type="button" class:active={isActive('orderedList')} onclick={toggleOrderedList} title="Lista numerata">1.</button>
+  <div class="editor-toolbar">
+    <button
+      type="button"
+      class="source-toggle"
+      class:active={showSource}
+      onclick={() => {
+        if (!showSource) {
+          sourceValue = content;
+          showSource = true;
+        } else {
+          applySource();
+        }
+      }}
+      title="Mostra/modifica HTML sorgente"
+    >&lt;/&gt;</button>
   </div>
-  <div class="editor-content" bind:this={editorEl}></div>
+
+  <div class="bn-mount" bind:this={mountEl}></div>
+
+  {#if showSource}
+    <div class="source-panel">
+      <textarea bind:value={sourceValue} rows="12" spellcheck="false"></textarea>
+      <div class="source-actions">
+        <button type="button" class="btn-apply" onclick={applySource}>Applica</button>
+        <button type="button" class="btn-cancel" onclick={() => showSource = false}>Annulla</button>
+      </div>
+    </div>
+  {/if}
 </div>
 
 <style>
@@ -92,133 +113,120 @@
     background: white;
   }
 
-  .toolbar {
+  .editor-toolbar {
     display: flex;
-    align-items: center;
-    gap: var(--space-1);
+    justify-content: flex-end;
     padding: var(--space-2) var(--space-3);
     border-bottom: 0.5px solid var(--color-bordo);
     background: var(--color-nebbia);
-    flex-wrap: wrap;
   }
 
-  .toolbar button {
+  .source-toggle {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 32px;
     height: 28px;
-    padding: 0 var(--space-2);
+    padding: 0 var(--space-3);
     border: 0.5px solid transparent;
     border-radius: var(--radius-sm);
     background: transparent;
     font-family: var(--font-sans);
     font-size: var(--text-sm);
     font-weight: var(--weight-medium);
-    color: var(--color-prugna);
+    color: var(--color-lilla);
     cursor: pointer;
-    transition: background var(--transition-fast), border-color var(--transition-fast);
+    transition: background var(--transition-fast), color var(--transition-fast);
   }
 
-  .toolbar button:hover {
+  .source-toggle:hover, .source-toggle.active {
     background: var(--color-iris);
+    color: var(--color-viola);
     border-color: var(--color-bordo);
   }
 
-  .toolbar button.active {
-    background: var(--color-iris);
-    border-color: var(--color-viola);
-    color: var(--color-viola);
-  }
-
-  .sep {
-    width: 0.5px;
-    height: 20px;
-    background: var(--color-bordo);
-    margin: 0 var(--space-1);
-  }
-
-  .editor-content {
+  .bn-mount {
     min-height: 400px;
-    padding: var(--space-6);
+  }
+
+  .source-panel {
+    border-top: 0.5px solid var(--color-bordo);
+    padding: var(--space-4);
+    background: var(--color-nebbia);
+  }
+
+  .source-panel textarea {
+    width: 100%;
+    font-family: monospace;
+    font-size: var(--text-sm);
+    color: var(--color-prugna);
+    background: white;
+    border: 0.5px solid var(--color-bordo);
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+    resize: vertical;
+    outline: none;
+  }
+
+  .source-actions {
+    display: flex;
+    gap: var(--space-2);
+    margin-top: var(--space-3);
+    justify-content: flex-end;
+  }
+
+  .btn-apply {
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    background: var(--color-lavanda);
+    color: white;
+    padding: 6px 14px;
+    border-radius: var(--radius-md);
+    border: none;
+    cursor: pointer;
+  }
+
+  .btn-cancel {
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    background: transparent;
+    color: var(--color-lilla);
+    padding: 6px 14px;
+    border-radius: var(--radius-md);
+    border: 0.5px solid var(--color-bordo);
+    cursor: pointer;
+  }
+
+  /* Override BlockNote styles con i nostri token */
+  :global(.bn-container) {
+    font-family: var(--font-sans) !important;
+    --bn-font-family: var(--font-sans);
+    --bn-border-radius: var(--radius-md);
+  }
+
+  :global(.bn-editor) {
+    padding: var(--space-6) !important;
+    min-height: 380px;
     font-family: var(--font-sans);
     font-size: var(--text-base);
     line-height: var(--leading-relaxed);
     color: var(--color-prugna);
-    outline: none;
   }
 
-  :global(.editor-content .ProseMirror) {
-    outline: none;
-    min-height: 380px;
+  :global(.bn-editor h1, .bn-editor h2, .bn-editor h3) {
+    font-family: var(--font-serif) !important;
+    color: var(--color-notte);
+    letter-spacing: var(--tracking-tight);
   }
 
-  :global(.editor-content h2) {
-    font-family: var(--font-serif);
+  :global(.bn-editor h2) {
     font-size: var(--text-2xl);
     font-weight: var(--weight-semibold);
-    color: var(--color-notte);
-    margin: var(--space-6) 0 var(--space-3);
   }
 
-  :global(.editor-content h3) {
-    font-family: var(--font-serif);
+  :global(.bn-editor h3) {
     font-size: var(--text-xl);
     font-weight: var(--weight-semibold);
-    color: var(--color-notte);
-    margin: var(--space-5) 0 var(--space-2);
-  }
-
-  :global(.editor-content blockquote) {
-    border-left: 3px solid var(--color-lavanda);
-    padding-left: var(--space-4);
-    margin: var(--space-4) 0;
-    color: var(--color-lilla);
-    font-style: italic;
-  }
-
-  :global(.editor-content code) {
-    background: var(--color-iris);
-    padding: 2px 6px;
-    border-radius: var(--radius-sm);
-    font-size: 0.9em;
-  }
-
-  :global(.editor-content pre) {
-    background: var(--color-notte);
-    color: var(--color-nebbia);
-    padding: var(--space-4);
-    border-radius: var(--radius-md);
-    overflow-x: auto;
-    margin: var(--space-4) 0;
-  }
-
-  :global(.editor-content pre code) {
-    background: transparent;
-    padding: 0;
-    color: inherit;
-  }
-
-  :global(.editor-content ul, .editor-content ol) {
-    padding-left: var(--space-6);
-    margin: var(--space-3) 0;
-  }
-
-  :global(.editor-content img) {
-    max-width: 100%;
-    border-radius: var(--radius-md);
-    margin: var(--space-4) 0;
-  }
-
-  :global(.editor-content a) {
-    color: var(--color-viola);
-  }
-
-  :global(.editor-content p.is-editor-empty:first-child::before) {
-    content: attr(data-placeholder);
-    color: var(--color-lilla);
-    pointer-events: none;
-    float: left;
-    height: 0;
   }
 </style>

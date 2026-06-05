@@ -19,12 +19,16 @@
 		"@sveltejs/adapter-auto": "^7.0.1",
 		"@sveltejs/kit": "^2.57.0",
 		"@sveltejs/vite-plugin-svelte": "^7.0.0",
+		"@vitejs/plugin-react": "^6.0.2",
 		"svelte": "^5.55.2",
 		"svelte-check": "^4.4.6",
 		"typescript": "^6.0.2",
 		"vite": "^8.0.7"
 	},
 	"dependencies": {
+		"@blocknote/core": "^0.51.4",
+		"@blocknote/mantine": "^0.51.4",
+		"@blocknote/react": "^0.51.4",
 		"@lucia-auth/adapter-drizzle": "^1.1.0",
 		"@sveltejs/adapter-node": "^5.5.4",
 		"@tiptap/core": "^3.25.0",
@@ -32,11 +36,15 @@
 		"@tiptap/extension-link": "^3.25.0",
 		"@tiptap/starter-kit": "^3.25.0",
 		"@types/pg": "^8.20.0",
+		"@types/react": "^19.2.16",
+		"@types/react-dom": "^19.2.3",
 		"argon2": "^0.44.0",
 		"dotenv": "^17.4.2",
 		"drizzle-kit": "^0.31.10",
 		"drizzle-orm": "^0.45.2",
 		"lucia": "^3.2.2",
-		"pg": "^8.21.0"
+		"pg": "^8.21.0",
+		"react": "^19.2.7",
+		"react-dom": "^19.2.7"
 	}
 }
