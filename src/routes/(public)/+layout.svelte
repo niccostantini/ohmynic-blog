@@ -5,6 +5,11 @@
   let { children }: { children: import('svelte').Snippet } = $props();
 </script>
 
+<svelte:head>
+  <meta name="robots" content="index, follow" />
+  <link rel="alternate" type="application/rss+xml" title="OhMyNic! — RSS Feed" href="https://ohmynic.co/blog/rss.xml" />
+</svelte:head>
+
 <div class="site">
   <header class="site-header">
     <div class="header-inner">

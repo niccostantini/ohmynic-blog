@@ -6,6 +6,10 @@
   let { data, children }: { data: LayoutData; children: Snippet } = $props();
 </script>
 
+<svelte:head>
+  <meta name="robots" content="noindex, nofollow" />
+</svelte:head>
+
 <div class="admin-shell">
   <header class="admin-header">
     <a href="{base}/admin" class="logo-link">Oh<em>My</em>Nic!</a>

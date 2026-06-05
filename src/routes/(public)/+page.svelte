@@ -9,17 +9,17 @@
 </script>
 
 <svelte:head>
-  <title>OhMyNic! — Blog</title>
-  <meta name="description" content="Pensieri, idee e articoli di OhMyNic!" />
+  <title>OhMyNic! — Pensieri e idee</title>
+  <meta name="description" content="Pensieri, idee e articoli di Nic." />
   <link rel="canonical" href="https://ohmynic.co/blog/" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="OhMyNic!" />
-  <meta property="og:title" content="OhMyNic! — Blog" />
-  <meta property="og:description" content="Pensieri, idee e articoli di OhMyNic!" />
+  <meta property="og:title" content="OhMyNic! — Pensieri e idee" />
+  <meta property="og:description" content="Pensieri, idee e articoli di Nic." />
   <meta property="og:url" content="https://ohmynic.co/blog/" />
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="OhMyNic! — Blog" />
-  <meta name="twitter:description" content="Pensieri, idee e articoli di OhMyNic!" />
+  <meta name="twitter:title" content="OhMyNic! — Pensieri e idee" />
+  <meta name="twitter:description" content="Pensieri, idee e articoli di Nic." />
 </svelte:head>
 
 <div class="page-wrap">

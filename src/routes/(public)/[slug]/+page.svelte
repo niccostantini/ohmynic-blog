@@ -12,6 +12,21 @@
     typeof window !== 'undefined' ? window.location.href : `https://ohmynic.co/blog/${data.article.slug}`
   );
 
+  const description = $derived(
+    data.article.excerpt?.trim() ||
+    data.article.content.replace(/<[^>]*>/g, '').slice(0, 160)
+  );
+
+  const jsonLd = $derived(JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: data.article.title,
+    description,
+    url: `https://ohmynic.co/blog/${data.article.slug}`,
+    datePublished: data.article.publishedAt ? new Date(data.article.publishedAt).toISOString() : undefined,
+    author: { '@type': 'Person', name: 'Nic' },
+  }));
+
   function formatDate(d: Date | string | null) {
     if (!d) return '';
     return new Date(d).toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' });
@@ -20,14 +35,14 @@
 
 <svelte:head>
   <title>{data.article.title} — OhMyNic!</title>
-  <meta name="description" content={data.article.excerpt ?? ''} />
+  <meta name="description" content={description} />
   <link rel="canonical" href="https://ohmynic.co/blog/{data.article.slug}" />
 
   <!-- Open Graph -->
   <meta property="og:type" content="article" />
   <meta property="og:site_name" content="OhMyNic!" />
   <meta property="og:title" content={data.article.title} />
-  <meta property="og:description" content={data.article.excerpt ?? ''} />
+  <meta property="og:description" content={description} />
   <meta property="og:url" content="https://ohmynic.co/blog/{data.article.slug}" />
   <meta property="og:image" content={data.article.coverImage ?? `https://ohmynic.co/blog/api/og/${data.article.slug}`} />
   <meta property="og:image:width" content="1200" />
@@ -39,8 +54,11 @@
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content={data.article.title} />
-  <meta name="twitter:description" content={data.article.excerpt ?? ''} />
+  <meta name="twitter:description" content={description} />
   <meta name="twitter:image" content={data.article.coverImage ?? `https://ohmynic.co/blog/api/og/${data.article.slug}`} />
+
+  <!-- JSON-LD -->
+  {@html `<script type="application/ld+json">${jsonLd}</script>`}
 </svelte:head>
 
 <article class="article-wrap">
