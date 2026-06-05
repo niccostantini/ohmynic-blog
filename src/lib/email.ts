@@ -39,11 +39,13 @@ export function notifyNewComment({
   articleTitle,
   articleSlug,
   authorName,
+  authorEmail,
   content,
 }: {
   articleTitle: string;
   articleSlug: string;
   authorName: string | undefined;
+  authorEmail: string | undefined;
   content: string;
 }): void {
   const apiKey = env.RESEND_API_KEY;
@@ -52,9 +54,15 @@ export function notifyNewComment({
   if (!apiKey || !notifyEmail) return;
 
   const resend = new Resend(apiKey);
-  const author = authorName || 'Anonimo';
   const articleUrl = `https://ohmynic.co/blog/${articleSlug}`;
   const adminUrl = 'https://ohmynic.co/blog/admin/comments';
+
+  const authorLine = authorName
+    ? `<p><strong>Autore:</strong> ${authorName}</p>`
+    : '';
+  const emailLine = authorEmail
+    ? `<p><strong>Email:</strong> <a href="mailto:${authorEmail}">${authorEmail}</a></p>`
+    : '';
 
   resend.emails
     .send({
@@ -62,7 +70,8 @@ export function notifyNewComment({
       to: notifyEmail,
       subject: `Nuovo commento su "${articleTitle}"`,
       html: `
-        <p><strong>Autore:</strong> ${author}</p>
+        ${authorLine}
+        ${emailLine}
         <p><strong>Commento:</strong></p>
         <blockquote style="border-left:3px solid #7c5cbf;padding-left:12px;color:#555;">
           ${content.replace(/\n/g, '<br>')}

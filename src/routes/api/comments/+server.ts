@@ -31,6 +31,7 @@ export const POST: RequestHandler = async ({ request }) => {
     articleTitle: article.title,
     articleSlug: article.slug,
     authorName: comment.authorName ?? undefined,
+    authorEmail: comment.authorEmail ?? undefined,
     content: comment.content,
   });
 

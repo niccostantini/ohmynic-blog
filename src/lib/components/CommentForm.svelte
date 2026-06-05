@@ -36,7 +36,7 @@
   <h3>Lascia un commento</h3>
 
   <div class="disclaimer">
-    <em>I commenti sono anonimi. Nome ed email sono facoltativi e non verranno condivisi. I commenti sono moderati prima della pubblicazione.</em>
+    <em>Nome ed email sono facoltativi. Se inseriti, il nome appare accanto al commento e l'email viene usata solo per contattarti in risposta. I commenti sono moderati prima della pubblicazione.</em>
   </div>
 
   {#if submitted}

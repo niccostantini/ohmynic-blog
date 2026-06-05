@@ -23,7 +23,9 @@
         <!-- commento utente -->
         <div class="bubble user-bubble">
           <div class="bubble-meta">
-            <span class="author">{comment.authorName ?? 'Anonimo'}</span>
+            {#if comment.authorName}
+              <span class="author">{comment.authorName}</span>
+            {/if}
             <span class="date">{formatDate(comment.createdAt)}</span>
           </div>
           <p class="bubble-text">{comment.content}</p>
