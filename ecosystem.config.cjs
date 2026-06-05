@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 module.exports = {
   apps: [
     {
@@ -9,8 +11,11 @@ module.exports = {
       env: {
         NODE_ENV: 'production',
         PORT: 3000,
+        DATABASE_URL: process.env.DATABASE_URL,
+        AUTH_SECRET: process.env.AUTH_SECRET,
+        ADMIN_USERNAME: process.env.ADMIN_USERNAME,
+        ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
       },
-      env_file: '.env',
     },
   ],
 };
