@@ -8,7 +8,7 @@
   type Filter = 'all' | 'pending' | 'approved';
   let filter = $state<Filter>('all');
   let replyOpenId = $state<string | null>(null);
-  let replyTexts = $state<Record<string, string>>({});
+  let replyText = $state('');
 
   const filtered = $derived(
     filter === 'pending'
@@ -28,14 +28,18 @@
   }
 
   function toggleReply(id: string) {
-    replyOpenId = replyOpenId === id ? null : id;
+    if (replyOpenId === id) {
+      replyOpenId = null;
+    } else {
+      replyOpenId = id;
+      replyText = '';
+    }
   }
 
-  // Close reply form after successful send
   $effect(() => {
-    if (form?.replySent && form?.replyId) {
+    if (form?.replySent) {
       replyOpenId = null;
-      replyTexts[form.replyId as string] = '';
+      replyText = '';
     }
   });
 </script>
@@ -137,7 +141,7 @@
               name="replyText"
               rows="4"
               placeholder="Scrivi la tua risposta..."
-              bind:value={replyTexts[comment.id]}
+              bind:value={replyText}
               required
             ></textarea>
             <div class="reply-actions">
