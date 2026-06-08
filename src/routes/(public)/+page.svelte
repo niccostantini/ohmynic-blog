@@ -30,8 +30,7 @@
 <div class="page-wrap">
   <div class="content-col">
     <header class="page-header">
-      <h1>Articoli</h1>
-      <p class="page-sub">Pensieri e idee messi in ordine.</p>
+      <h1>Pensieri e idee messi in ordine.</h1>
     </header>
 
     <form method="GET" action="{base}/search" class="search-form">
