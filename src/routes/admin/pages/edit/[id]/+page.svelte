@@ -59,8 +59,9 @@
     </div>
   </div>
 
-  <!-- Save form -->
+  <!-- Save form — id referenced by buttons below -->
   <form
+    id="save-form"
     method="POST"
     action="?/save"
     use:enhance={({ formData }) => {
@@ -142,43 +143,51 @@
         </label>
       </div>
     </div>
-
-    <div class="form-actions">
-      <div class="actions-left">
-        {#if deleteConfirm}
-          <form method="POST" action="?/delete" use:enhance>
-            <span class="delete-confirm-text">Eliminare definitivamente?</span>
-            <button type="submit" class="btn-danger">Sì, elimina</button>
-            <button type="button" class="btn-ghost" onclick={() => deleteConfirm = false}>Annulla</button>
-          </form>
-        {:else}
-          <button type="button" class="btn-delete" onclick={() => deleteConfirm = true}>Elimina pagina</button>
-        {/if}
-      </div>
-      <div class="actions-right">
-        {#if isPublished}
-          <form method="POST" action="?/unpublish" use:enhance>
-            <button type="submit" class="btn-ghost">Torna a bozza</button>
-          </form>
-        {:else}
-          <form method="POST" action="?/publish" use:enhance={({ formData }) => {
-            beforeSave({ formData });
-            publishing = true;
-            return async ({ update }) => { publishing = false; await update(); };
-          }}>
-            <input type="hidden" name="content" value={content} />
-            <input type="hidden" name="blocksJson" value={blocksJson ?? ''} />
-            <button type="submit" class="btn-publish" disabled={publishing}>
-              {publishing ? 'Pubblicazione…' : 'Pubblica'}
-            </button>
-          </form>
-        {/if}
-        <button type="submit" class="btn-save" disabled={saving}>
-          {saving ? 'Salvataggio…' : 'Salva bozza'}
-        </button>
-      </div>
-    </div>
   </form>
+
+  <!-- Sibling forms for publish / unpublish / delete — avoids nested <form> -->
+  <form
+    id="publish-form"
+    method="POST"
+    action="?/publish"
+    use:enhance={({ formData }) => {
+      beforeSave({ formData });
+      publishing = true;
+      return async ({ update }) => { publishing = false; await update(); };
+    }}
+    style="display:none"
+  >
+    <input type="hidden" name="content" value={content} />
+    <input type="hidden" name="blocksJson" value={blocksJson ?? ''} />
+  </form>
+
+  <form id="unpublish-form" method="POST" action="?/unpublish" use:enhance style="display:none"></form>
+
+  <form id="delete-form" method="POST" action="?/delete" use:enhance style="display:none"></form>
+
+  <div class="form-actions">
+    <div class="actions-left">
+      {#if deleteConfirm}
+        <span class="delete-confirm-text">Eliminare definitivamente?</span>
+        <button type="submit" form="delete-form" class="btn-danger">Sì, elimina</button>
+        <button type="button" class="btn-ghost" onclick={() => deleteConfirm = false}>Annulla</button>
+      {:else}
+        <button type="button" class="btn-delete" onclick={() => deleteConfirm = true}>Elimina pagina</button>
+      {/if}
+    </div>
+    <div class="actions-right">
+      {#if isPublished}
+        <button type="submit" form="unpublish-form" class="btn-ghost">Torna a bozza</button>
+      {:else}
+        <button type="submit" form="publish-form" class="btn-publish" disabled={publishing}>
+          {publishing ? 'Pubblicazione…' : 'Pubblica'}
+        </button>
+      {/if}
+      <button type="submit" form="save-form" class="btn-save" disabled={saving}>
+        {saving ? 'Salvataggio…' : 'Salva bozza'}
+      </button>
+    </div>
+  </div>
 </div>
 
 <style>
