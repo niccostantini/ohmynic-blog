@@ -20,6 +20,9 @@
     <a href="{base}/admin" class="logo-link">Oh<em>My</em>Nic!</a>
     <nav class="admin-nav">
       <a href="{base}/admin">Articoli</a>
+      {#if data.user.role === 'admin'}
+        <a href="{base}/admin/pages">Pagine</a>
+      {/if}
       {#if data.user.role === 'admin' || data.user.role === 'editor'}
         <a href="{base}/admin/comments">Commenti</a>
       {/if}

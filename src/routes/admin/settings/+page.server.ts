@@ -1,5 +1,7 @@
+import { getAllNavItems } from '$lib/db/queries/navItems';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
-  return { user: locals.user! };
+  const navItems = locals.user?.role === 'admin' ? await getAllNavItems() : [];
+  return { user: locals.user!, navItems };
 };

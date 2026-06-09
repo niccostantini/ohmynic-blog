@@ -9,6 +9,8 @@
   import { trackPageview } from '$lib/analytics';
   import type { LayoutData } from './$types';
 
+  import { page } from '$app/state';
+
   let { children, data }: { children: import('svelte').Snippet; data: LayoutData } = $props();
 
   let feedbackOpen = $state(false);
@@ -41,7 +43,14 @@
     <div class="header-inner">
       <a href="{base}/" class="logo-link"><Logo /></a>
       <nav class="site-nav">
-        <a href="{base}/">Articoli</a>
+        {#each data.navItems as item (item.id)}
+          <a
+            href={item.url ?? '#'}
+            class:nav-active={page.url.pathname === item.url || (item.url !== '/blog' && page.url.pathname.startsWith(item.url ?? ''))}
+            target={item.openInNewTab ? '_blank' : undefined}
+            rel={item.openInNewTab ? 'noopener noreferrer' : undefined}
+          >{item.label}</a>
+        {/each}
       </nav>
       <div class="reader-nav">
         {#if data.reader}
@@ -123,6 +132,7 @@
     transition: color var(--transition-fast);
   }
   .site-nav a:hover { color: var(--color-notte); }
+  .site-nav a.nav-active { color: var(--color-viola); font-weight: var(--weight-semibold); }
 
   .reader-nav {
     display: flex;

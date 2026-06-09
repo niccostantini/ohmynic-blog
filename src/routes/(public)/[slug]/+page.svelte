@@ -104,9 +104,9 @@
   {@html `<script type="application/ld+json">${jsonLd}</script>`}
 </svelte:head>
 
-<article class="article-wrap">
+<article class="article-wrap" class:is-page={data.article.type === 'page'}>
   <div class="article-header">
-    {#if data.tags.length > 0}
+    {#if data.article.type !== 'page' && data.tags.length > 0}
       <div class="article-tags">
         {#each data.tags as tag}
           <a href="{base}/tag/{tag.slug}" class="tag">{tag.name}</a>
@@ -116,24 +116,26 @@
 
     <h1 class="article-title">{data.article.title}</h1>
 
-    <div class="article-meta">
-      {#if data.author}
-        <a href="{base}/author/{data.author.username}" class="byline">
-          {#if data.author.avatarUrl}
-            <img src={data.author.avatarUrl} alt={data.author.displayName ?? data.author.username} class="byline-avatar" />
-          {/if}
-          <span class="byline-name">{data.author.displayName ?? data.author.username}</span>
-        </a>
-        <span class="meta-sep">·</span>
-      {/if}
-      <time datetime={String(data.article.publishedAt)}>
-        {formatDate(data.article.publishedAt)}
-      </time>
-      {#if data.article.readingTimeMinutes}
-        <span class="meta-sep">·</span>
-        <span class="read-time">{data.article.readingTimeMinutes} min</span>
-      {/if}
-    </div>
+    {#if data.article.type !== 'page'}
+      <div class="article-meta">
+        {#if data.author}
+          <a href="{base}/author/{data.author.username}" class="byline">
+            {#if data.author.avatarUrl}
+              <img src={data.author.avatarUrl} alt={data.author.displayName ?? data.author.username} class="byline-avatar" />
+            {/if}
+            <span class="byline-name">{data.author.displayName ?? data.author.username}</span>
+          </a>
+          <span class="meta-sep">·</span>
+        {/if}
+        <time datetime={String(data.article.publishedAt)}>
+          {formatDate(data.article.publishedAt)}
+        </time>
+        {#if data.article.readingTimeMinutes}
+          <span class="meta-sep">·</span>
+          <span class="read-time">{data.article.readingTimeMinutes} min</span>
+        {/if}
+      </div>
+    {/if}
   </div>
 
   {#if data.article.coverImage && data.article.showCoverInArticle !== false}
@@ -144,34 +146,36 @@
     {@html data.article.content}
   </div>
 
-  <footer class="article-footer">
-    <div class="footer-actions">
-      <ShareButtons url={pageUrl} title={data.article.title} />
-      <button
-        class="bookmark-btn"
-        class:bookmarked
-        onclick={toggleBookmark}
-        disabled={bookmarkLoading}
-        title={bookmarked ? 'Rimuovi dai salvati' : 'Salva articolo'}
-      >
-        {#if bookmarked}
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3a2 2 0 0 0-2 2v16l9-4 9 4V5a2 2 0 0 0-2-2H5z"/></svg>
-          Salvato
-        {:else}
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3a2 2 0 0 0-2 2v16l9-4 9 4V5a2 2 0 0 0-2-2H5z"/></svg>
-          Salva
-        {/if}
-      </button>
-    </div>
-    {#if data.tags.length > 0}
-      <div class="footer-tags">
-        <TagList tags={data.tags} />
+  {#if data.article.type !== 'page'}
+    <footer class="article-footer">
+      <div class="footer-actions">
+        <ShareButtons url={pageUrl} title={data.article.title} />
+        <button
+          class="bookmark-btn"
+          class:bookmarked
+          onclick={toggleBookmark}
+          disabled={bookmarkLoading}
+          title={bookmarked ? 'Rimuovi dai salvati' : 'Salva articolo'}
+        >
+          {#if bookmarked}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3a2 2 0 0 0-2 2v16l9-4 9 4V5a2 2 0 0 0-2-2H5z"/></svg>
+            Salvato
+          {:else}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3a2 2 0 0 0-2 2v16l9-4 9 4V5a2 2 0 0 0-2-2H5z"/></svg>
+            Salva
+          {/if}
+        </button>
       </div>
-    {/if}
-  </footer>
+      {#if data.tags.length > 0}
+        <div class="footer-tags">
+          <TagList tags={data.tags} />
+        </div>
+      {/if}
+    </footer>
+  {/if}
 </article>
 
-{#if data.related.length > 0}
+{#if data.article.type !== 'page' && data.related.length > 0}
   <section class="related-wrap">
     <h2 class="related-title">Potrebbe interessarti</h2>
     <div class="related-grid">
@@ -182,10 +186,12 @@
   </section>
 {/if}
 
-<div class="comments-wrap">
-  <CommentList comments={data.comments} />
-  <CommentForm articleId={data.article.id} reader={data.reader ?? null} />
-</div>
+{#if data.article.type !== 'page' || data.article.showComments}
+  <div class="comments-wrap">
+    <CommentList comments={data.comments} />
+    <CommentForm articleId={data.article.id} reader={data.reader ?? null} />
+  </div>
+{/if}
 
 <style>
   .article-wrap {

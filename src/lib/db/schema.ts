@@ -37,8 +37,23 @@ export const articles = pgTable('articles', {
   previewToken: text('preview_token'),
   readingTimeMinutes: integer('reading_time_minutes'),
   showCoverInArticle: boolean('show_cover_in_article').notNull().default(true),
+  type: text('type', { enum: ['article', 'page'] }).notNull().default('article'),
+  showComments: boolean('show_comments').notNull().default(false),
+  showInFeed: boolean('show_in_feed').notNull().default(true),
+  showInNavbar: boolean('show_in_navbar').notNull().default(false),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const navItems = pgTable('nav_items', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  label: text('label').notNull(),
+  url: text('url'),
+  pageId: uuid('page_id').references(() => articles.id, { onDelete: 'set null' }),
+  type: text('type', { enum: ['page', 'external', 'fixed'] }).notNull().default('external'),
+  position: integer('position').notNull().default(0),
+  visible: boolean('visible').notNull().default(true),
+  openInNewTab: boolean('open_in_new_tab').notNull().default(false),
 });
 
 export const articleStatusLog = pgTable('article_status_log', {

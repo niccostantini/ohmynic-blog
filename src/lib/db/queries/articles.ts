@@ -12,6 +12,7 @@ export function readingTime(content: string): number {
 function publishedAndVisible() {
   return and(
     eq(articles.status, 'published'),
+    eq(articles.showInFeed, true),
     or(isNull(articles.publishedAt), lte(articles.publishedAt, new Date()))
   );
 }
@@ -99,6 +100,10 @@ export async function updateArticle(id: string, data: Partial<{
   authorId: string;
   readingTimeMinutes: number;
   showCoverInArticle: boolean;
+  type: 'article' | 'page';
+  showComments: boolean;
+  showInFeed: boolean;
+  showInNavbar: boolean;
 }>) {
   const result = await db
     .update(articles)
@@ -448,4 +453,34 @@ export async function setArticleTags(articleId: string, tagIds: string[]) {
   if (tagIds.length > 0) {
     await db.insert(articleTags).values(tagIds.map((tagId) => ({ articleId, tagId })));
   }
+}
+
+export async function getAllPagesAdmin() {
+  return db
+    .select()
+    .from(articles)
+    .where(eq(articles.type, 'page'))
+    .orderBy(desc(articles.updatedAt));
+}
+
+export async function createPage(data: {
+  title: string;
+  slug: string;
+  content: string;
+  excerpt?: string;
+  coverImage?: string;
+  authorId?: string;
+}) {
+  const { randomUUID } = await import('node:crypto');
+  const result = await db.insert(articles).values({
+    ...data,
+    type: 'page',
+    status: 'draft',
+    showInFeed: false,
+    showComments: false,
+    showInNavbar: false,
+    previewToken: randomUUID(),
+    readingTimeMinutes: readingTime(data.content),
+  }).returning();
+  return result[0];
 }
