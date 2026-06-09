@@ -1,5 +1,6 @@
 <script lang="ts">
   import { theme } from '$lib/stores/theme';
+  import { highContrast } from '$lib/stores/highContrast';
 
   const LABELS: Record<string, string> = {
     light:  'Modalità chiara — clicca per scura',
@@ -23,6 +24,17 @@
     ></span>
   </span>
   <i class="ti ti-moon" class:icon-active={$theme === 'dark'}></i>
+</button>
+
+<button
+  class="hc-toggle"
+  class:hc-active={$highContrast}
+  onclick={() => highContrast.toggleHighContrast()}
+  title={$highContrast ? 'Alto contrasto attivo — clicca per disattivare' : 'Attiva alto contrasto'}
+  aria-label={$highContrast ? 'Disattiva alto contrasto' : 'Attiva alto contrasto'}
+  aria-pressed={$highContrast}
+>
+  <i class="ti ti-eye"></i>
 </button>
 
 <style>
@@ -77,4 +89,25 @@
   }
   .dot.dot-right { left: 19px; }
   .dot.dot-mid   { left: 11px; }
+
+  .hc-toggle {
+    display: flex;
+    align-items: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    color: var(--color-lilla);
+    font-size: 15px;
+    line-height: 1;
+    border-radius: var(--radius-sm);
+    transition: color var(--transition-fast);
+    flex-shrink: 0;
+    opacity: 0.5;
+  }
+  .hc-toggle:hover { color: var(--color-notte); opacity: 1; }
+  .hc-toggle.hc-active {
+    color: var(--color-lavanda);
+    opacity: 1;
+  }
 </style>

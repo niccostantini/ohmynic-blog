@@ -15,6 +15,8 @@
 				document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
 				var tc = localStorage.getItem('ohmynic-theme-color') || 'amethyst';
 				document.documentElement.setAttribute('data-theme-color', tc);
+				var hc = localStorage.getItem('ohmynic-theme-hc');
+				if (hc === 'on') document.documentElement.setAttribute('data-theme-hc', 'on');
 			})();
 		</script>
 		<link rel="preconnect" href="https://fonts.googleapis.com">

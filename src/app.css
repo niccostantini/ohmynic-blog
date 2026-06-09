@@ -195,3 +195,118 @@ body {
     border-left-color: var(--color-lavanda);
   }
 }
+
+/* ── Dark mode — white-background overrides ──────────────────────────────── */
+/* These use !important because Svelte scoped CSS has equal or higher specificity */
+
+/* Auth/login/verify cards */
+[data-theme='dark'] .login-card,
+[data-theme='dark'] .auth-card,
+[data-theme='dark'] .verify-card { background: var(--color-iris) !important; }
+
+/* Modals */
+[data-theme='dark'] .modal { background: var(--color-iris) !important; }
+
+/* Public footer */
+[data-theme='dark'] .site-footer { background: var(--color-iris) !important; }
+
+/* Admin settings / change-password card */
+[data-theme='dark'] .settings-section,
+[data-theme='dark'] .card { background: var(--color-iris) !important; }
+
+/* Admin articles / comments tables and cards */
+[data-theme='dark'] .article-table,
+[data-theme='dark'] .article-table th { background: var(--color-iris) !important; }
+[data-theme='dark'] .comment-card { background: var(--color-nebbia) !important; }
+[data-theme='dark'] .comment-card.comment-workflow { background: var(--color-iris) !important; }
+
+/* Admin feedback */
+[data-theme='dark'] .filter-pill { background: var(--color-iris) !important; }
+[data-theme='dark'] .feedback-table-wrap { background: var(--color-iris) !important; }
+
+/* Admin analytics */
+[data-theme='dark'] .kpi-card,
+[data-theme='dark'] .chart-card { background: var(--color-iris) !important; }
+[data-theme='dark'] .period-content { background: var(--color-iris) !important; }
+
+/* Admin edit/new — meta fields, tag input, suggestions */
+[data-theme='dark'] .meta-fields { background: var(--color-iris) !important; }
+[data-theme='dark'] .tag-input-wrap { background: var(--color-iris) !important; }
+[data-theme='dark'] .suggestions { background: var(--color-iris) !important; }
+[data-theme='dark'] .history-transition {
+  background: var(--color-iris) !important;
+  color: var(--color-prugna) !important;
+}
+
+/* Admin edit — editor wrap */
+[data-theme='dark'] .editor-wrap { background: var(--color-iris) !important; }
+
+/* Admin edit — inline comment section */
+[data-theme='dark'] .comment-textarea { background: var(--color-iris) !important; }
+[data-theme='dark'] .reply-card { background: var(--color-iris) !important; }
+[data-theme='dark'] .changed-chip {
+  background: #3a2510 !important;
+  color: #d4a060 !important;
+}
+[data-theme='dark'] .block-citation.changed {
+  background: #2a1a08 !important;
+  border-left-color: #6b3f10 !important;
+}
+[data-theme='dark'] .resolved-badge {
+  background: #122010 !important;
+  color: #7ec060 !important;
+}
+
+/* Public account page list items */
+[data-theme='dark'] .article-item,
+[data-theme='dark'] .comment-item { background: var(--color-iris) !important; }
+
+/* Public lettore profile */
+[data-theme='dark'] .comment-list .comment-item { background: var(--color-iris) !important; }
+
+/* Public search */
+[data-theme='dark'] .search-input-wrap { background: var(--color-iris) !important; }
+[data-theme='dark'] .page-btn { background: var(--color-iris) !important; color: var(--color-notte) !important; }
+
+/* CommentList — user bubble */
+[data-theme='dark'] .user-bubble { background: var(--color-iris) !important; }
+
+/* FeedbackModal — radio pills */
+[data-theme='dark'] .radio-pill { background: var(--color-iris) !important; }
+
+/* ShareButtons */
+[data-theme='dark'] .share-btn { background: var(--color-iris) !important; }
+
+/* Admin articles list pending banner (#fffbeb) */
+[data-theme='dark'] .pending-banner { background: #2e1e06 !important; border-color: #5a3a0a !important; color: #d4b890 !important; }
+
+/* Form inputs — global dark mode fix */
+[data-theme='dark'] input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='submit']):not([type='button']),
+[data-theme='dark'] textarea,
+[data-theme='dark'] select {
+  background: var(--color-iris) !important;
+  color: var(--color-notte) !important;
+}
+[data-theme='dark'] input:focus:not([type='checkbox']):not([type='radio']),
+[data-theme='dark'] textarea:focus {
+  background: var(--color-iris) !important;
+}
+
+/* ── High contrast — additional rules ───────────────────────────────────────── */
+[data-theme-hc='on'] p,
+[data-theme-hc='on'] li { line-height: 1.8; }
+
+[data-theme-hc='on'] * { letter-spacing: 0.01em; }
+
+[data-theme-hc='on'] a {
+  text-decoration: underline !important;
+  text-underline-offset: 3px;
+}
+
+[data-theme-hc='on'] button,
+[data-theme-hc='on'] input,
+[data-theme-hc='on'] textarea,
+[data-theme-hc='on'] select {
+  border-width: 2px !important;
+  border-style: solid !important;
+}

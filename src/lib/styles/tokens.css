@@ -458,3 +458,40 @@ hr {
   margin: var(--space-8) 0;
 }
 
+/* =============================================
+   Alto contrasto (light) — [data-theme-hc="on"]
+   Specificità 0,1,0 → stessa di [data-theme]
+   ma posizionato dopo → vince per source order
+   ============================================= */
+
+[data-theme-hc='on'] {
+  --color-notte:      #000000;
+  --color-prugna:     #000000;
+  --color-viola:      #4a00cc;
+  --color-lavanda:    #4a00cc;
+  --color-nebbia:     #ffffff;
+  --color-iris:       #f0f0f0;
+  --color-bordo:      #000000;
+  --color-lilla:      #1a1a1a;
+  --color-grafite:    #1a1a1a;
+  --color-bordo-soft: #333333;
+}
+
+/* =============================================
+   Alto contrasto (dark) — combinazione
+   Specificità 0,2,0 → vince su [data-theme='dark']
+   ============================================= */
+
+[data-theme-hc='on'][data-theme='dark'] {
+  --color-notte:      #ffffff;
+  --color-prugna:     #ffffff;
+  --color-viola:      #c8a8ff;
+  --color-lavanda:    #c8a8ff;
+  --color-nebbia:     #000000;
+  --color-iris:       #0a0a0a;
+  --color-bordo:      #ffffff;
+  --color-lilla:      #e0e0e0;
+  --color-grafite:    #e0e0e0;
+  --color-bordo-soft: #cccccc;
+}
+
