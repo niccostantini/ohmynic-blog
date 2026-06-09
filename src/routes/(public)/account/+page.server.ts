@@ -16,6 +16,7 @@ export const load: PageServerLoad = async ({ locals }) => {
   ]);
 
   return {
+    reader: locals.reader,
     bookmarks,
     comments: readerComments,
   };
