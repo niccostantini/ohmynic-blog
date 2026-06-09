@@ -4,8 +4,11 @@
   import type { Snippet } from 'svelte';
   import ThemeToggle from '$lib/components/ThemeToggle.svelte';
   import Toast from '$lib/components/Toast.svelte';
+  import FeedbackModal from '$lib/components/FeedbackModal.svelte';
 
   let { data, children }: { data: LayoutData; children: Snippet } = $props();
+
+  let feedbackOpen = $state(false);
 </script>
 
 <svelte:head>
@@ -26,8 +29,19 @@
       {#if data.user.role === 'admin' || data.user.role === 'editor'}
         <a href="{base}/admin/analytics">Analytics</a>
       {/if}
+      {#if data.user.role === 'admin'}
+        <a href="{base}/admin/feedback" class="feedback-nav-link">
+          Feedback
+          {#if data.newFeedbackCount > 0}
+            <span class="feedback-badge">{data.newFeedbackCount}</span>
+          {/if}
+        </a>
+      {/if}
       <a href="https://ohmynic.co/blog/" target="_blank">Sito →</a>
     </nav>
+    <button class="btn-bug" onclick={() => feedbackOpen = true} title="Segnala un problema" aria-label="Segnala un problema">
+      <i class="ti ti-bug"></i>
+    </button>
     <a href="{base}/admin/settings" class="btn-settings" title="Impostazioni" aria-label="Impostazioni">
       <i class="ti ti-settings"></i>
     </a>
@@ -45,6 +59,7 @@
 </div>
 
 <Toast />
+<FeedbackModal bind:open={feedbackOpen} />
 
 <style>
   .admin-shell {
@@ -67,6 +82,37 @@
   :global([data-theme='dark']) .admin-header {
     background: var(--color-iris);
   }
+
+  .feedback-nav-link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+  }
+  .feedback-badge {
+    font-size: 10px;
+    font-weight: var(--weight-semibold);
+    background: #b91c1c;
+    color: white;
+    border-radius: 99px;
+    padding: 1px 5px;
+    line-height: 1.4;
+  }
+
+  .btn-bug {
+    font-size: 18px;
+    color: var(--color-lilla);
+    background: none;
+    border: none;
+    line-height: 1;
+    padding: 4px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: color var(--transition-fast);
+    display: flex;
+    align-items: center;
+  }
+  .btn-bug:hover { color: var(--color-notte); }
 
   .btn-settings {
     font-size: 18px;

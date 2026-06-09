@@ -143,6 +143,19 @@ export const pageViews = pgTable('page_views', {
   index('pv_session_id_idx').on(t.sessionId),
 ]);
 
+// ── Feedback ──────────────────────────────────────────────────────────────────
+export const feedback = pgTable('feedback', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  type: text('type', { enum: ['bug', 'suggestion', 'other'] }).notNull(),
+  title: text('title').notNull(),
+  description: text('description').notNull(),
+  url: text('url'),
+  authorId: text('author_id').references(() => users.id, { onDelete: 'set null' }),
+  readerId: uuid('reader_id').references(() => readers.id, { onDelete: 'set null' }),
+  status: text('status', { enum: ['new', 'read', 'in_progress', 'done', 'wontfix'] }).notNull().default('new'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
 export const articleReadCompletions = pgTable('article_read_completions', {
   id: uuid('id').primaryKey().defaultRandom(),
   articleId: uuid('article_id').notNull().references(() => articles.id, { onDelete: 'cascade' }),

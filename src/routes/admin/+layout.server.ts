@@ -1,5 +1,6 @@
 import { redirect } from '@sveltejs/kit';
 import { base } from '$app/paths';
+import { countNewFeedback } from '$lib/db/queries/feedback';
 import type { LayoutServerLoad } from './$types';
 
 export const load: LayoutServerLoad = async ({ locals, url }) => {
@@ -13,5 +14,7 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
     redirect(302, `${base}/admin/change-password`);
   }
 
-  return { user: locals.user };
+  const newFeedbackCount = locals.user.role === 'admin' ? await countNewFeedback() : 0;
+
+  return { user: locals.user, newFeedbackCount };
 };

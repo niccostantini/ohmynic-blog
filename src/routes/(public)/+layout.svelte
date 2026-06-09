@@ -4,10 +4,14 @@
   import Logo from '$lib/components/Logo.svelte';
   import ThemeToggle from '$lib/components/ThemeToggle.svelte';
   import ThemeSwitcher from '$lib/components/ThemeSwitcher.svelte';
+  import FeedbackModal from '$lib/components/FeedbackModal.svelte';
+  import Toast from '$lib/components/Toast.svelte';
   import { trackPageview } from '$lib/analytics';
   import type { LayoutData } from './$types';
 
   let { children, data }: { children: import('svelte').Snippet; data: LayoutData } = $props();
+
+  let feedbackOpen = $state(false);
 
   afterNavigate(({ to }) => {
     // Articles track themselves (with articleId) from +page.svelte onMount
@@ -63,12 +67,18 @@
     <div class="footer-inner">
       <Logo />
       <p class="footer-copy">© {new Date().getFullYear()} OhMyNic! — Tutti i diritti riservati.</p>
-      <div class="footer-theme">
+      <div class="footer-right">
+        <button class="footer-feedback-link" onclick={() => feedbackOpen = true}>
+          Segnala un problema
+        </button>
         <ThemeSwitcher />
       </div>
     </div>
   </footer>
 </div>
+
+<FeedbackModal bind:open={feedbackOpen} />
+<Toast />
 
 <style>
   .site { display: flex; flex-direction: column; min-height: 100vh; }
@@ -185,12 +195,28 @@
     color: var(--color-lilla);
   }
 
-  .footer-theme {
+  .footer-right {
     margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
   }
+  .footer-feedback-link {
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    color: var(--color-lilla);
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    transition: color var(--transition-fast);
+  }
+  .footer-feedback-link:hover { color: var(--color-notte); }
 
   @media (max-width: 640px) {
-    .footer-theme { margin-left: 0; width: 100%; }
+    .footer-right { margin-left: 0; width: 100%; }
   }
 
   @media (max-width: 640px) {

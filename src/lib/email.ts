@@ -470,6 +470,55 @@ export function sendAdminPasswordReset({
     });
 }
 
+// ── Feedback notification ─────────────────────────────────────────────────────
+
+export function notifyNewFeedback({
+  type,
+  title,
+  description,
+  url,
+  authorName,
+}: {
+  type: string;
+  title: string;
+  description: string;
+  url?: string | null;
+  authorName?: string | null;
+}): void {
+  const apiKey = env.RESEND_API_KEY;
+  const notifyEmail = env.NOTIFY_EMAIL;
+  if (!apiKey || !notifyEmail) return;
+
+  const resend = new Resend(apiKey);
+  const typeLabel = type === 'bug' ? '🐛 Bug' : type === 'suggestion' ? '💡 Suggerimento' : '💬 Altro';
+  const adminUrl = 'https://ohmynic.co/blog/admin/feedback';
+  const urlLine = url ? `<p><strong>Pagina:</strong> <a href="${url}">${url}</a></p>` : '';
+  const authorLine = authorName ? `<p><strong>Da:</strong> ${authorName}</p>` : '';
+
+  resend.emails.send({
+    from: 'OhMyNic! Blog <noreply@ohmynic.co>',
+    to: notifyEmail,
+    subject: `[${typeLabel}] ${title} — nuovo feedback`,
+    html: `
+      <p><strong>Tipo:</strong> ${typeLabel}</p>
+      <p><strong>Titolo:</strong> ${title}</p>
+      ${authorLine}
+      ${urlLine}
+      <p><strong>Descrizione:</strong></p>
+      <blockquote style="border-left:3px solid #7c5cbf;padding-left:12px;color:#555;margin:12px 0;">
+        ${description.replace(/\n/g, '<br>')}
+      </blockquote>
+      <p style="margin-top:24px;">
+        <a href="${adminUrl}" style="background:#7c55d4;color:white;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:500;">
+          Vedi nel pannello
+        </a>
+      </p>
+    `,
+  }).catch((err: unknown) => {
+    console.error('[resend] notifica feedback fallita:', err);
+  });
+}
+
 /** 4. Admin pubblica → email all'autore */
 export function notifyArticlePublished({
   to,
