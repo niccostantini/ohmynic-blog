@@ -1,21 +1,22 @@
-import { fail } from '@sveltejs/kit';
+import { fail, error } from '@sveltejs/kit';
 import {
   getAllCommentsWithArticle,
   approveComment,
   deleteComment,
   saveReply,
 } from '$lib/db/queries/comments';
-import { getArticleById } from '$lib/db/queries/articles';
 import { sendCommentReply } from '$lib/email';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ locals }) => {
+  if (locals.user?.role === 'contributor') error(403, 'Accesso negato');
   const comments = await getAllCommentsWithArticle();
   return { comments };
 };
 
 export const actions: Actions = {
-  approve: async ({ request }) => {
+  approve: async ({ request, locals }) => {
+    if (locals.user?.role === 'contributor') return fail(403);
     const data = await request.formData();
     const id = data.get('id');
     if (typeof id !== 'string') return fail(400);
@@ -23,7 +24,8 @@ export const actions: Actions = {
     return { success: true };
   },
 
-  delete: async ({ request }) => {
+  delete: async ({ request, locals }) => {
+    if (locals.user?.role === 'contributor') return fail(403);
     const data = await request.formData();
     const id = data.get('id');
     if (typeof id !== 'string') return fail(400);
@@ -31,7 +33,8 @@ export const actions: Actions = {
     return { success: true };
   },
 
-  reply: async ({ request }) => {
+  reply: async ({ request, locals }) => {
+    if (locals.user?.role === 'contributor') return fail(403);
     const data = await request.formData();
     const id = data.get('id');
     const replyText = data.get('replyText');

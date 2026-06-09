@@ -5,6 +5,7 @@
   type Article = {
     id: string; title: string; slug: string; excerpt: string | null;
     coverImage: string | null; publishedAt: Date | string | null; createdAt: Date | string;
+    readingTimeMinutes?: number | null;
   };
 
   let { article, tags = [], getTagHref }: {
@@ -39,7 +40,12 @@
     {#if article.excerpt}
       <p class="card-excerpt">{article.excerpt}</p>
     {/if}
-    <span class="card-date">{formatDate(article.publishedAt ?? article.createdAt)}</span>
+    <div class="card-footer">
+      <span class="card-date">{formatDate(article.publishedAt ?? article.createdAt)}</span>
+      {#if article.readingTimeMinutes}
+        <span class="card-reading-time">{article.readingTimeMinutes} min</span>
+      {/if}
+    </div>
   </div>
 </div>
 
@@ -118,9 +124,21 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
+  .card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
   .card-date {
     font-family: var(--font-sans);
     font-size: var(--text-sm);
     color: var(--color-lilla);
+  }
+  .card-reading-time {
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    color: var(--color-lilla);
+    flex-shrink: 0;
   }
 </style>

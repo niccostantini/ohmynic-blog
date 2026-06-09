@@ -89,6 +89,216 @@
 
 }
 
+/* =============================================
+   Temi colore — [data-theme-color="x"]
+   ============================================= */
+
+/* Amethyst — ridichiarato per override esplicito al cambio tema */
+[data-theme-color='amethyst'] {
+  --color-viola:      #7c55d4;
+  --color-lavanda:    #9b6ff0;
+  --color-nebbia:     #f5f3fb;
+  --color-iris:       #ece7fa;
+  --color-bordo:      #d8d0f0;
+  --color-notte:      #1e1630;
+  --color-prugna:     #3b2f5e;
+  --color-lilla:      #8e82b0;
+  --color-grafite:    #6b5f8a;
+  --color-bordo-soft: #ede9f8;
+}
+
+/* Giardino d'inverno */
+[data-theme-color='winter-garden'] {
+  --color-viola:      #2d7a3e;
+  --color-lavanda:    #4a9e5c;
+  --color-nebbia:     #f3f8f4;
+  --color-iris:       #d8f0dc;
+  --color-bordo:      #c8e0cc;
+  --color-notte:      #1a2e1c;
+  --color-prugna:     #2a4a2e;
+  --color-lilla:      #7a9e7e;
+  --color-grafite:    #5a8060;
+  --color-bordo-soft: #e0ede2;
+}
+
+/* Lacca */
+[data-theme-color='lacca'] {
+  --color-viola:      #a04e20;
+  --color-lavanda:    #c4622a;
+  --color-nebbia:     #faf6f3;
+  --color-iris:       #f5e4d8;
+  --color-bordo:      #e8d0c0;
+  --color-notte:      #2e1a0e;
+  --color-prugna:     #4a2e1e;
+  --color-lilla:      #a08070;
+  --color-grafite:    #806050;
+  --color-bordo-soft: #f0e4d8;
+}
+
+/* Profondo */
+[data-theme-color='deep'] {
+  --color-viola:      #1a5c8a;
+  --color-lavanda:    #2874a8;
+  --color-nebbia:     #f2f7fb;
+  --color-iris:       #d4e8f5;
+  --color-bordo:      #bcd4e8;
+  --color-notte:      #0e2030;
+  --color-prugna:     #1e3a50;
+  --color-lilla:      #6a90a8;
+  --color-grafite:    #4a7090;
+  --color-bordo-soft: #daeef8;
+}
+
+/* Cenere */
+[data-theme-color='ash'] {
+  --color-viola:      #444440;
+  --color-lavanda:    #555550;
+  --color-nebbia:     #f5f5f3;
+  --color-iris:       #e8e8e4;
+  --color-bordo:      #d0cec8;
+  --color-notte:      #1a1a18;
+  --color-prugna:     #3a3a38;
+  --color-lilla:      #888880;
+  --color-grafite:    #666660;
+  --color-bordo-soft: #f0f0ec;
+}
+
+/* Cipria */
+[data-theme-color='powder'] {
+  --color-viola:      #903450;
+  --color-lavanda:    #b84464;
+  --color-nebbia:     #fdf4f6;
+  --color-iris:       #f5d8e0;
+  --color-bordo:      #e8c8d0;
+  --color-notte:      #2e0e18;
+  --color-prugna:     #4a1e28;
+  --color-lilla:      #a07880;
+  --color-grafite:    #806070;
+  --color-bordo-soft: #f8e8ec;
+}
+
+/* =============================================
+   Dark mode — [data-theme="dark"]
+   (Amethyst dark — default)
+   ============================================= */
+
+[data-theme='dark'] {
+  /* Colori invertiti */
+  --color-notte:   #f0ecff;
+  --color-prugna:  #c4b8e8;
+  --color-viola:   #b08fff;
+  --color-lavanda: #c9a8ff;
+  --color-nebbia:  #0f0d1a;
+  --color-iris:    #1a1630;
+  --color-bordo:   #2a2340;
+  --color-lilla:   #4d4275;
+  --color-grafite: #7a6eaa;
+
+  --color-bordo-soft: #1f1a38;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
+/* =============================================
+   Dark mode — per tema colore
+   Specificità 0,2,0 → vince su dark e su color
+   ============================================= */
+
+[data-theme='dark'][data-theme-color='amethyst'] {
+  --color-viola:      #b08fff;
+  --color-lavanda:    #c9a8ff;
+  --color-nebbia:     #0f0d1a;
+  --color-iris:       #1a1630;
+  --color-bordo:      #2a2340;
+  --color-notte:      #f0ecff;
+  --color-prugna:     #c4b8e8;
+  --color-lilla:      #4d4275;
+  --color-grafite:    #7a6eaa;
+  --color-bordo-soft: #1f1a38;
+}
+
+[data-theme='dark'][data-theme-color='winter-garden'] {
+  --color-viola:      #5db870;
+  --color-lavanda:    #7acc88;
+  --color-nebbia:     #0a1a0c;
+  --color-iris:       #122018;
+  --color-bordo:      #1e3422;
+  --color-notte:      #eef8f0;
+  --color-prugna:     #b8d8bc;
+  --color-lilla:      #3a5e40;
+  --color-grafite:    #5a8a62;
+  --color-bordo-soft: #162a1c;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
+[data-theme='dark'][data-theme-color='lacca'] {
+  --color-viola:      #d87040;
+  --color-lavanda:    #e89060;
+  --color-nebbia:     #1e0e06;
+  --color-iris:       #2e1a0e;
+  --color-bordo:      #3e2818;
+  --color-notte:      #faf0e8;
+  --color-prugna:     #d4b8a0;
+  --color-lilla:      #5a3020;
+  --color-grafite:    #8a6048;
+  --color-bordo-soft: #28160a;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
+[data-theme='dark'][data-theme-color='deep'] {
+  --color-viola:      #3a8ccc;
+  --color-lavanda:    #50a0e0;
+  --color-nebbia:     #060e18;
+  --color-iris:       #0e1e2e;
+  --color-bordo:      #182e42;
+  --color-notte:      #eaf4fc;
+  --color-prugna:     #a0c4e0;
+  --color-lilla:      #2a4a60;
+  --color-grafite:    #4a7890;
+  --color-bordo-soft: #0c1a28;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
+[data-theme='dark'][data-theme-color='ash'] {
+  --color-viola:      #808078;
+  --color-lavanda:    #a0a098;
+  --color-nebbia:     #0e0e0c;
+  --color-iris:       #1a1a18;
+  --color-bordo:      #282826;
+  --color-notte:      #f4f4f2;
+  --color-prugna:     #b8b8b4;
+  --color-lilla:      #484844;
+  --color-grafite:    #666660;
+  --color-bordo-soft: #222220;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
+[data-theme='dark'][data-theme-color='powder'] {
+  --color-viola:      #c05078;
+  --color-lavanda:    #d87898;
+  --color-nebbia:     #1a060c;
+  --color-iris:       #2a0e16;
+  --color-bordo:      #3a1820;
+  --color-notte:      #fdf0f4;
+  --color-prugna:     #d4a8b4;
+  --color-lilla:      #4a1828;
+  --color-grafite:    #7a4858;
+  --color-bordo-soft: #24101a;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
 
 /* =============================================
    Componenti base

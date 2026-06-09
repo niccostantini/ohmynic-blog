@@ -2,6 +2,7 @@
   import { base } from '$app/paths';
   import type { LayoutData } from './$types';
   import type { Snippet } from 'svelte';
+  import ThemeToggle from '$lib/components/ThemeToggle.svelte';
 
   let { data, children }: { data: LayoutData; children: Snippet } = $props();
 </script>
@@ -15,12 +16,26 @@
     <a href="{base}/admin" class="logo-link">Oh<em>My</em>Nic!</a>
     <nav class="admin-nav">
       <a href="{base}/admin">Articoli</a>
-      <a href="{base}/admin/comments">Commenti</a>
+      {#if data.user.role === 'admin' || data.user.role === 'editor'}
+        <a href="{base}/admin/comments">Commenti</a>
+      {/if}
+      {#if data.user.role === 'admin'}
+        <a href="{base}/admin/users">Utenti</a>
+      {/if}
+      {#if data.user.role === 'admin' || data.user.role === 'editor'}
+        <a href="{base}/admin/analytics">Analytics</a>
+      {/if}
       <a href="https://ohmynic.co/blog/" target="_blank">Sito →</a>
     </nav>
-    <form method="POST" action="{base}/api/logout">
-      <button type="submit" class="btn-ghost">Esci</button>
-    </form>
+    <a href="{base}/admin/settings" class="btn-settings" title="Impostazioni" aria-label="Impostazioni">
+      <i class="ti ti-settings"></i>
+    </a>
+    <div class="header-right">
+      <ThemeToggle />
+      <form method="POST" action="{base}/api/logout">
+        <button type="submit" class="btn-ghost">Esci</button>
+      </form>
+    </div>
   </header>
 
   <main class="admin-main">
@@ -45,6 +60,30 @@
     position: sticky;
     top: 0;
     z-index: 10;
+  }
+  :global([data-theme='dark']) .admin-header {
+    background: var(--color-iris);
+  }
+
+  .btn-settings {
+    font-size: 18px;
+    color: var(--color-lilla);
+    text-decoration: none;
+    border: none;
+    line-height: 1;
+    padding: 4px;
+    border-radius: var(--radius-sm);
+    transition: color var(--transition-fast);
+    display: flex;
+    align-items: center;
+  }
+  .btn-settings:hover { color: var(--color-notte); }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-left: auto;
   }
 
   .logo-link {

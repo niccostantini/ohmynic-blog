@@ -1,13 +1,49 @@
 <script lang="ts">
   import { base } from '$app/paths';
+  import { onMount } from 'svelte';
   import ArticleCard from '$lib/components/ArticleCard.svelte';
   import CommentForm from '$lib/components/CommentForm.svelte';
   import CommentList from '$lib/components/CommentList.svelte';
   import ShareButtons from '$lib/components/ShareButtons.svelte';
   import TagList from '$lib/components/TagList.svelte';
+  import { trackPageview, initCompletionTracking } from '$lib/analytics';
+  import ReadingProgress from '$lib/components/ReadingProgress.svelte';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
+
+  let proseEl = $state<HTMLElement | null>(null);
+
+  onMount(() => {
+    // Pageview con articleId
+    trackPageview(window.location.pathname, data.article.id);
+    // Completion tracking
+    if (proseEl) return initCompletionTracking(data.article.id, proseEl);
+  });
+
+  let bookmarked = $state(data.bookmarked ?? false);
+  let bookmarkLoading = $state(false);
+
+  async function toggleBookmark() {
+    if (!data.reader) {
+      window.location.href = `${base}/login?redirect=${encodeURIComponent(window.location.pathname)}`;
+      return;
+    }
+    bookmarkLoading = true;
+    try {
+      const res = await fetch(`${base}/api/bookmarks`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ articleId: data.article.id }),
+      });
+      if (res.ok) {
+        const result = await res.json();
+        bookmarked = result.bookmarked;
+      }
+    } finally {
+      bookmarkLoading = false;
+    }
+  }
 
   const pageUrl = $derived(
     typeof window !== 'undefined' ? window.location.href : `https://ohmynic.co/blog/${data.article.slug}`
@@ -34,10 +70,16 @@
   }
 </script>
 
+<ReadingProgress />
+
 <svelte:head>
   <title>{data.article.title} — OhMyNic!</title>
   <meta name="description" content={description} />
-  <link rel="canonical" href="https://ohmynic.co/blog/{data.article.slug}" />
+  {#if data.isPreview}
+    <meta name="robots" content="noindex" />
+  {:else}
+    <link rel="canonical" href="https://ohmynic.co/blog/{data.article.slug}" />
+  {/if}
 
   <!-- Open Graph -->
   <meta property="og:type" content="article" />
@@ -75,22 +117,52 @@
     <h1 class="article-title">{data.article.title}</h1>
 
     <div class="article-meta">
+      {#if data.author}
+        <a href="{base}/author/{data.author.username}" class="byline">
+          {#if data.author.avatarUrl}
+            <img src={data.author.avatarUrl} alt={data.author.displayName ?? data.author.username} class="byline-avatar" />
+          {/if}
+          <span class="byline-name">{data.author.displayName ?? data.author.username}</span>
+        </a>
+        <span class="meta-sep">·</span>
+      {/if}
       <time datetime={String(data.article.publishedAt)}>
         {formatDate(data.article.publishedAt)}
       </time>
+      {#if data.article.readingTimeMinutes}
+        <span class="meta-sep">·</span>
+        <span class="read-time">{data.article.readingTimeMinutes} min</span>
+      {/if}
     </div>
   </div>
 
-  {#if data.article.coverImage}
+  {#if data.article.coverImage && data.article.showCoverInArticle !== false}
     <img src={data.article.coverImage} alt={data.article.title} class="article-cover" />
   {/if}
 
-  <div class="prose">
+  <div class="prose" bind:this={proseEl}>
     {@html data.article.content}
   </div>
 
   <footer class="article-footer">
-    <ShareButtons url={pageUrl} title={data.article.title} />
+    <div class="footer-actions">
+      <ShareButtons url={pageUrl} title={data.article.title} />
+      <button
+        class="bookmark-btn"
+        class:bookmarked
+        onclick={toggleBookmark}
+        disabled={bookmarkLoading}
+        title={bookmarked ? 'Rimuovi dai salvati' : 'Salva articolo'}
+      >
+        {#if bookmarked}
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3a2 2 0 0 0-2 2v16l9-4 9 4V5a2 2 0 0 0-2-2H5z"/></svg>
+          Salvato
+        {:else}
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3a2 2 0 0 0-2 2v16l9-4 9 4V5a2 2 0 0 0-2-2H5z"/></svg>
+          Salva
+        {/if}
+      </button>
+    </div>
     {#if data.tags.length > 0}
       <div class="footer-tags">
         <TagList tags={data.tags} />
@@ -112,7 +184,7 @@
 
 <div class="comments-wrap">
   <CommentList comments={data.comments} />
-  <CommentForm articleId={data.article.id} />
+  <CommentForm articleId={data.article.id} reader={data.reader ?? null} />
 </div>
 
 <style>
@@ -161,7 +233,30 @@
     font-family: var(--font-sans);
     font-size: var(--text-sm);
     color: var(--color-lilla);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
   }
+  .byline {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--color-lilla);
+    text-decoration: none;
+    border: none;
+    transition: color var(--transition-fast);
+  }
+  .byline:hover { color: var(--color-viola); }
+  .byline-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+  .byline-name { font-weight: var(--weight-medium); }
+  .meta-sep { opacity: 0.5; }
 
   .article-cover {
     width: 100%;
@@ -309,6 +404,23 @@
     flex-direction: column;
     gap: var(--space-6);
   }
+  .footer-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+  }
+  .bookmark-btn {
+    display: inline-flex; align-items: center; gap: var(--space-2);
+    font-family: var(--font-sans); font-size: var(--text-sm); font-weight: var(--weight-medium);
+    color: var(--color-lilla); background: none;
+    border: 0.5px solid var(--color-bordo); border-radius: var(--radius-md);
+    padding: 7px 14px; cursor: pointer; transition: color var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
+  }
+  .bookmark-btn:hover:not(:disabled) { color: var(--color-viola); border-color: var(--color-lavanda); }
+  .bookmark-btn.bookmarked { color: var(--color-viola); border-color: var(--color-lavanda); background: var(--color-iris); }
+  .bookmark-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
   .footer-tags { margin-top: var(--space-2); }
 

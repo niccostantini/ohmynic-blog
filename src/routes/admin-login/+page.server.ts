@@ -7,9 +7,9 @@ import { eq } from 'drizzle-orm';
 import { base } from '$app/paths';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ locals }) => {
+export const load: PageServerLoad = async ({ locals, url }) => {
   if (locals.user) redirect(302, `${base}/admin`);
-  return {};
+  return { passwordReset: url.searchParams.get('reset') === '1' };
 };
 
 export const actions: Actions = {
@@ -31,6 +31,10 @@ export const actions: Actions = {
     const validPassword = await verify(user.passwordHash, password);
     if (!validPassword) {
       return fail(400, { error: 'Username o password errati.', username });
+    }
+
+    if (!user.active) {
+      return fail(403, { error: 'Account disattivato. Contatta un amministratore.', username });
     }
 
     const session = await lucia.createSession(user.id, {});

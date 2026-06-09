@@ -1,7 +1,13 @@
 <script lang="ts">
   import { base } from '$app/paths';
 
-  let { articleId }: { articleId: string } = $props();
+  let {
+    articleId,
+    reader = null,
+  }: {
+    articleId: string;
+    reader?: { id: string; displayName: string; email: string; emailVerified: boolean } | null;
+  } = $props();
 
   let submitted = $state(false);
   let loading = $state(false);
@@ -20,7 +26,12 @@
       const res = await fetch(`${base}/api/comments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ articleId, authorName: name || undefined, authorEmail: email || undefined, content }),
+        body: JSON.stringify({
+          articleId,
+          authorName: reader ? reader.displayName : (name || undefined),
+          authorEmail: reader ? reader.email : (email || undefined),
+          content,
+        }),
       });
       if (!res.ok) throw new Error('Errore invio');
       submitted = true;
@@ -35,9 +46,16 @@
 <div class="comment-form-wrap">
   <h3>Lascia un commento</h3>
 
-  <div class="disclaimer">
-    <em>Nome ed email sono facoltativi. Se inseriti, il nome appare accanto al commento e l'email viene usata solo per contattarti in risposta. I commenti sono moderati prima della pubblicazione.</em>
-  </div>
+  {#if !reader}
+    <div class="disclaimer">
+      <em>Nome ed email sono facoltativi. Se inseriti, il nome appare accanto al commento e l'email viene usata solo per contattarti in risposta. I commenti sono moderati prima della pubblicazione.</em>
+    </div>
+  {:else}
+    <div class="reader-info">
+      Stai commentando come <strong>{reader.displayName}</strong>.
+      <a href="{base}/account">Non sei tu?</a>
+    </div>
+  {/if}
 
   {#if submitted}
     <div class="success">
@@ -48,16 +66,18 @@
       {#if error}
         <p class="error">{error}</p>
       {/if}
-      <div class="form-row">
-        <div class="field">
-          <label for="comment-name">Nome <span class="optional">(opzionale)</span></label>
-          <input id="comment-name" type="text" placeholder="Il tuo nome" bind:value={name} />
+      {#if !reader}
+        <div class="form-row">
+          <div class="field">
+            <label for="comment-name">Nome <span class="optional">(opzionale)</span></label>
+            <input id="comment-name" type="text" placeholder="Il tuo nome" bind:value={name} />
+          </div>
+          <div class="field">
+            <label for="comment-email">Email <span class="optional">(opzionale)</span></label>
+            <input id="comment-email" type="email" placeholder="la@tua.email" bind:value={email} />
+          </div>
         </div>
-        <div class="field">
-          <label for="comment-email">Email <span class="optional">(opzionale)</span></label>
-          <input id="comment-email" type="email" placeholder="la@tua.email" bind:value={email} />
-        </div>
-      </div>
+      {/if}
       <div class="field">
         <label for="comment-content">Commento</label>
         <textarea id="comment-content" rows="5" placeholder="Scrivi qui il tuo commento..." bind:value={content} required></textarea>
@@ -92,6 +112,17 @@
     border-left: 3px solid var(--color-lavanda);
     margin-bottom: var(--space-6);
   }
+  .reader-info {
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    color: var(--color-prugna);
+    padding: var(--space-3) var(--space-4);
+    background: var(--color-iris);
+    border-radius: var(--radius-md);
+    border-left: 3px solid var(--color-lavanda);
+    margin-bottom: var(--space-6);
+  }
+  .reader-info a { color: var(--color-viola); }
   .success {
     padding: var(--space-4);
     background: #d1fae5;

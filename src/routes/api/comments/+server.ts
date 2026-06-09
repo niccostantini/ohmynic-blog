@@ -4,7 +4,7 @@ import { getArticleById } from '$lib/db/queries/articles';
 import { notifyNewComment } from '$lib/email';
 import type { RequestHandler } from './$types';
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, locals }) => {
   const body = await request.json().catch(() => null);
 
   if (!body || typeof body.articleId !== 'string' || typeof body.content !== 'string') {
@@ -16,15 +16,25 @@ export const POST: RequestHandler = async ({ request }) => {
   }
 
   const article = await getArticleById(body.articleId);
-  if (!article || !article.published) {
+  if (!article || article.status !== 'published') {
     error(404, 'Articolo non trovato');
   }
+
+  // If the reader is logged in, use their identity; otherwise use submitted name/email
+  const reader = locals.reader ?? null;
+  const authorName = reader
+    ? reader.displayName
+    : (typeof body.authorName === 'string' && body.authorName.trim() ? body.authorName.trim() : undefined);
+  const authorEmail = reader
+    ? reader.email
+    : (typeof body.authorEmail === 'string' && body.authorEmail.trim() ? body.authorEmail.trim() : undefined);
 
   const comment = await createComment({
     articleId: body.articleId,
     content: body.content.trim(),
-    authorName: typeof body.authorName === 'string' && body.authorName.trim() ? body.authorName.trim() : undefined,
-    authorEmail: typeof body.authorEmail === 'string' && body.authorEmail.trim() ? body.authorEmail.trim() : undefined,
+    authorName,
+    authorEmail,
+    readerId: reader?.id ?? undefined,
   });
 
   notifyNewComment({

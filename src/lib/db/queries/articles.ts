@@ -1,13 +1,29 @@
-import { eq, desc, and, ne, inArray, sql } from 'drizzle-orm';
+import { eq, desc, and, ne, inArray, sql, lte, or, isNull } from 'drizzle-orm';
 import { db } from '../index';
-import { articles, articleTags, tags } from '../schema';
+import { articles, articleTags, tags, users, articleStatusLog, editorialComments } from '../schema';
+
+export function readingTime(content: string): number {
+  const text = content.replace(/<[^>]*>/g, '');
+  const words = text.trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.round(words / 200));
+}
+
+// Articoli visibili al pubblico: published + publishedAt <= now (o null per vecchi record)
+function publishedAndVisible() {
+  return and(
+    eq(articles.status, 'published'),
+    or(isNull(articles.publishedAt), lte(articles.publishedAt, new Date()))
+  );
+}
+
+type ArticleStatus = 'draft' | 'review' | 'approved' | 'published';
 
 export async function getPublishedArticles(page = 1, perPage = 10) {
   const offset = (page - 1) * perPage;
   return db
     .select()
     .from(articles)
-    .where(eq(articles.published, true))
+    .where(publishedAndVisible())
     .orderBy(desc(articles.publishedAt))
     .limit(perPage)
     .offset(offset);
@@ -17,7 +33,7 @@ export async function countPublishedArticles() {
   const result = await db
     .select({ count: sql<number>`count(*)` })
     .from(articles)
-    .where(eq(articles.published, true));
+    .where(publishedAndVisible());
   return Number(result[0].count);
 }
 
@@ -25,7 +41,7 @@ export async function getArticleBySlug(slug: string) {
   const result = await db
     .select()
     .from(articles)
-    .where(and(eq(articles.slug, slug), eq(articles.published, true)))
+    .where(and(eq(articles.slug, slug), publishedAndVisible()))
     .limit(1);
   return result[0] ?? null;
 }
@@ -39,11 +55,15 @@ export async function getArticleById(id: string) {
   return result[0] ?? null;
 }
 
-export async function getAllArticlesAdmin() {
-  return db
-    .select()
-    .from(articles)
-    .orderBy(desc(articles.createdAt));
+export async function getAllArticlesAdmin(authorId?: string, status?: ArticleStatus) {
+  const conditions: ReturnType<typeof eq>[] = [];
+  if (authorId) conditions.push(eq(articles.authorId, authorId));
+  if (status) conditions.push(eq(articles.status, status));
+
+  const q = db.select().from(articles).orderBy(desc(articles.createdAt));
+  if (conditions.length === 1) return q.where(conditions[0]);
+  if (conditions.length > 1) return q.where(and(...conditions));
+  return q;
 }
 
 export async function createArticle(data: {
@@ -52,10 +72,17 @@ export async function createArticle(data: {
   content: string;
   excerpt?: string;
   coverImage?: string;
-  published: boolean;
+  status?: ArticleStatus;
   publishedAt?: Date;
+  authorId?: string;
 }) {
-  const result = await db.insert(articles).values(data).returning();
+  const { randomUUID } = await import('node:crypto');
+  const result = await db.insert(articles).values({
+    ...data,
+    status: data.status ?? 'draft',
+    previewToken: randomUUID(),
+    readingTimeMinutes: readingTime(data.content),
+  }).returning();
   return result[0];
 }
 
@@ -63,11 +90,15 @@ export async function updateArticle(id: string, data: Partial<{
   title: string;
   slug: string;
   content: string;
+  blocksJson: string | null;
   excerpt: string;
   coverImage: string;
-  published: boolean;
-  publishedAt: Date;
+  status: ArticleStatus;
+  publishedAt: Date | null;
   updatedAt: Date;
+  authorId: string;
+  readingTimeMinutes: number;
+  showCoverInArticle: boolean;
 }>) {
   const result = await db
     .update(articles)
@@ -75,6 +106,119 @@ export async function updateArticle(id: string, data: Partial<{
     .where(eq(articles.id, id))
     .returning();
   return result[0];
+}
+
+// ── Status transitions ─────────────────────────────────────────────────────────
+
+const WORKFLOW_EVENTS: Record<string, Record<string, string>> = {
+  draft: { review: 'sent_to_review' },
+  review: { approved: 'approved', draft: 'rejected' },
+  approved: { published: 'published', draft: 'rejected' },
+  published: { draft: 'rejected' },
+};
+
+const WORKFLOW_DEFAULT_CONTENT: Record<string, string> = {
+  sent_to_review: 'Articolo inviato in revisione.',
+  approved: 'Articolo approvato.',
+  published: 'Articolo pubblicato.',
+  rejected: 'Articolo rimandato in bozza.',
+};
+
+export async function changeArticleStatus(
+  articleId: string,
+  fromStatus: string | null,
+  toStatus: ArticleStatus,
+  changedBy: string,
+  note?: string | null,
+  checklistSnapshot?: { label: string; checked: boolean }[] | null,
+) {
+  const workflowEvent = fromStatus ? (WORKFLOW_EVENTS[fromStatus]?.[toStatus] ?? null) : null;
+  const commentContent =
+    note?.trim() ||
+    (workflowEvent ? WORKFLOW_DEFAULT_CONTENT[workflowEvent] : null) ||
+    `${fromStatus} → ${toStatus}`;
+
+  const updates: Partial<{ status: ArticleStatus; publishedAt: Date | null }> = { status: toStatus };
+  if (toStatus === 'published') {
+    const current = await getArticleById(articleId);
+    if (current && !current.publishedAt) updates.publishedAt = new Date();
+  }
+
+  await db.transaction(async (tx) => {
+    await tx.update(articles).set({ ...updates, updatedAt: new Date() }).where(eq(articles.id, articleId));
+    await tx.insert(articleStatusLog).values({ articleId, fromStatus, toStatus, changedBy, checklistSnapshot: checklistSnapshot ?? null });
+    await tx.insert(editorialComments).values({
+      articleId,
+      authorId: changedBy,
+      content: commentContent,
+      workflowEvent,
+      fromStatus,
+      toStatus,
+    });
+  });
+}
+
+export async function getArticleStatusLog(articleId: string) {
+  return db
+    .select({
+      id: articleStatusLog.id,
+      fromStatus: articleStatusLog.fromStatus,
+      toStatus: articleStatusLog.toStatus,
+      createdAt: articleStatusLog.createdAt,
+      checklistSnapshot: articleStatusLog.checklistSnapshot,
+      changedByUsername: users.username,
+      changedByDisplayName: users.displayName,
+    })
+    .from(articleStatusLog)
+    .leftJoin(users, eq(articleStatusLog.changedBy, users.id))
+    .where(eq(articleStatusLog.articleId, articleId))
+    .orderBy(desc(articleStatusLog.createdAt));
+}
+
+// ── Permission helper ──────────────────────────────────────────────────────────
+
+export function canTransitionStatus(
+  user: { role: string; canPublish: boolean; userId: string },
+  article: { status: string; authorId: string | null },
+  toStatus: string,
+): boolean {
+  const { role, canPublish, userId } = user;
+  const from = article.status;
+
+  // draft → review: Contributor (own), Editor, Admin
+  if (from === 'draft' && toStatus === 'review') {
+    if (role === 'contributor') return article.authorId === userId;
+    return role === 'editor' || role === 'admin';
+  }
+
+  // review → approved: Editor, Admin
+  if (from === 'review' && toStatus === 'approved') {
+    return role === 'editor' || role === 'admin';
+  }
+
+  // review → draft: Editor, Admin
+  if (from === 'review' && toStatus === 'draft') {
+    return role === 'editor' || role === 'admin';
+  }
+
+  // approved → published: Admin, Editor (canPublish)
+  if (from === 'approved' && toStatus === 'published') {
+    if (role === 'admin') return true;
+    return role === 'editor' && canPublish;
+  }
+
+  // approved → draft: Editor, Admin
+  if (from === 'approved' && toStatus === 'draft') {
+    return role === 'editor' || role === 'admin';
+  }
+
+  // published → draft (unpublish): Admin, Editor (canPublish)
+  if (from === 'published' && toStatus === 'draft') {
+    if (role === 'admin') return true;
+    return role === 'editor' && canPublish;
+  }
+
+  return false;
 }
 
 export async function deleteArticle(id: string) {
@@ -116,7 +260,7 @@ export async function getArticlesByTag(tagSlug: string, page = 1, perPage = 10) 
     .from(articles)
     .innerJoin(articleTags, eq(articleTags.articleId, articles.id))
     .innerJoin(tags, eq(tags.id, articleTags.tagId))
-    .where(and(eq(tags.slug, tagSlug), eq(articles.published, true)))
+    .where(and(eq(tags.slug, tagSlug), publishedAndVisible()))
     .orderBy(desc(articles.publishedAt))
     .limit(perPage)
     .offset(offset)
@@ -135,7 +279,7 @@ export async function getTagsForArticle(articleId: string) {
 export function sanitizeSearchQuery(raw: string): string {
   return raw
     .trim()
-    .replace(/[<>'";\\]/g, '')  // rimuove caratteri pericolosi
+    .replace(/[<>'";\\]/g, '')
     .replace(/\s+/g, ' ')
     .slice(0, 200);
 }
@@ -163,11 +307,10 @@ export async function searchArticles(
   const tagFilter = buildTagFilter(tagSlugs);
 
   if (!clean) {
-    // tag-only mode: return all published articles matching the tag filter, sorted by date
     return db
       .select()
       .from(articles)
-      .where(and(eq(articles.published, true), tagFilter))
+      .where(and(publishedAndVisible(), tagFilter))
       .orderBy(desc(articles.publishedAt))
       .limit(perPage)
       .offset((page - 1) * perPage);
@@ -182,7 +325,7 @@ export async function searchArticles(
   return db
     .select()
     .from(articles)
-    .where(and(eq(articles.published, true), sql`${vector} @@ ${tsq}`, tagFilter))
+    .where(and(publishedAndVisible(), sql`${vector} @@ ${tsq}`, tagFilter))
     .orderBy(desc(sql`ts_rank(${vector}, ${tsq})`))
     .limit(perPage)
     .offset((page - 1) * perPage);
@@ -196,7 +339,7 @@ export async function countSearchResults(query: string, tagSlugs?: string[]) {
     const result = await db
       .select({ count: sql<number>`cast(count(*) as int)` })
       .from(articles)
-      .where(and(eq(articles.published, true), tagFilter));
+      .where(and(publishedAndVisible(), tagFilter));
     return result[0]?.count ?? 0;
   }
 
@@ -209,7 +352,7 @@ export async function countSearchResults(query: string, tagSlugs?: string[]) {
   const result = await db
     .select({ count: sql<number>`cast(count(*) as int)` })
     .from(articles)
-    .where(and(eq(articles.published, true), sql`${vector} @@ ${tsq}`, tagFilter));
+    .where(and(publishedAndVisible(), sql`${vector} @@ ${tsq}`, tagFilter));
   return result[0]?.count ?? 0;
 }
 
@@ -233,13 +376,71 @@ export async function getRelatedArticles(articleId: string, limit = 3) {
     .where(
       and(
         ne(articles.id, articleId),
-        eq(articles.published, true),
+        publishedAndVisible(),
         inArray(articleTags.tagId, tagIds),
       )
     )
     .groupBy(articles.id)
     .orderBy(desc(sql`count(*)`))
     .limit(limit);
+}
+
+export async function getArticleBySlugWithAuthor(slug: string) {
+  const result = await db
+    .select({
+      article: articles,
+      author: {
+        username: users.username,
+        displayName: users.displayName,
+        avatarUrl: users.avatarUrl,
+        bio: users.bio,
+      },
+    })
+    .from(articles)
+    .leftJoin(users, eq(articles.authorId, users.id))
+    .where(and(eq(articles.slug, slug), publishedAndVisible()))
+    .limit(1);
+  return result[0] ?? null;
+}
+
+export async function getArticleBySlugForPreview(slug: string, token: string) {
+  const result = await db
+    .select({
+      article: articles,
+      author: {
+        username: users.username,
+        displayName: users.displayName,
+        avatarUrl: users.avatarUrl,
+        bio: users.bio,
+      },
+    })
+    .from(articles)
+    .leftJoin(users, eq(articles.authorId, users.id))
+    .where(and(eq(articles.slug, slug), eq(articles.previewToken, token)))
+    .limit(1);
+  return result[0] ?? null;
+}
+
+export async function getPublishedArticlesByAuthor(username: string, page = 1, perPage = 10) {
+  const offset = (page - 1) * perPage;
+  return db
+    .select({ article: articles })
+    .from(articles)
+    .innerJoin(users, eq(articles.authorId, users.id))
+    .where(and(eq(users.username, username), publishedAndVisible()))
+    .orderBy(desc(articles.publishedAt))
+    .limit(perPage)
+    .offset(offset)
+    .then((rows) => rows.map((r) => r.article));
+}
+
+export async function countPublishedArticlesByAuthor(username: string) {
+  const result = await db
+    .select({ count: sql<number>`cast(count(*) as int)` })
+    .from(articles)
+    .innerJoin(users, eq(articles.authorId, users.id))
+    .where(and(eq(users.username, username), publishedAndVisible()));
+  return result[0]?.count ?? 0;
 }
 
 export async function setArticleTags(articleId: string, tagIds: string[]) {

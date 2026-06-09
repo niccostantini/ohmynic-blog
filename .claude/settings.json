@@ -1,24 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm run *)",
-      "Bash(npm install *)",
-      "Bash(docker *)",
-      "Bash(git *)",
-      "Bash(npx drizzle-kit *)",
-      "Bash(npx tsx *)",
-      "Bash(npx sv *)",
-      "Write(**/*.ts)",
-      "Write(**/*.svelte)",
-      "Write(**/*.css)",
-      "Write(**/*.json)",
-      "Write(**/*.md)",
-      "Write(**/*.cjs)",
-      "Write(**/.env*)"
+      "Bash(*)",
+      "Write(*)",
+      "Read(*)"
     ],
-    "deny": [
-      "Bash(rm -rf *)",
-      "Bash(curl * | bash *)"
-    ]
+    "deny": []
   }
 }

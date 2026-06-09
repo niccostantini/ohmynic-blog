@@ -41,7 +41,7 @@ export async function getTagsWithCount() {
     .from(tags)
     .leftJoin(articleTags, eq(articleTags.tagId, tags.id))
     .leftJoin(articles, eq(articles.id, articleTags.articleId))
-    .where(sql`${articles.published} = true OR ${articles.id} IS NULL`)
+    .where(sql`${articles.status} = 'published' OR ${articles.id} IS NULL`)
     .groupBy(tags.id, tags.name, tags.slug)
     .orderBy(tags.name);
 }

@@ -4,6 +4,19 @@
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="text-scale" content="scale" />
+		<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f5f3fb">
+		<meta name="theme-color" media="(prefers-color-scheme: dark)"  content="#0f0d1a">
+		<!-- Anti-FOWT: imposta data-theme e data-theme-color prima del primo paint -->
+		<script>
+			(function(){
+				var s = localStorage.getItem('ohmynic-theme');
+				var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+				var dark = s === 'dark' || ((!s || s === 'system') && prefersDark);
+				document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+				var tc = localStorage.getItem('ohmynic-theme-color') || 'amethyst';
+				document.documentElement.setAttribute('data-theme-color', tc);
+			})();
+		</script>
 		<link rel="preconnect" href="https://fonts.googleapis.com">
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 		<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,400;1,500&family=Inter:wght@400;500&display=swap" rel="stylesheet">

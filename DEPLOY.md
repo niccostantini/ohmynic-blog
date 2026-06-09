@@ -153,6 +153,12 @@ sudo systemctl status caddy
 
 ---
 
+## Gestione Database
+
+Vedi [DATABASE.md](DATABASE.md) per la guida completa a Drizzle Studio e accesso SSH tunnel.
+
+---
+
 ## Troubleshooting
 
 | Problema | Soluzione |

@@ -10,14 +10,14 @@ export const load: PageServerLoad = async () => {
 };
 
 export const actions: Actions = {
-  default: async ({ request }) => {
+  default: async ({ request, locals }) => {
+    const user = locals.user!;
     const data = await request.formData();
     const title = data.get('title');
     const content = data.get('content');
     const excerpt = data.get('excerpt');
     const coverImage = data.get('coverImage');
     const tagsRaw = data.get('tags');
-    const action = data.get('action');
 
     if (typeof title !== 'string' || !title.trim()) {
       return fail(400, { error: 'Il titolo è obbligatorio.' });
@@ -26,7 +26,6 @@ export const actions: Actions = {
       return fail(400, { error: 'Il contenuto è obbligatorio.' });
     }
 
-    const published = action === 'publish';
     const slug = await generateSlug(title);
 
     const finalExcerpt =
@@ -40,8 +39,8 @@ export const actions: Actions = {
       content,
       excerpt: finalExcerpt,
       coverImage: typeof coverImage === 'string' && coverImage.trim() ? coverImage.trim() : undefined,
-      published,
-      publishedAt: published ? new Date() : undefined,
+      status: 'draft',
+      authorId: user.id,
     });
 
     if (typeof tagsRaw === 'string' && tagsRaw.trim()) {
@@ -50,6 +49,6 @@ export const actions: Actions = {
       await setArticleTags(article.id, tagIds);
     }
 
-    redirect(302, `${base}/admin`);
+    redirect(302, `${base}/admin/edit/${article.id}`);
   },
 };

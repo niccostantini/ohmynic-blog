@@ -28,7 +28,7 @@ async function seed() {
   const passwordHash = await hash(password);
   const id = crypto.randomUUID();
 
-  await db.insert(users).values({ id, username, passwordHash });
+  await db.insert(users).values({ id, username, passwordHash, role: 'admin' });
   console.log(`Utente admin "${username}" creato con successo.`);
   await pool.end();
   process.exit(0);

@@ -3,8 +3,24 @@
 
   let {
     content = $bindable(''),
+    blocksJson = undefined as string | null | undefined,
+    readonly = false,
+    blockComments = {} as Record<string, { count: number; preview: string }>,
+    onAddBlockComment = undefined as ((blockId: string, blockType: string, snapshot: string) => void) | undefined,
+    onBlockIndicatorClick = undefined as ((blockId: string) => void) | undefined,
+    onReadyGetBlockMapFn = undefined as ((fn: () => Record<string, string>) => void) | undefined,
+    onReadyGetBlocksJsonFn = undefined as ((fn: () => string) => void) | undefined,
+    onReadyGetContentFn = undefined as ((fn: () => string) => void) | undefined,
   }: {
     content: string;
+    blocksJson?: string | null;
+    readonly?: boolean;
+    blockComments?: Record<string, { count: number; preview: string }>;
+    onAddBlockComment?: (blockId: string, blockType: string, snapshot: string) => void;
+    onBlockIndicatorClick?: (blockId: string) => void;
+    onReadyGetBlockMapFn?: (fn: () => Record<string, string>) => void;
+    onReadyGetBlocksJsonFn?: (fn: () => string) => void;
+    onReadyGetContentFn?: (fn: () => string) => void;
   } = $props();
 
   let mountEl: HTMLDivElement;
@@ -14,6 +30,13 @@
 
   // Bridge: React sets this so the Svelte toolbar can call it
   let insertFootnoteFn: (() => void) | null = null;
+
+  // Bridge: update block comment indicators in React
+  let updateBlockCommentsFn: ((c: Record<string, { count: number; preview: string }>) => void) | null = null;
+
+  $effect(() => {
+    updateBlockCommentsFn?.(blockComments);
+  });
 
   function applySource() {
     content = sourceValue;
@@ -28,31 +51,65 @@
     const React = await import('react');
     const { createElement, useState, useCallback, useRef, useMemo, useEffect } = React;
     const { createRoot } = await import('react-dom/client');
+    const { createPortal } = await import('react-dom');
     const {
       useCreateBlockNote,
       SuggestionMenuController,
       getDefaultReactSlashMenuItems,
+      SideMenuController,
+      SideMenu,
+      AddBlockButton,
+      DragHandleButton,
+      useExtensionState,
+      useComponentsContext,
+      useBlockNoteEditor,
     } = await import('@blocknote/react');
     const { BlockNoteView } = await import('@blocknote/mantine');
     const { BlockNoteSchema, defaultBlockSpecs, defaultInlineContentSpecs } = await import('@blocknote/core');
-    const { filterSuggestionItems } = await import('@blocknote/core/extensions');
+    const { filterSuggestionItems, SideMenuExtension } = await import('@blocknote/core/extensions');
     const { calloutBlockSpec } = await import('./CalloutBlock.js');
+    const { imageBlockSpec } = await import('./ImageBlock.js');
     const { footnoteInlineContentSpec, footnoteListBlockSpec, FootnoteContext } = await import('$lib/editor/footnotes/index.js');
 
     await import('@blocknote/mantine/style.css');
 
-    // Schema with callout block + footnote inline content + footnoteList block
+    // Schema — image sovrascrive il blocco immagine di default aggiungendo float
     const schema = BlockNoteSchema.create({
       blockSpecs: {
         ...defaultBlockSpecs,
+        image: imageBlockSpec(),
         callout: calloutBlockSpec(),
-        footnoteList: footnoteListBlockSpec,
+        footnoteList: footnoteListBlockSpec(),
       },
       inlineContentSpecs: {
         ...defaultInlineContentSpecs,
         footnote: footnoteInlineContentSpec,
       },
     });
+
+    // ── Block snapshot extractor ──────────────────────────────────────────────
+
+    function extractBlockSnapshot(block: any): { snapshot: string; blockType: string } {
+      const type = block.type as string;
+      const getText = (content: any[]): string => {
+        if (!Array.isArray(content)) return '';
+        return content.map((item: any) => {
+          if (item.type === 'text') return item.text ?? '';
+          if (item.type === 'link') return (item.content ?? []).map((c: any) => c.text ?? '').join('');
+          return '';
+        }).join('');
+      };
+      const truncate = (s: string) => s.length > 300 ? s.slice(0, 297) + '…' : s;
+      if (['paragraph', 'heading', 'bulletListItem', 'numberedListItem', 'checkListItem'].includes(type)) {
+        return { snapshot: truncate(getText(block.content ?? [])), blockType: type };
+      }
+      if (type === 'image') return { snapshot: '[Immagine]', blockType: type };
+      if (type === 'callout') {
+        const title = block.props?.title;
+        return { snapshot: title ? `[Callout] ${title}` : '[Callout]', blockType: type };
+      }
+      return { snapshot: `[Blocco: ${type}]`, blockType: type };
+    }
 
     // ── Footnote popover component ────────────────────────────────────────────
 
@@ -125,11 +182,16 @@
           style: taStyle,
           onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => setText(e.target.value),
           onKeyDown: (e: React.KeyboardEvent) => {
-            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+            if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault();
+              e.stopPropagation();
               onSave(id, text);
             }
-            if (e.key === 'Escape') onClose();
+            if (e.key === 'Escape') {
+              e.preventDefault();
+              e.stopPropagation();
+              onClose();
+            }
           },
         }),
         createElement(
@@ -180,14 +242,100 @@
 
     function EditorWrapper({
       html,
+      initialBlocksJson,
       onChange,
       onReadyInsertFn,
+      onReadyUpdateBlockCommentsFn,
+      onAddBlockCommentCb,
+      onBlockIndicatorClickCb,
+      onReadyGetBlockMapFnCb,
+      onReadyGetBlocksJsonFnCb,
+      onReadyGetContentFnCb,
+      readonlyProp,
     }: {
       html: string;
+      initialBlocksJson?: string | null;
       onChange: (h: string) => void;
       onReadyInsertFn: (fn: () => void) => void;
+      onReadyUpdateBlockCommentsFn: (fn: (c: Record<string, { count: number; preview: string }>) => void) => void;
+      onAddBlockCommentCb?: (blockId: string, blockType: string, snapshot: string) => void;
+      onBlockIndicatorClickCb?: (blockId: string) => void;
+      onReadyGetBlockMapFnCb?: (fn: () => Record<string, string>) => void;
+      onReadyGetBlocksJsonFnCb?: (fn: () => string) => void;
+      onReadyGetContentFnCb?: (fn: () => string) => void;
+      readonlyProp: boolean;
     }) {
       const editor = useCreateBlockNote({ schema } as any);
+
+      // Block comments state
+      const blockCommentsRef = useRef<Record<string, { count: number; preview: string }>>({});
+      const [, forceUpdate] = useState(0);
+
+      useEffect(() => {
+        onReadyUpdateBlockCommentsFn((comments) => {
+          blockCommentsRef.current = comments;
+          forceUpdate((n) => n + 1);
+        });
+      }, []);
+
+      // Block map + blocks JSON + content HTML refs — updated on every change, exposed as getters for form submit
+      const blockMapRef = useRef<Record<string, string>>({});
+      const blocksJsonRef = useRef<string>('[]');
+      const contentHtmlRef = useRef<string>(html); // initialized with initial HTML, kept current
+
+      useEffect(() => {
+        onReadyGetBlockMapFnCb?.(() => blockMapRef.current);
+        onReadyGetBlocksJsonFnCb?.(() => blocksJsonRef.current);
+        onReadyGetContentFnCb?.(() => contentHtmlRef.current);
+      }, []);
+
+      // Custom side menu — stable reference, reads from ref
+      const CustomSideMenu = useMemo(() => {
+        function CM() {
+          const Components = useComponentsContext()!;
+          const innerEditor = useBlockNoteEditor<any, any, any>();
+          const block = useExtensionState(SideMenuExtension as any, {
+            editor: innerEditor,
+            selector: (state: any) => state?.block,
+          });
+          const blockId: string | undefined = block?.id;
+          const info = blockId ? blockCommentsRef.current[blockId] : null;
+
+          return createElement(
+            (Components as any).SideMenu.Root,
+            { className: 'bn-side-menu' },
+            createElement(AddBlockButton as any),
+            createElement(DragHandleButton as any),
+            info
+              ? createElement('button', {
+                  type: 'button',
+                  className: 'editorial-comment-dot',
+                  title: info.preview,
+                  onClick: (e: Event) => {
+                    e.stopPropagation();
+                    if (blockId) onBlockIndicatorClickCb?.(blockId);
+                  },
+                }, info.count > 1 ? String(info.count) : '●')
+              : null,
+            !readonlyProp && blockId
+              ? createElement('button', {
+                  type: 'button',
+                  className: 'editorial-add-comment-btn',
+                  title: 'Commenta questo blocco',
+                  onClick: (e: Event) => {
+                    e.stopPropagation();
+                    const b = (innerEditor as any).getBlock(blockId);
+                    if (!b) return;
+                    const { snapshot, blockType } = extractBlockSnapshot(b);
+                    onAddBlockCommentCb?.(blockId, blockType, snapshot);
+                  },
+                }, '+')
+              : null,
+          );
+        }
+        return CM;
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      }, []);
 
       // Footnote state
       const [indices, setIndices] = useState<Record<string, number>>({});
@@ -274,16 +422,43 @@
         syncFootnotes();
         const h = await (editor as any).blocksToHTMLLossy((editor as any).document);
         onChange(h);
+        contentHtmlRef.current = h;
+        // Update block map + JSON refs (read via getters at form submit)
+        const doc = (editor as any).document as any[];
+        const map: Record<string, string> = {};
+        const walk = (block: any) => {
+          const { snapshot } = extractBlockSnapshot(block);
+          map[block.id] = snapshot;
+          if (Array.isArray(block.children)) block.children.forEach(walk);
+        };
+        doc.forEach(walk);
+        blockMapRef.current = map;
+        blocksJsonRef.current = JSON.stringify(doc);
       }, [editor, syncFootnotes]);
 
       // ── Save note via popover ───────────────────────────────────────────────
 
       const handleSaveNote = useCallback((id: string, text: string) => {
         const updater = updatersRef.current[id];
-        if (updater) updater({ props: { note: text } });
+        if (updater) updater({ type: 'footnote', props: { id, note: text } });
         setPopover(null);
-        // syncFootnotes will run via handleChange triggered by the update
       }, []);
+
+      // ── Block all keyboard events from reaching ProseMirror while popover is open
+      useEffect(() => {
+        if (!popover) return;
+        const trap = (e: KeyboardEvent) => {
+          if ((e.target as Element)?.closest?.('.fn-popover')) {
+            e.stopImmediatePropagation();
+          }
+        };
+        document.addEventListener('keydown', trap, true);
+        document.addEventListener('keypress', trap, true);
+        return () => {
+          document.removeEventListener('keydown', trap, true);
+          document.removeEventListener('keypress', trap, true);
+        };
+      }, [popover]);
 
       // ── Close popover on outside click ──────────────────────────────────────
 
@@ -296,11 +471,20 @@
         return () => document.removeEventListener('mousedown', handleClick);
       }, [popover]);
 
-      // ── Load initial HTML ───────────────────────────────────────────────────
+      // ── Load initial content ────────────────────────────────────────────────
+      // Prefer blocksJson (preserves stable block IDs) over HTML (lossy, assigns new IDs)
 
       useEffect(() => {
-        const blocks = (editor as any).tryParseHTMLToBlocks(html);
-        if (blocks.length > 0) {
+        let blocks: any[] | null = null;
+        if (initialBlocksJson) {
+          try {
+            blocks = JSON.parse(initialBlocksJson);
+          } catch { /* fall through to HTML */ }
+        }
+        if (!blocks || blocks.length === 0) {
+          blocks = (editor as any).tryParseHTMLToBlocks(html);
+        }
+        if (blocks && blocks.length > 0) {
           (editor as any).replaceBlocks((editor as any).document, blocks);
         }
         syncFootnotes();
@@ -309,7 +493,22 @@
       // ── Slash menu ──────────────────────────────────────────────────────────
 
       const getSlashItems = useCallback(async (query: string) => {
-        const defaults = getDefaultReactSlashMenuItems(editor as any);
+        // Filter out BlockNote's built-in image item (it opens a file picker incompatible with our URL-based block)
+        const defaults = getDefaultReactSlashMenuItems(editor as any).filter(
+          (item: any) => item.key !== 'image' && item.title?.toLowerCase() !== 'image'
+        );
+        const imageItem = {
+          title: 'Immagine',
+          group: 'Media',
+          icon: createElement('span', { style: { fontSize: '1.1rem' } }, '🖼'),
+          onItemClick: () => {
+            (editor as any).insertBlocks(
+              [{ type: 'image', props: { url: '', caption: '', position: 'full' } }],
+              (editor as any).getTextCursorPosition().block,
+              'after',
+            );
+          },
+        };
         const callouts = (
           [
             { emoji: '💡', label: 'Callout Nota',       variant: 'nota'       },
@@ -328,7 +527,7 @@
             );
           },
         }));
-        return filterSuggestionItems([...defaults, ...callouts] as any, query) as any;
+        return filterSuggestionItems([...defaults, imageItem, ...callouts] as any, query) as any;
       }, [editor]);
 
       // ── Context value ────────────────────────────────────────────────────────
@@ -353,20 +552,24 @@
           { value: footnoteCtxValue },
           createElement(
             BlockNoteView as any,
-            { editor, onChange: handleChange, theme: 'light', slashMenu: false },
+            { editor, onChange: handleChange, theme: 'light', slashMenu: false, sideMenu: false },
+            createElement(SideMenuController as any, { sideMenu: CustomSideMenu }),
             createElement(SuggestionMenuController as any, {
               triggerCharacter: '/',
               getItems: getSlashItems,
             })
           )
         ),
-        popover && createElement(FootnotePopover, {
-          id: popover.id,
-          note: popover.note,
-          anchor: popover.anchor,
-          onSave: handleSaveNote,
-          onClose: () => setPopover(null),
-        })
+        popover && createPortal(
+          createElement(FootnotePopover, {
+            id: popover.id,
+            note: popover.note,
+            anchor: popover.anchor,
+            onSave: handleSaveNote,
+            onClose: () => setPopover(null),
+          }),
+          document.body
+        )
       );
     }
 
@@ -376,6 +579,7 @@
     rootRef.render(
       createElement(EditorWrapper, {
         html: initialHtml,
+        initialBlocksJson: blocksJson,
         onChange: (h: string) => {
           content = h;
           sourceValue = h;
@@ -383,6 +587,15 @@
         onReadyInsertFn: (fn: () => void) => {
           insertFootnoteFn = fn;
         },
+        onReadyUpdateBlockCommentsFn: (fn: (c: Record<string, { count: number; preview: string }>) => void) => {
+          updateBlockCommentsFn = fn;
+        },
+        onAddBlockCommentCb: onAddBlockComment,
+        onBlockIndicatorClickCb: onBlockIndicatorClick,
+        onReadyGetBlockMapFnCb: onReadyGetBlockMapFn,
+        onReadyGetBlocksJsonFnCb: onReadyGetBlocksJsonFn,
+        onReadyGetContentFnCb: onReadyGetContentFn,
+        readonlyProp: readonly,
       })
     );
   }
@@ -569,11 +782,83 @@
     font-weight: var(--weight-semibold);
   }
 
+  /* Image float — :has() targets .bn-block-outer without touching ProseMirror-managed DOM */
+  :global(.bn-editor .bn-block-outer:has([data-img-pos="float-right"])) {
+    float: right;
+    width: 42%;
+    margin: 0.25rem 0 0.5rem 1rem;
+  }
+  :global(.bn-editor .bn-block-outer:has([data-img-pos="float-left"])) {
+    float: left;
+    width: 42%;
+    margin: 0.25rem 1rem 0.5rem 0;
+  }
+  :global(.bn-editor .bn-block-outer:has([data-img-pos="center"])) {
+    float: none;
+    width: 70%;
+    margin: 0.5rem auto;
+    clear: both;
+  }
+  :global(.bn-editor .bn-block-outer:has([data-img-pos="full"])) {
+    float: none;
+    width: 100%;
+    clear: both;
+  }
+  /* Clearfix so floats don't bleed past the editor */
+  :global(.bn-editor::after) {
+    content: '';
+    display: table;
+    clear: both;
+  }
+
   /* Footnote editor styles */
   :global(.fn-marker) {
     display: inline;
   }
   :global(.fn-marker:hover sup) {
     color: #9b6ff0;
+  }
+
+  /* Block comment indicators */
+  :global(.editorial-comment-dot) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #7c55d4;
+    color: white;
+    font-size: 9px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    margin-left: 2px;
+    flex-shrink: 0;
+    transition: opacity 0.15s;
+  }
+  :global(.editorial-comment-dot:hover) { opacity: 0.8; }
+
+  :global(.editorial-add-comment-btn) {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #ece7fa;
+    color: #7c55d4;
+    font-size: 12px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 2px;
+    flex-shrink: 0;
+  }
+  :global(.bn-side-menu:hover .editorial-add-comment-btn) {
+    display: inline-flex;
   }
 </style>

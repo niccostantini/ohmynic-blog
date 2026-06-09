@@ -1,7 +1,7 @@
 import { defineConfig } from 'drizzle-kit';
 import { config } from 'dotenv';
 
-config();
+config({ override: false });
 
 export default defineConfig({
   schema: './src/lib/db/schema.ts',

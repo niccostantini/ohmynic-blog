@@ -23,6 +23,7 @@ export async function createComment(data: {
   authorName?: string;
   authorEmail?: string;
   content: string;
+  readerId?: string;
 }) {
   const result = await db.insert(comments).values(data).returning();
   return result[0];

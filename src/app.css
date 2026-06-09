@@ -1,6 +1,37 @@
 @import '$lib/styles/tokens.css';
 
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 76px; /* sticky header 60px + 16px breathing room */
+}
+
+/* ── Image con float (BlockNote custom block) ──────────────────────────── */
+.prose figure.image {
+  margin: var(--space-6) 0;
+  display: block;
+}
+.prose figure.image.float-right { float: right; width: 42%; margin: 0.25rem 0 1rem 1.5rem; }
+.prose figure.image.float-left  { float: left;  width: 42%; margin: 0.25rem 1.5rem 1rem 0; }
+.prose figure.image.center      { float: none;  width: 70%; margin: 1rem auto; }
+.prose figure.image.full        { float: none;  width: 100%; }
+.prose figure.image img { width: 100%; border-radius: var(--radius-md); display: block; }
+.prose figure.image figcaption {
+  text-align: center;
+  font-size: 0.82rem;
+  font-style: italic;
+  color: var(--color-grafite);
+  margin-top: 0.4rem;
+}
+
+@media (max-width: 640px) {
+  .prose figure.image.float-right,
+  .prose figure.image.float-left {
+    float: none;
+    width: 100%;
+    margin: 0 0 1rem;
+  }
+}
+/* ─────────────────────────────────────────────────────────────────────────── */
 
 /* ── Callout (BlockNote custom block) ──────────────────────────────────── */
 .prose::after {
@@ -110,4 +141,57 @@ body {
   font-size: var(--text-base);
   line-height: var(--leading-normal);
   -webkit-font-smoothing: antialiased;
+}
+
+/* ── Dark mode — callout ──────────────────────────────────────────────────── */
+[data-theme='dark'] .prose .callout.nota {
+  background: #221843;
+  border-color: #4a3578;
+  color: #c4b8e8;
+}
+[data-theme='dark'] .prose .callout.attenzione {
+  background: #2a1a08;
+  border-color: #6b3f10;
+  color: #e4c49e;
+}
+[data-theme='dark'] .prose .callout.info {
+  background: #0a1e34;
+  border-color: #1a4878;
+  color: #9ac4e8;
+}
+
+/* ── Dark mode — BlockNote editor ────────────────────────────────────────── */
+[data-theme='dark'] .bn-editor {
+  background: var(--color-iris) !important;
+  color: var(--color-notte) !important;
+  border-color: var(--color-bordo) !important;
+}
+[data-theme='dark'] .bn-block-content,
+[data-theme='dark'] .bn-inline-content {
+  color: var(--color-notte) !important;
+}
+[data-theme='dark'] .bn-block-content::before {
+  color: var(--color-lilla) !important;
+}
+[data-theme='dark'] .bn-menu,
+[data-theme='dark'] .bn-toolbar {
+  background: #1a1630 !important;
+  border: 0.5px solid #2a2340 !important;
+  color: #f0ecff !important;
+}
+[data-theme='dark'] .bn-menu-item:hover,
+[data-theme='dark'] .bn-menu-item[data-selected='true'] {
+  background: #2a2340 !important;
+}
+[data-theme='dark'] .bn-toolbar button:hover {
+  background: #2a2340 !important;
+}
+
+/* ── Dark mode — callout mobile override ─────────────────────────────────── */
+@media (max-width: 640px) {
+  [data-theme='dark'] .prose .callout.float-right,
+  [data-theme='dark'] .prose .callout.float-left {
+    background: transparent !important;
+    border-left-color: var(--color-lavanda);
+  }
 }

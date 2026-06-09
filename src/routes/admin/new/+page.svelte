@@ -119,8 +119,7 @@
     </div>
 
     <div class="form-actions">
-      <button type="submit" name="action" value="draft" class="btn-ghost">Salva bozza</button>
-      <button type="submit" name="action" value="publish" class="btn-accent">Pubblica</button>
+      <button type="submit" class="btn-accent">Salva bozza</button>
     </div>
   </form>
 </div>

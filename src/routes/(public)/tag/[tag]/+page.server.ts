@@ -3,7 +3,7 @@ import { getArticlesByTag, getTagsForArticle } from '$lib/db/queries/articles';
 import { getTagBySlug, getTagsWithCount } from '$lib/db/queries/tags';
 import { db } from '$lib/db/index';
 import { articles as articlesTable, articleTags, tags as tagsTable } from '$lib/db/schema';
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, and, sql, lte, or, isNull } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, url }) => {
@@ -19,7 +19,11 @@ export const load: PageServerLoad = async ({ params, url }) => {
       .from(articlesTable)
       .innerJoin(articleTags, eq(articleTags.articleId, articlesTable.id))
       .innerJoin(tagsTable, eq(tagsTable.id, articleTags.tagId))
-      .where(and(eq(tagsTable.slug, params.tag), eq(articlesTable.published, true))),
+      .where(and(
+        eq(tagsTable.slug, params.tag),
+        eq(articlesTable.status, 'published'),
+        or(isNull(articlesTable.publishedAt), lte(articlesTable.publishedAt, new Date()))
+      )),
     getTagsWithCount(),
   ]);
 
