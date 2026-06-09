@@ -100,4 +100,10 @@
     color: var(--color-viola);
     background: var(--color-iris);
   }
+
+  @media (max-width: 640px) {
+    .share { flex-direction: column; align-items: flex-start; gap: var(--space-3); }
+    .share-buttons { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+    .share-btn { justify-content: center; padding: 10px; min-height: 44px; }
+  }
 </style>

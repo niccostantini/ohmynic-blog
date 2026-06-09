@@ -165,6 +165,12 @@
     .layout-2 .featured-grid,
     .layout-3 .featured-grid { grid-template-columns: 1fr; }
     .layout-3 .featured-main { grid-row: span 1; }
+    /* Equalizza card main e side nello stack verticale */
+    .featured-main .featured-cover,
+    .featured-side .featured-cover { height: 180px; }
+    .featured-main .featured-title,
+    .featured-side .featured-title { font-size: var(--text-xl); }
+    .featured-side .featured-excerpt { -webkit-line-clamp: 3; line-clamp: 3; }
   }
 
   .featured-card {

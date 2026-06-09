@@ -475,5 +475,9 @@
     .article-title { font-size: 28px; }
     .related-wrap { padding: var(--space-8) var(--space-4); }
     .related-grid { grid-template-columns: 1fr; }
+    /* Byline stack verticale */
+    .article-meta { flex-direction: column; align-items: flex-start; gap: var(--space-1); }
+    .meta-sep { display: none; }
+    .byline { gap: var(--space-2); }
   }
 </style>
