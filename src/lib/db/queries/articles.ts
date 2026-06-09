@@ -17,6 +17,14 @@ function publishedAndVisible() {
   );
 }
 
+// Per le route slug: include sia articoli che pagine statiche (showInFeed non rilevante)
+function publishedBySlug() {
+  return and(
+    eq(articles.status, 'published'),
+    or(isNull(articles.publishedAt), lte(articles.publishedAt, new Date()))
+  );
+}
+
 type ArticleStatus = 'draft' | 'review' | 'approved' | 'published';
 
 export async function getPublishedArticles(page = 1, perPage = 10) {
@@ -403,7 +411,7 @@ export async function getArticleBySlugWithAuthor(slug: string) {
     })
     .from(articles)
     .leftJoin(users, eq(articles.authorId, users.id))
-    .where(and(eq(articles.slug, slug), publishedAndVisible()))
+    .where(and(eq(articles.slug, slug), publishedBySlug()))
     .limit(1);
   return result[0] ?? null;
 }

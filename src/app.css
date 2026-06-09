@@ -217,6 +217,8 @@ body {
 /* Admin articles / comments tables and cards */
 [data-theme='dark'] .article-table,
 [data-theme='dark'] .article-table th { background: var(--color-iris) !important; }
+[data-theme='dark'] .pages-table-wrap { background: var(--color-iris) !important; }
+[data-theme='dark'] .pages-table th { background: var(--color-nebbia) !important; }
 [data-theme='dark'] .comment-card { background: var(--color-nebbia) !important; }
 [data-theme='dark'] .comment-card.comment-workflow { background: var(--color-iris) !important; }
 

@@ -17,6 +17,16 @@
   let content = $state(data.page.content);
   let blocksJson = $state<string | null>(data.page.blocksJson ?? null);
 
+  $effect(() => {
+    title = data.page.title;
+    slug = data.page.slug;
+    excerpt = data.page.excerpt ?? '';
+    coverImage = data.page.coverImage ?? '';
+    showCoverInArticle = data.page.showCoverInArticle ?? true;
+    showComments = data.page.showComments ?? false;
+    showInNavbar = data.page.showInNavbar ?? false;
+  });
+
   let getContentFn: (() => string) | null = null;
   let getBlocksJsonFn: (() => string) | null = null;
 

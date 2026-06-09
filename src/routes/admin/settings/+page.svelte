@@ -15,50 +15,42 @@
   let activeTab = $state<'aspetto' | 'navigazione'>('aspetto');
 
   // ── Drag and drop state ───────────────────────────────────────────────────
-  let draggingId = $state<string | null>(null);
-  let dragOverId = $state<string | null>(null);
+  let dragIndex = $state<number | null>(null);
+  let dragOverIndex = $state<number | null>(null);
 
-  function onDragStart(e: DragEvent, id: string) {
-    draggingId = id;
+  function onDragStart(e: DragEvent, i: number) {
+    dragIndex = i;
     e.dataTransfer!.effectAllowed = 'move';
-    e.dataTransfer!.setData('text/plain', id);
   }
 
-  function onDragOver(e: DragEvent, id: string) {
+  function onDragOver(e: DragEvent, i: number) {
     e.preventDefault();
     e.dataTransfer!.dropEffect = 'move';
-    dragOverId = id;
+    if (dragIndex === null || dragIndex === i) { dragOverIndex = i; return; }
+
+    // Live reorder: move item as user drags
+    const reordered = [...navItems];
+    const [moved] = reordered.splice(dragIndex, 1);
+    reordered.splice(i, 0, moved);
+    navItems = reordered;
+    dragIndex = i;
+    dragOverIndex = i;
   }
 
-  function onDrop(e: DragEvent, targetId: string) {
+  async function onDrop(e: DragEvent) {
     e.preventDefault();
-    if (!draggingId || draggingId === targetId) { draggingId = null; dragOverId = null; return; }
-
-    const fromIdx = navItems.findIndex(i => i.id === draggingId);
-    const toIdx = navItems.findIndex(i => i.id === targetId);
-    if (fromIdx === -1 || toIdx === -1) { draggingId = null; dragOverId = null; return; }
-
-    const newItems = [...navItems];
-    const [moved] = newItems.splice(fromIdx, 1);
-    newItems.splice(toIdx, 0, moved);
-    navItems = newItems.map((item, i) => ({ ...item, position: i }));
-
-    draggingId = null;
-    dragOverId = null;
-    persistOrder();
-  }
-
-  function onDragEnd() { draggingId = null; dragOverId = null; }
-
-  async function persistOrder() {
+    dragIndex = null;
+    dragOverIndex = null;
     try {
       await fetch(`${base}/admin/api/nav-items/reorder`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(navItems.map((i, idx) => ({ id: i.id, position: idx }))),
+        body: JSON.stringify(navItems.map((item, idx) => ({ id: item.id, position: idx }))),
       });
     } catch { addToast('Errore nel salvataggio ordine', 'error'); }
   }
+
+  function onDragEnd() { dragIndex = null; dragOverIndex = null; }
 
   async function toggleVisible(item: NavItem) {
     const newVisible = !item.visible;
@@ -153,17 +145,17 @@
     <p class="section-desc">Trascina per riordinare. Le voci fisse non possono essere eliminate.</p>
 
     <ul class="nav-list">
-      {#each navItems as item (item.id)}
+      {#each navItems as item, i (item.id)}
         <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
         <li
           class="nav-item"
-          class:drag-over={dragOverId === item.id}
-          class:dragging={draggingId === item.id}
+          class:drag-over={dragOverIndex === i && dragIndex !== i}
+          class:dragging={dragIndex === i}
           class:hidden-item={!item.visible}
           draggable="true"
-          ondragstart={(e) => onDragStart(e, item.id)}
-          ondragover={(e) => onDragOver(e, item.id)}
-          ondrop={(e) => onDrop(e, item.id)}
+          ondragstart={(e) => onDragStart(e, i)}
+          ondragover={(e) => onDragOver(e, i)}
+          ondrop={onDrop}
           ondragend={onDragEnd}
         >
           <span class="drag-handle" title="Trascina per riordinare">
