@@ -314,9 +314,12 @@
   /* ── griglia ── */
   .results-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: var(--space-6);
     margin-bottom: var(--space-10);
+  }
+  @media (max-width: 1024px) {
+    .results-grid { grid-template-columns: repeat(2, 1fr); }
   }
 
   /* ── paginazione ── */
@@ -411,5 +414,6 @@
     .search-form { width: 100%; }
     .results-count { margin-left: 0; }
     .page-numbers { display: none; }
+    .results-grid { grid-template-columns: 1fr; }
   }
 </style>

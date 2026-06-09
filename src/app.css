@@ -5,6 +5,32 @@ html {
   scroll-padding-top: 76px; /* sticky header 60px + 16px breathing room */
 }
 
+/* ── Responsive: touch targets + iOS zoom prevention ─────────────────────── */
+/* Prevent iOS Safari from zooming on input focus (requires font-size >= 16px) */
+@media (max-width: 1024px) {
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='submit']):not([type='button']):not([type='color']),
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+/* Minimum 44×44px touch target for interactive elements on mobile */
+@media (max-width: 640px) {
+  button:not(.hamburger),
+  [role='button'] {
+    min-height: 44px;
+  }
+  a.nav-btn,
+  a.btn-primary,
+  a.btn-ghost,
+  a.btn-accent {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+}
+
 /* ── Image con float (BlockNote custom block) ──────────────────────────── */
 .prose figure.image {
   margin: var(--space-6) 0;
