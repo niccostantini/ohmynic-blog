@@ -72,6 +72,13 @@ export const readers = pgTable('readers', {
   verificationToken: text('verification_token'),
   resetToken: text('reset_token'),
   resetTokenExpiresAt: timestamp('reset_token_expires_at'),
+  active: boolean('active').notNull().default(true),
+  country: text('country'),
+  city: text('city'),
+  website: text('website'),
+  twitter: text('twitter'),
+  linkedin: text('linkedin'),
+  instagram: text('instagram'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 

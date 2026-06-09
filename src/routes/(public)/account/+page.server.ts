@@ -1,7 +1,7 @@
 import { redirect, fail } from '@sveltejs/kit';
 import { verify, hash } from 'argon2';
 import { base } from '$app/paths';
-import { getBookmarkedArticles, getCommentsByReader, getReaderById } from '$lib/db/queries/readers';
+import { getBookmarkedArticles, getCommentsByReader, getReaderById, updateReaderProfile } from '$lib/db/queries/readers';
 import { db } from '$lib/db/index';
 import { readers } from '$lib/db/schema';
 import { eq } from 'drizzle-orm';
@@ -54,5 +54,36 @@ export const actions: Actions = {
 
     await db.update(readers).set(updates).where(eq(readers.id, locals.reader.id));
     return { saved: true };
+  },
+
+  updatePublicProfile: async ({ request, locals }) => {
+    if (!locals.reader) redirect(302, `${base}/login`);
+
+    const data = await request.formData();
+
+    const raw = (key: string) => {
+      const v = data.get(key);
+      return typeof v === 'string' && v.trim() ? v.trim() : null;
+    };
+
+    let website = raw('website');
+    if (website && !website.startsWith('http')) website = `https://${website}`;
+
+    let twitter = raw('twitter');
+    if (twitter?.startsWith('@')) twitter = twitter.slice(1);
+
+    let instagram = raw('instagram');
+    if (instagram?.startsWith('@')) instagram = instagram.slice(1);
+
+    await updateReaderProfile(locals.reader.id, {
+      country: raw('country'),
+      city: raw('city'),
+      website,
+      twitter,
+      linkedin: raw('linkedin'),
+      instagram,
+    });
+
+    return { profileSaved: true };
   },
 };

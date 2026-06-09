@@ -1,4 +1,4 @@
-import { and, eq, desc } from 'drizzle-orm';
+import { and, eq, desc, sql } from 'drizzle-orm';
 import { db } from '../index';
 import { readers, readerSessions, readerBookmarks, comments, articles } from '../schema';
 
@@ -21,6 +21,18 @@ export async function getReaderByEmail(email: string) {
 
 export async function getReaderById(id: string) {
   const result = await db.select().from(readers).where(eq(readers.id, id)).limit(1);
+  return result[0] ?? null;
+}
+
+export async function updateReaderProfile(id: string, data: {
+  country?: string | null;
+  city?: string | null;
+  website?: string | null;
+  twitter?: string | null;
+  linkedin?: string | null;
+  instagram?: string | null;
+}) {
+  const result = await db.update(readers).set(data).where(eq(readers.id, id)).returning();
   return result[0] ?? null;
 }
 
@@ -54,6 +66,60 @@ export async function resetReaderPassword(token: string, passwordHash: string) {
     .where(eq(readers.resetToken, token))
     .returning();
   return result[0] ?? null;
+}
+
+// ── Admin ─────────────────────────────────────────────────────────────────────
+
+export async function getAllReaders() {
+  return db.select().from(readers).orderBy(desc(readers.createdAt));
+}
+
+export async function getReaderStats(readerId: string) {
+  const [commentCount, bookmarkCount] = await Promise.all([
+    db
+      .select({ count: sql<number>`cast(count(*) as int)` })
+      .from(comments)
+      .where(and(eq(comments.readerId, readerId), eq(comments.approved, true)))
+      .then(r => r[0]?.count ?? 0),
+    db
+      .select({ count: sql<number>`cast(count(*) as int)` })
+      .from(readerBookmarks)
+      .where(eq(readerBookmarks.readerId, readerId))
+      .then(r => r[0]?.count ?? 0),
+  ]);
+  return { commentCount, bookmarkCount };
+}
+
+export async function updateReaderAdmin(id: string, data: {
+  displayName?: string;
+  email?: string;
+  country?: string | null;
+  city?: string | null;
+  website?: string | null;
+  twitter?: string | null;
+  linkedin?: string | null;
+  instagram?: string | null;
+}) {
+  const result = await db.update(readers).set(data).where(eq(readers.id, id)).returning();
+  return result[0] ?? null;
+}
+
+export async function setReaderActive(id: string, active: boolean) {
+  await db.update(readers).set({ active }).where(eq(readers.id, id));
+}
+
+export async function deleteReaderById(id: string) {
+  // Only call if reader has no approved comments (enforced at server action level)
+  await db.delete(readers).where(eq(readers.id, id));
+}
+
+export async function readerHasApprovedComments(id: string): Promise<boolean> {
+  const rows = await db
+    .select({ id: comments.id })
+    .from(comments)
+    .where(and(eq(comments.readerId, id), eq(comments.approved, true)))
+    .limit(1);
+  return rows.length > 0;
 }
 
 // ── Sessions ───────────────────────────────────────────────────────────────────

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { base } from '$app/paths';
   import { enhance } from '$app/forms';
+  import { COUNTRIES } from '$lib/i18n/countries';
   import type { PageData, ActionData } from './$types';
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -89,10 +90,63 @@
 
   {:else if tab === 'settings'}
     <section class="tab-panel settings-panel">
-      <h2>Modifica profilo</h2>
+
+      <!-- Profilo pubblico -->
+      <h2>Profilo pubblico</h2>
+      <p class="section-note">Le informazioni che inserisci sono opzionali e visibili pubblicamente accanto ai tuoi commenti.</p>
+
+      {#if form?.profileSaved}
+        <div class="success">Profilo pubblico aggiornato.</div>
+      {/if}
+
+      <form method="POST" action="?/updatePublicProfile" use:enhance class="profile-form">
+        <div class="field-row">
+          <div class="field">
+            <label for="country">Paese</label>
+            <select id="country" name="country">
+              <option value="">— Seleziona —</option>
+              {#each COUNTRIES as c}
+                <option value={c.code} selected={data.reader?.country === c.code}>{c.name}</option>
+              {/each}
+            </select>
+          </div>
+          <div class="field">
+            <label for="city">Città</label>
+            <input id="city" name="city" type="text" placeholder="Milano" value={data.reader?.city ?? ''} />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="website">Sito web</label>
+          <input id="website" name="website" type="url" placeholder="https://tuosito.com" value={data.reader?.website ?? ''} />
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="twitter">Twitter / X</label>
+            <input id="twitter" name="twitter" type="text" placeholder="@handle" value={data.reader?.twitter ? '@' + data.reader.twitter : ''} />
+          </div>
+          <div class="field">
+            <label for="instagram">Instagram</label>
+            <input id="instagram" name="instagram" type="text" placeholder="@handle" value={data.reader?.instagram ? '@' + data.reader.instagram : ''} />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="linkedin">LinkedIn</label>
+          <input id="linkedin" name="linkedin" type="text" placeholder="URL o handle" value={data.reader?.linkedin ?? ''} />
+        </div>
+
+        <button type="submit" class="btn-primary">Salva profilo</button>
+      </form>
+
+      <hr class="settings-divider" />
+
+      <!-- Impostazioni account -->
+      <h2>Impostazioni account</h2>
 
       {#if form?.saved}
-        <div class="success">Profilo aggiornato.</div>
+        <div class="success">Modifiche salvate.</div>
       {/if}
       {#if form?.error}
         <div class="error">{form.error}</div>
@@ -179,11 +233,16 @@
   .comment-date { font-family: var(--font-sans); font-size: var(--text-xs); color: var(--color-lilla); }
   .comment-content { font-family: var(--font-sans); font-size: var(--text-sm); color: var(--color-prugna); line-height: var(--leading-relaxed); margin: 0; }
 
-  .settings-panel h2 { font-family: var(--font-serif); font-size: var(--text-xl); font-weight: 600; color: var(--color-notte); margin-bottom: var(--space-6); }
+  .settings-panel h2 { font-family: var(--font-serif); font-size: var(--text-xl); font-weight: 600; color: var(--color-notte); margin-bottom: var(--space-3); }
+  .section-note { font-size: var(--text-sm); color: var(--color-lilla); margin-bottom: var(--space-5); line-height: 1.5; }
+  .profile-form { margin-bottom: var(--space-2); }
+  .settings-divider { border: none; border-top: 0.5px solid var(--color-bordo); margin: var(--space-8) 0; }
+  .field-row { display: flex; gap: var(--space-3); }
+  .field-row .field { flex: 1; }
   .field { display: flex; flex-direction: column; gap: var(--space-1); margin-bottom: var(--space-4); }
   label { font-size: var(--text-sm); font-weight: var(--weight-medium); color: var(--color-prugna); }
   .hint { font-weight: normal; color: var(--color-lilla); font-size: var(--text-xs); }
-  input[type="text"], input[type="password"] {
+  input[type="text"], input[type="password"], input[type="url"], select {
     padding: 10px var(--space-3); border: 0.5px solid var(--color-bordo); border-radius: var(--radius-md);
     font-family: var(--font-sans); font-size: var(--text-base); color: var(--color-notte);
     background: var(--color-nebbia); transition: border-color var(--transition-fast); outline: none; width: 100%;

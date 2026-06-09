@@ -1,28 +1,32 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
+  import { COUNTRIES, getCountryName } from '$lib/i18n/countries';
   import type { PageData, ActionData } from './$types';
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
 
   // ── Tipi ────────────────────────────────────────────────────────────────────
   type User = PageData['users'][number];
+  type Reader = PageData['readers'][number];
 
-  // ── Filtro account disattivati ──────────────────────────────────────────────
+  // ── Tab principale ──────────────────────────────────────────────────────────
+  let mainTab = $state<'staff' | 'readers'>('staff');
+
+  // ── STAFF: filtro account disattivati ───────────────────────────────────────
   let hideInactive = $state(true);
   const visibleUsers = $derived(hideInactive ? data.users.filter(u => u.active) : data.users);
   const inactiveCount = $derived(data.users.filter(u => !u.active).length);
 
-  // ── Stato modal creazione ───────────────────────────────────────────────────
+  // ── STAFF: modal creazione ──────────────────────────────────────────────────
   let showCreate = $state(false);
   let tempPasswordShown = $state<string | null>(null);
   let createdUsername = $state<string | null>(null);
 
-  // ── Stato modal modifica ────────────────────────────────────────────────────
+  // ── STAFF: modal modifica ───────────────────────────────────────────────────
   let editUser = $state<User | null>(null);
   let editPassword = $state('');
   let confirmVisible = $derived(editPassword.length > 0);
   let deactivateConfirm = $state(false);
-
   let editRole = $state<string>('contributor');
 
   function openEdit(u: User) {
@@ -36,6 +40,78 @@
     deactivateConfirm = false;
   }
 
+  // ── READERS: ricerca e filtro ───────────────────────────────────────────────
+  let readerSearch = $state('');
+  let readerFilter = $state<'all' | 'active' | 'unverified' | 'disabled'>('all');
+
+  const filteredReaders = $derived.by(() => {
+    let list = data.readers as Reader[];
+    if (readerFilter === 'active') list = list.filter(r => r.active && r.emailVerified);
+    else if (readerFilter === 'unverified') list = list.filter(r => !r.emailVerified);
+    else if (readerFilter === 'disabled') list = list.filter(r => !r.active);
+    if (readerSearch.trim()) {
+      const q = readerSearch.toLowerCase();
+      list = list.filter(r =>
+        r.displayName.toLowerCase().includes(q) ||
+        r.email.toLowerCase().includes(q)
+      );
+    }
+    return list;
+  });
+
+  // ── READERS: selezione batch ────────────────────────────────────────────────
+  let selectedReaderIds = $state<Set<string>>(new Set());
+  let batchAction = $state<'disable' | 'delete' | null>(null);
+  let batchConfirmOpen = $state(false);
+
+  function toggleSelectReader(id: string) {
+    const next = new Set(selectedReaderIds);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    selectedReaderIds = next;
+  }
+  function toggleSelectAll() {
+    if (selectedReaderIds.size === filteredReaders.length) {
+      selectedReaderIds = new Set();
+    } else {
+      selectedReaderIds = new Set(filteredReaders.map(r => r.id));
+    }
+  }
+  function openBatch(action: 'disable' | 'delete') {
+    batchAction = action;
+    batchConfirmOpen = true;
+  }
+
+  // ── READERS: dialog modifica ────────────────────────────────────────────────
+  let editReader = $state<Reader | null>(null);
+  let readerStats = $state<{ commentCount: number; bookmarkCount: number } | null>(null);
+  let readerStatsLoading = $state(false);
+  let readerDeactivateConfirm = $state(false);
+  let readerDeleteConfirm = $state(false);
+
+  async function openEditReader(r: Reader) {
+    editReader = r;
+    readerStats = null;
+    readerDeactivateConfirm = false;
+    readerDeleteConfirm = false;
+    // Load stats via form action
+    readerStatsLoading = true;
+    const fd = new FormData();
+    fd.set('id', r.id);
+    try {
+      const res = await fetch('?/getReaderStats', { method: 'POST', body: fd });
+      const json = await res.json();
+      if (json?.data?.readerStats) readerStats = json.data.readerStats;
+    } catch { /* ignore */ } finally {
+      readerStatsLoading = false;
+    }
+  }
+  function closeEditReader() {
+    editReader = null;
+    readerStats = null;
+    readerDeactivateConfirm = false;
+    readerDeleteConfirm = false;
+  }
+
   // ── Reazione ai form result ─────────────────────────────────────────────────
   $effect(() => {
     if (form?.created && form.tempPassword) {
@@ -45,9 +121,13 @@
     }
     if (form?.updated) closeEdit();
     if (form?.toggled) closeEdit();
+    if (form?.readerUpdated) closeEditReader();
+    if (form?.readerToggled) closeEditReader();
+    if (form?.readerDeleted) closeEditReader();
+    if (form?.batchDone) { batchConfirmOpen = false; selectedReaderIds = new Set(); }
   });
 
-  // ── Errori inline ───────────────────────────────────────────────────────────
+  // ── Staff: errori inline ────────────────────────────────────────────────────
   const editErrorMsg = $derived.by(() => {
     if (!form?.editError) return null;
     if (form.editError === 'username_taken') return 'Username già in uso da un altro account.';
@@ -59,10 +139,7 @@
     if (form?.editError === 'email_taken') return 'email';
     return null;
   });
-  // Mostra l'errore solo se riguarda l'utente che stiamo editando
-  const showEditError = $derived(
-    form?.editId && form.editId === editUser?.id && editErrorMsg
-  );
+  const showEditError = $derived(form?.editId && form.editId === editUser?.id && editErrorMsg);
 
   const ROLE_LABELS: Record<string, string> = {
     admin: 'Admin',
@@ -70,35 +147,55 @@
     contributor: 'Contributor',
   };
 
-  function initials(name: string | null, username: string) {
-    const n = name ?? username;
-    return n.slice(0, 1).toUpperCase();
+  function initials(name: string | null, fallback: string) {
+    return (name ?? fallback).slice(0, 1).toUpperCase();
+  }
+
+  function formatDate(d: Date | string | null) {
+    if (!d) return '—';
+    return new Date(d).toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  function readerStatus(r: Reader): 'active' | 'unverified' | 'disabled' {
+    if (!r.active) return 'disabled';
+    if (!r.emailVerified) return 'unverified';
+    return 'active';
   }
 </script>
 
 <div class="page-head">
   <h1 class="page-title">Utenti</h1>
-  <div class="page-head-right">
-    {#if inactiveCount > 0}
-      <label class="toggle-inactive-label">
-        <input
-          type="checkbox"
-          class="toggle-inactive-checkbox"
-          bind:checked={hideInactive}
-        />
-        <span class="toggle-inactive-track"></span>
-        <span class="toggle-inactive-text">
-          Nascondi disattivati
-          {#if hideInactive}
-            <span class="inactive-count">({inactiveCount})</span>
-          {/if}
-        </span>
-      </label>
-    {/if}
-    <button class="btn-primary" onclick={() => { showCreate = true; tempPasswordShown = null; }}>
-      + Nuovo utente
-    </button>
-  </div>
+</div>
+
+<!-- Tab bar principale -->
+<div class="main-tabs">
+  <button class="main-tab" class:active={mainTab === 'staff'} onclick={() => mainTab = 'staff'}>
+    Staff <span class="tab-count">{data.users.length}</span>
+  </button>
+  <button class="main-tab" class:active={mainTab === 'readers'} onclick={() => mainTab = 'readers'}>
+    Lettori <span class="tab-count">{data.readers.length}</span>
+  </button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<!-- TAB STAFF                                                                   -->
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+{#if mainTab === 'staff'}
+
+<div class="tab-toolbar">
+  {#if inactiveCount > 0}
+    <label class="toggle-inactive-label">
+      <input type="checkbox" class="toggle-inactive-checkbox" bind:checked={hideInactive} />
+      <span class="toggle-inactive-track"></span>
+      <span class="toggle-inactive-text">
+        Nascondi disattivati
+        {#if hideInactive}<span class="inactive-count">({inactiveCount})</span>{/if}
+      </span>
+    </label>
+  {/if}
+  <button class="btn-primary" onclick={() => { showCreate = true; tempPasswordShown = null; }}>
+    + Nuovo utente
+  </button>
 </div>
 
 {#if form?.createError}
@@ -114,7 +211,6 @@
   </div>
 {/if}
 
-<!-- Tabella utenti -->
 <table class="users-table">
   <thead>
     <tr>
@@ -160,6 +256,289 @@
     {/each}
   </tbody>
 </table>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<!-- TAB LETTORI                                                                  -->
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+{:else}
+
+<div class="tab-toolbar">
+  <input
+    class="reader-search"
+    type="search"
+    placeholder="Cerca per nome o email..."
+    bind:value={readerSearch}
+  />
+  <div class="filter-pills">
+    {#each [['all','Tutti'],['active','Attivi'],['unverified','Non verificati'],['disabled','Disattivati']] as [val, label]}
+      <button
+        class="filter-pill"
+        class:active={readerFilter === val}
+        onclick={() => readerFilter = val as typeof readerFilter}
+      >{label}</button>
+    {/each}
+  </div>
+</div>
+
+{#if form?.batchDone}
+  <div class="alert alert-success">
+    Operazione completata su {form.batchCount} lettori{(form.batchSkipped ?? 0) > 0 ? ` (${form.batchSkipped} saltati — hanno commenti)` : ''}.
+  </div>
+{/if}
+
+{#if selectedReaderIds.size > 0}
+  <div class="batch-bar">
+    <span class="batch-count">{selectedReaderIds.size} selezionat{selectedReaderIds.size === 1 ? 'o' : 'i'}</span>
+    <button class="btn-ghost btn-sm" onclick={() => openBatch('disable')}>Disattiva selezionati</button>
+    <button class="btn-danger-outline" onclick={() => openBatch('delete')}>Elimina selezionati</button>
+    <button class="btn-ghost btn-sm" onclick={() => selectedReaderIds = new Set()}>Deseleziona</button>
+  </div>
+{/if}
+
+<table class="users-table">
+  <thead>
+    <tr>
+      <th class="th-check">
+        <input
+          type="checkbox"
+          class="row-check"
+          checked={filteredReaders.length > 0 && selectedReaderIds.size === filteredReaders.length}
+          onchange={toggleSelectAll}
+        />
+      </th>
+      <th>Lettore</th>
+      <th>Posizione</th>
+      <th>Iscritto</th>
+      <th>Stato</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {#if filteredReaders.length === 0}
+      <tr><td colspan="6" class="td-empty">Nessun lettore trovato.</td></tr>
+    {/if}
+    {#each filteredReaders as reader}
+      {@const status = readerStatus(reader)}
+      <tr class:inactive={!reader.active}>
+        <td class="th-check">
+          <input
+            type="checkbox"
+            class="row-check"
+            checked={selectedReaderIds.has(reader.id)}
+            onchange={() => toggleSelectReader(reader.id)}
+          />
+        </td>
+        <td class="td-user">
+          <div class="user-cell">
+            <div class="cell-avatar-placeholder">{initials(reader.displayName, reader.email)}</div>
+            <div>
+              <div class="cell-name">{reader.displayName}</div>
+              <div class="cell-username">{reader.email}</div>
+            </div>
+          </div>
+        </td>
+        <td class="td-location">
+          {#if reader.city || reader.country}
+            {[reader.city, getCountryName(reader.country)].filter(Boolean).join(', ')}
+          {:else}
+            <span class="td-empty-val">—</span>
+          {/if}
+        </td>
+        <td class="td-date">{formatDate(reader.createdAt)}</td>
+        <td>
+          <span class="status-badge status-{status}">
+            {status === 'active' ? 'Attivo' : status === 'unverified' ? 'Non verificato' : 'Disattivato'}
+          </span>
+        </td>
+        <td class="td-actions">
+          <button class="btn-ghost btn-sm" onclick={() => openEditReader(reader)}>Modifica</button>
+        </td>
+      </tr>
+    {/each}
+  </tbody>
+</table>
+
+{/if}
+
+<!-- ── Dialog modifica lettore ─────────────────────────────────────────────── -->
+{#if editReader}
+  {@const r = editReader}
+  {@const status = readerStatus(r)}
+  <div class="modal-backdrop" role="dialog" aria-modal="true" aria-label="Modifica lettore">
+    <div class="modal modal-edit">
+
+      <div class="edit-head">
+        <div class="edit-head-left">
+          <div class="edit-avatar-placeholder">{initials(r.displayName, r.email)}</div>
+          <div>
+            <div class="edit-name">{r.displayName}</div>
+            <div class="cell-username">{r.email}</div>
+          </div>
+        </div>
+        <button class="btn-icon" onclick={closeEditReader} aria-label="Chiudi">✕</button>
+      </div>
+
+      {#if form?.readerEditError && form.readerEditId === r.id}
+        <div class="edit-error">{form.readerEditError}</div>
+      {/if}
+
+      <form method="POST" action="?/updateReader" use:enhance class="modal-body" id="edit-reader-form-{r.id}">
+        <input type="hidden" name="id" value={r.id} />
+
+        <div class="field-row">
+          <label class="field">
+            <span>Nome *</span>
+            <input type="text" name="displayName" required value={r.displayName} />
+          </label>
+          <label class="field">
+            <span>Email *</span>
+            <input type="email" name="email" required value={r.email} />
+          </label>
+        </div>
+
+        <div class="field-row">
+          <label class="field">
+            <span>Paese</span>
+            <select name="country">
+              <option value="">— Nessuno —</option>
+              {#each COUNTRIES as c}
+                <option value={c.code} selected={r.country === c.code}>{c.name}</option>
+              {/each}
+            </select>
+          </label>
+          <label class="field">
+            <span>Città</span>
+            <input type="text" name="city" value={r.city ?? ''} placeholder="Milano" />
+          </label>
+        </div>
+
+        <label class="field">
+          <span>Sito web</span>
+          <input type="url" name="website" value={r.website ?? ''} placeholder="https://..." />
+        </label>
+
+        <div class="field-row">
+          <label class="field">
+            <span>Twitter / X</span>
+            <input type="text" name="twitter" value={r.twitter ? '@' + r.twitter : ''} placeholder="@handle" />
+          </label>
+          <label class="field">
+            <span>Instagram</span>
+            <input type="text" name="instagram" value={r.instagram ? '@' + r.instagram : ''} placeholder="@handle" />
+          </label>
+        </div>
+
+        <label class="field">
+          <span>LinkedIn</span>
+          <input type="text" name="linkedin" value={r.linkedin ?? ''} placeholder="URL o handle" />
+        </label>
+
+        <!-- Statistiche -->
+        <div class="reader-stats">
+          <div class="reader-stat">
+            <span class="stat-label">Email verificata</span>
+            <span class="stat-value" class:verified={r.emailVerified}>
+              {r.emailVerified ? '✓ Sì' : '✗ No'}
+            </span>
+          </div>
+          <div class="reader-stat">
+            <span class="stat-label">Commenti approvati</span>
+            <span class="stat-value">
+              {readerStatsLoading ? '...' : (readerStats?.commentCount ?? '—')}
+            </span>
+          </div>
+          <div class="reader-stat">
+            <span class="stat-label">Articoli salvati</span>
+            <span class="stat-value">
+              {readerStatsLoading ? '...' : (readerStats?.bookmarkCount ?? '—')}
+            </span>
+          </div>
+          <div class="reader-stat">
+            <span class="stat-label">Iscritto il</span>
+            <span class="stat-value">{formatDate(r.createdAt)}</span>
+          </div>
+        </div>
+      </form>
+
+      <div class="edit-footer">
+        <div class="edit-footer-danger">
+          {#if status !== 'disabled'}
+            {#if readerDeactivateConfirm}
+              <span class="deactivate-confirm-text">Sei sicuro?</span>
+              <form method="POST" action="?/toggleReaderActive" use:enhance>
+                <input type="hidden" name="id" value={r.id} />
+                <input type="hidden" name="active" value="false" />
+                <button type="submit" class="btn-danger-outline">Sì, disattiva</button>
+              </form>
+              <button class="btn-ghost btn-sm" onclick={() => readerDeactivateConfirm = false}>Annulla</button>
+            {:else}
+              <button class="btn-deactivate" onclick={() => readerDeactivateConfirm = true}>Disattiva account</button>
+            {/if}
+          {:else}
+            <form method="POST" action="?/toggleReaderActive" use:enhance>
+              <input type="hidden" name="id" value={r.id} />
+              <input type="hidden" name="active" value="true" />
+              <button type="submit" class="btn-reactivate">Riattiva account</button>
+            </form>
+          {/if}
+
+          {#if readerStats?.commentCount === 0}
+            {#if readerDeleteConfirm}
+              <span class="deactivate-confirm-text">Eliminare definitivamente?</span>
+              <form method="POST" action="?/deleteReader" use:enhance>
+                <input type="hidden" name="id" value={r.id} />
+                <button type="submit" class="btn-danger-outline">Sì, elimina</button>
+              </form>
+              <button class="btn-ghost btn-sm" onclick={() => readerDeleteConfirm = false}>Annulla</button>
+            {:else}
+              <button class="btn-delete" onclick={() => readerDeleteConfirm = true}>Elimina account</button>
+            {/if}
+          {/if}
+        </div>
+        <div class="edit-footer-main">
+          <button type="button" class="btn-ghost" onclick={closeEditReader}>Annulla</button>
+          <button type="submit" form="edit-reader-form-{r.id}" class="btn-primary">Salva modifiche</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+{/if}
+
+<!-- ── Dialog batch ────────────────────────────────────────────────────────── -->
+{#if batchConfirmOpen && batchAction}
+  <div class="modal-backdrop" role="dialog" aria-modal="true">
+    <div class="modal">
+      <div class="modal-head">
+        <h2>{batchAction === 'disable' ? 'Disattiva lettori' : 'Elimina lettori'}</h2>
+        <button class="btn-icon" onclick={() => batchConfirmOpen = false} aria-label="Chiudi">✕</button>
+      </div>
+      <form
+        method="POST"
+        action={batchAction === 'disable' ? '?/batchDisableReaders' : '?/batchDeleteReaders'}
+        use:enhance
+        class="modal-body"
+      >
+        {#each selectedReaderIds as id}
+          <input type="hidden" name="ids" value={id} />
+        {/each}
+        <p class="batch-confirm-text">
+          {#if batchAction === 'disable'}
+            Stai per disattivare <strong>{selectedReaderIds.size}</strong> lettori. Potranno essere riattivati in seguito.
+          {:else}
+            Stai per eliminare <strong>{selectedReaderIds.size}</strong> lettori. I lettori con commenti approvati verranno saltati. L'operazione è irreversibile.
+          {/if}
+        </p>
+        <div class="modal-footer">
+          <button type="button" class="btn-ghost" onclick={() => batchConfirmOpen = false}>Annulla</button>
+          <button type="submit" class={batchAction === 'delete' ? 'btn-danger-solid' : 'btn-primary'}>
+            Conferma
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+{/if}
 
 <!-- ── Modal creazione utente ──────────────────────────────────────────────── -->
 {#if showCreate}
@@ -866,4 +1245,175 @@
   .edit-footer-danger { display: flex; align-items: center; gap: var(--space-2); }
   .edit-footer-main   { display: flex; align-items: center; gap: var(--space-3); }
   .deactivate-confirm-text { font-size: var(--text-xs); color: var(--color-lilla); }
+
+  /* ── Main tab bar ─────────────────────────────────────────────────────────── */
+  .main-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 0.5px solid var(--color-bordo);
+    margin-bottom: var(--space-6);
+  }
+  .main-tab {
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--color-lilla);
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: var(--space-3) var(--space-5);
+    cursor: pointer;
+    transition: color var(--transition-fast);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: -0.5px;
+  }
+  .main-tab:hover { color: var(--color-notte); }
+  .main-tab.active { color: var(--color-viola); border-bottom-color: var(--color-lavanda); }
+  .tab-count {
+    font-size: var(--text-xs);
+    background: var(--color-iris);
+    color: var(--color-viola);
+    border-radius: 99px;
+    padding: 1px 7px;
+  }
+
+  /* ── Tab toolbar (shared staff + readers) ─────────────────────────────────── */
+  .tab-toolbar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-5);
+    flex-wrap: wrap;
+  }
+  .tab-toolbar .btn-primary { margin-left: auto; }
+
+  /* ── Readers: search + filter pills ──────────────────────────────────────── */
+  .reader-search {
+    padding: var(--space-2) var(--space-3);
+    border: 0.5px solid var(--color-bordo);
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    font-family: inherit;
+    color: var(--color-notte);
+    background: white;
+    outline: none;
+    transition: border-color var(--transition-fast);
+    min-width: 220px;
+  }
+  .reader-search:focus { border-color: var(--color-lavanda); }
+
+  .filter-pills { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+  .filter-pill {
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    color: var(--color-lilla);
+    background: white;
+    border: 0.5px solid var(--color-bordo);
+    border-radius: 99px;
+    padding: 4px 12px;
+    cursor: pointer;
+    transition: color var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
+  }
+  .filter-pill:hover { color: var(--color-notte); border-color: var(--color-lavanda); }
+  .filter-pill.active { background: var(--color-iris); color: var(--color-viola); border-color: var(--color-lavanda); }
+
+  /* ── Batch action bar ─────────────────────────────────────────────────────── */
+  .batch-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    background: var(--color-iris);
+    border: 0.5px solid var(--color-lavanda);
+    border-radius: var(--radius-md);
+    padding: var(--space-2) var(--space-4);
+    margin-bottom: var(--space-4);
+    flex-wrap: wrap;
+  }
+  .batch-count {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--color-viola);
+    margin-right: auto;
+  }
+
+  /* ── Table: checkbox column ───────────────────────────────────────────────── */
+  .th-check { width: 40px; padding-left: var(--space-4); }
+  .row-check { cursor: pointer; accent-color: var(--color-lavanda); }
+
+  /* ── Table: readers-specific cells ───────────────────────────────────────── */
+  .td-location { color: var(--color-prugna); font-size: var(--text-sm); }
+  .td-empty { text-align: center; color: var(--color-lilla); padding: var(--space-8) 0; font-size: var(--text-sm); }
+  .td-empty-val { color: var(--color-bordo); }
+
+  /* ── Status badges: reader variants ──────────────────────────────────────── */
+  .status-badge.status-active    { background: #d1fae5; color: #065f46; }
+  .status-badge.status-unverified { background: #fef9c3; color: #854d0e; }
+  .status-badge.status-disabled  { background: #f1efe8; color: #666; }
+
+  /* ── Reader stats panel ───────────────────────────────────────────────────── */
+  .reader-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-2);
+    background: var(--color-nebbia);
+    border: 0.5px solid var(--color-bordo);
+    border-radius: var(--radius-md);
+    padding: var(--space-3) var(--space-4);
+  }
+  .reader-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .stat-label {
+    font-size: var(--text-xs);
+    color: var(--color-lilla);
+  }
+  .stat-value {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--color-notte);
+  }
+  .stat-value.verified { color: #065f46; }
+
+  /* ── Batch confirm dialog text ────────────────────────────────────────────── */
+  .batch-confirm-text {
+    font-size: var(--text-sm);
+    color: var(--color-prugna);
+    line-height: var(--leading-relaxed);
+    margin: 0;
+  }
+
+  /* ── Delete button ────────────────────────────────────────────────────────── */
+  .btn-delete {
+    background: transparent;
+    border: none;
+    color: #b91c1c;
+    font-size: var(--text-xs);
+    cursor: pointer;
+    font-family: inherit;
+    padding: 0;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    opacity: 0.8;
+    transition: opacity var(--transition-fast);
+  }
+  .btn-delete:hover { opacity: 1; }
+
+  .btn-danger-solid {
+    padding: var(--space-2) var(--space-4);
+    background: #b91c1c;
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    cursor: pointer;
+    font-family: inherit;
+    transition: background var(--transition-fast);
+  }
+  .btn-danger-solid:hover { background: #991b1b; }
 </style>

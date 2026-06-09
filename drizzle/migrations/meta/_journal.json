@@ -92,6 +92,13 @@
       "when": 1780664151969,
       "tag": "0012_password_reset",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1780664251969,
+      "tag": "0013_reader_profile",
+      "breakpoints": true
     }
   ]
 }

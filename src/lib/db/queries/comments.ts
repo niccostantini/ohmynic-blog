@@ -1,11 +1,24 @@
 import { eq, and, desc } from 'drizzle-orm';
 import { db } from '../index';
-import { comments, articles } from '../schema';
+import { comments, articles, readers } from '../schema';
 
 export async function getApprovedComments(articleId: string) {
   return db
-    .select()
+    .select({
+      id: comments.id,
+      authorName: comments.authorName,
+      content: comments.content,
+      replyText: comments.replyText,
+      createdAt: comments.createdAt,
+      readerCountry: readers.country,
+      readerCity: readers.city,
+      readerWebsite: readers.website,
+      readerTwitter: readers.twitter,
+      readerLinkedin: readers.linkedin,
+      readerInstagram: readers.instagram,
+    })
     .from(comments)
+    .leftJoin(readers, eq(readers.id, comments.readerId))
     .where(and(eq(comments.articleId, articleId), eq(comments.approved, true)))
     .orderBy(desc(comments.createdAt));
 }

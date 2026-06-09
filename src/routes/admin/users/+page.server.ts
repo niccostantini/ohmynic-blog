@@ -8,13 +8,21 @@ import {
   isUsernameTaken,
   isEmailTaken,
 } from '$lib/db/queries/users';
+import {
+  getAllReaders,
+  getReaderStats,
+  updateReaderAdmin,
+  setReaderActive,
+  deleteReaderById,
+  readerHasApprovedComments,
+} from '$lib/db/queries/readers';
 import { sendWelcomeEmail } from '$lib/email';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
   if (locals.user?.role !== 'admin') error(403, 'Accesso negato');
-  const users = await getAllUsers();
-  return { users };
+  const [users, readers] = await Promise.all([getAllUsers(), getAllReaders()]);
+  return { users, readers };
 };
 
 function generateTempPassword(): string {
@@ -153,5 +161,100 @@ export const actions: Actions = {
       return fail(400, { editId: id, editError: 'Non puoi disattivare il tuo stesso account.' });
     await setUserActive(id, active);
     return { toggled: true, toggledId: id };
+  },
+
+  // ── Reader actions ────────────────────────────────────────────────────────
+
+  getReaderStats: async ({ request, locals }) => {
+    if (locals.user?.role !== 'admin') return fail(403);
+    const data = await request.formData();
+    const id = data.get('id');
+    if (typeof id !== 'string') return fail(400);
+    const stats = await getReaderStats(id);
+    return { readerStats: stats, readerStatsId: id };
+  },
+
+  updateReader: async ({ request, locals }) => {
+    if (locals.user?.role !== 'admin') return fail(403);
+    const data = await request.formData();
+    const id = data.get('id');
+    if (typeof id !== 'string') return fail(400);
+
+    const raw = (key: string) => {
+      const v = data.get(key);
+      return typeof v === 'string' && v.trim() ? v.trim() : null;
+    };
+
+    const displayName = raw('displayName');
+    const email = raw('email');
+    if (!displayName) return fail(400, { readerEditError: 'Il nome è obbligatorio.', readerEditId: id });
+    if (!email) return fail(400, { readerEditError: "L'email è obbligatoria.", readerEditId: id });
+
+    let website = raw('website');
+    if (website && !website.startsWith('http')) website = `https://${website}`;
+    let twitter = raw('twitter');
+    if (twitter?.startsWith('@')) twitter = twitter.slice(1);
+    let instagram = raw('instagram');
+    if (instagram?.startsWith('@')) instagram = instagram.slice(1);
+
+    await updateReaderAdmin(id, {
+      displayName,
+      email: email.toLowerCase(),
+      country: raw('country'),
+      city: raw('city'),
+      website,
+      twitter,
+      linkedin: raw('linkedin'),
+      instagram,
+    });
+
+    return { readerUpdated: true, readerUpdatedId: id };
+  },
+
+  toggleReaderActive: async ({ request, locals }) => {
+    if (locals.user?.role !== 'admin') return fail(403);
+    const data = await request.formData();
+    const id = data.get('id');
+    const active = data.get('active') === 'true';
+    if (typeof id !== 'string') return fail(400);
+    await setReaderActive(id, active);
+    return { readerToggled: true, readerToggledId: id };
+  },
+
+  deleteReader: async ({ request, locals }) => {
+    if (locals.user?.role !== 'admin') return fail(403);
+    const data = await request.formData();
+    const id = data.get('id');
+    if (typeof id !== 'string') return fail(400);
+    const hasComments = await readerHasApprovedComments(id);
+    if (hasComments) return fail(400, { readerDeleteError: 'Impossibile eliminare: il lettore ha commenti approvati pubblicati.' });
+    await deleteReaderById(id);
+    return { readerDeleted: true, readerDeletedId: id };
+  },
+
+  batchDisableReaders: async ({ request, locals }) => {
+    if (locals.user?.role !== 'admin') return fail(403);
+    const data = await request.formData();
+    const ids = data.getAll('ids').filter(id => typeof id === 'string') as string[];
+    if (ids.length === 0) return fail(400);
+    await Promise.all(ids.map(id => setReaderActive(id, false)));
+    return { batchDone: true, batchCount: ids.length };
+  },
+
+  batchDeleteReaders: async ({ request, locals }) => {
+    if (locals.user?.role !== 'admin') return fail(403);
+    const data = await request.formData();
+    const ids = data.getAll('ids').filter(id => typeof id === 'string') as string[];
+    if (ids.length === 0) return fail(400);
+    const results = await Promise.allSettled(
+      ids.map(async (id) => {
+        const hasComments = await readerHasApprovedComments(id);
+        if (!hasComments) await deleteReaderById(id);
+        return { id, deleted: !hasComments };
+      })
+    );
+    const deleted = results.filter(r => r.status === 'fulfilled' && r.value.deleted).length;
+    const skipped = ids.length - deleted;
+    return { batchDone: true, batchCount: deleted, batchSkipped: skipped };
   },
 };
