@@ -214,6 +214,10 @@ body {
 [data-theme='dark'] .settings-section,
 [data-theme='dark'] .card { background: var(--color-iris) !important; }
 
+/* Featured cards */
+[data-theme='dark'] .featured-card { background: var(--color-iris) !important; }
+[data-theme='dark'] .featured-badge { background: var(--color-nebbia) !important; }
+
 /* Admin articles / comments tables and cards */
 [data-theme='dark'] .article-table,
 [data-theme='dark'] .article-table th { background: var(--color-iris) !important; }

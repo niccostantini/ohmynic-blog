@@ -171,6 +171,14 @@ export const feedback = pgTable('feedback', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+// ── Featured items (in evidenza in homepage) ──────────────────────────────────
+export const featuredItems = pgTable('featured_items', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  articleId: uuid('article_id').notNull().unique().references(() => articles.id, { onDelete: 'cascade' }),
+  position: integer('position').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
 export const articleReadCompletions = pgTable('article_read_completions', {
   id: uuid('id').primaryKey().defaultRandom(),
   articleId: uuid('article_id').notNull().references(() => articles.id, { onDelete: 'cascade' }),
