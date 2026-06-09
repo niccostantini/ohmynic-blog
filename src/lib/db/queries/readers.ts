@@ -2,6 +2,43 @@ import { and, eq, desc, sql } from 'drizzle-orm';
 import { db } from '../index';
 import { readers, readerSessions, readerBookmarks, comments, articles } from '../schema';
 
+export async function getPublicReaderProfile(id: string) {
+  const reader = await db
+    .select({
+      id: readers.id,
+      displayName: readers.displayName,
+      country: readers.country,
+      city: readers.city,
+      website: readers.website,
+      twitter: readers.twitter,
+      linkedin: readers.linkedin,
+      instagram: readers.instagram,
+      active: readers.active,
+      createdAt: readers.createdAt,
+    })
+    .from(readers)
+    .where(eq(readers.id, id))
+    .limit(1)
+    .then(r => r[0] ?? null);
+
+  if (!reader) return null;
+
+  const readerComments = await db
+    .select({
+      id: comments.id,
+      content: comments.content,
+      createdAt: comments.createdAt,
+      articleTitle: articles.title,
+      articleSlug: articles.slug,
+    })
+    .from(comments)
+    .innerJoin(articles, eq(comments.articleId, articles.id))
+    .where(and(eq(comments.readerId, id), eq(comments.approved, true)))
+    .orderBy(desc(comments.createdAt));
+
+  return { ...reader, comments: readerComments };
+}
+
 // ── Reader CRUD ────────────────────────────────────────────────────────────────
 
 export async function createReader(data: {

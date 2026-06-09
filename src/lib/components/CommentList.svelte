@@ -1,10 +1,13 @@
 <script lang="ts">
+  import { base } from '$app/paths';
+
   type Comment = {
     id: string;
     authorName: string | null;
     content: string;
     replyText?: string | null;
     createdAt: Date | string;
+    readerId?: string | null;
     readerCountry?: string | null;
     readerCity?: string | null;
     readerWebsite?: string | null;
@@ -40,7 +43,11 @@
         <div class="bubble user-bubble">
           <div class="bubble-meta">
             {#if comment.authorName}
-              <span class="author">{comment.authorName}</span>
+              {#if comment.readerId}
+                <a href="{base}/lettore/{comment.readerId}" class="author author-link">{comment.authorName}</a>
+              {:else}
+                <span class="author">{comment.authorName}</span>
+              {/if}
             {/if}
             <span class="date">{formatDate(comment.createdAt)}</span>
           </div>
@@ -149,6 +156,11 @@
     font-weight: var(--weight-semibold);
     color: var(--color-notte);
   }
+  .author-link {
+    text-decoration: none;
+    transition: color var(--transition-fast);
+  }
+  .author-link:hover { color: var(--color-viola); }
 
   .reply-author {
     display: inline-flex;

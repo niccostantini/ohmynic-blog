@@ -10,6 +10,7 @@ export async function getApprovedComments(articleId: string) {
       content: comments.content,
       replyText: comments.replyText,
       createdAt: comments.createdAt,
+      readerId: comments.readerId,
       readerCountry: readers.country,
       readerCity: readers.city,
       readerWebsite: readers.website,
