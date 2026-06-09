@@ -3,6 +3,7 @@
   import type { LayoutData } from './$types';
   import type { Snippet } from 'svelte';
   import ThemeToggle from '$lib/components/ThemeToggle.svelte';
+  import Toast from '$lib/components/Toast.svelte';
 
   let { data, children }: { data: LayoutData; children: Snippet } = $props();
 </script>
@@ -42,6 +43,8 @@
     {@render children()}
   </main>
 </div>
+
+<Toast />
 
 <style>
   .admin-shell {

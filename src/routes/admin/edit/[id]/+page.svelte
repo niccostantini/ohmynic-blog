@@ -4,6 +4,7 @@
   import { invalidate } from '$app/navigation';
   import Editor from '$lib/components/Editor.svelte';
   import { TRANSITION_CHECKLISTS } from '$lib/workflow/checklists';
+  import { addToast } from '$lib/stores/toast';
   import type { PageData, ActionData } from './$types';
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -305,6 +306,14 @@
     rejected:       '#854f0b',
     published:      '#3b6d11',
   };
+
+  // ── Toast notifications ────────────────────────────────────────────────────
+  $effect(() => {
+    if (form?.saved)       addToast('Modifiche salvate', 'success');
+    if (form?.error)       addToast(form.error as string, 'error');
+    if (form?.statusError) addToast(form.statusError as string, 'error');
+    if (form?.published)   addToast('Articolo pubblicato', 'success');
+  });
 </script>
 
 <svelte:head><title>Modifica — {data.article.title} — OhMyNic!</title></svelte:head>
@@ -337,10 +346,6 @@
       {/if}
     </div>
   </div>
-
-  {#if form?.error}<p class="error">{form.error}</p>{/if}
-  {#if form?.saved}<p class="success">Modifiche salvate.</p>{/if}
-  {#if form?.statusError}<p class="error">{form.statusError}</p>{/if}
 
   <!-- ── Status label for contributor in review/approved ──────────────── -->
   {#if role === 'contributor' && status === 'review'}
