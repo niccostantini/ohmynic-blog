@@ -44,6 +44,13 @@ export const handle: Handle = async ({ event, resolve }) => {
         email: reader.email,
         displayName: reader.displayName,
         emailVerified: reader.emailVerified,
+        active: reader.active,
+        country: reader.country,
+        city: reader.city,
+        website: reader.website,
+        twitter: reader.twitter,
+        linkedin: reader.linkedin,
+        instagram: reader.instagram,
       };
       event.locals.readerSessionId = readerSessionId;
     } else {
