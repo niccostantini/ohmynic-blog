@@ -1,6 +1,8 @@
 <script lang="ts">
   import { base } from '$app/paths';
   import { afterNavigate } from '$app/navigation';
+  import { fly, fade } from 'svelte/transition';
+  import { cubicOut } from 'svelte/easing';
   import Logo from '$lib/components/Logo.svelte';
   import ThemeToggle from '$lib/components/ThemeToggle.svelte';
   import ThemeSwitcher from '$lib/components/ThemeSwitcher.svelte';
@@ -19,12 +21,8 @@
   afterNavigate(() => { mobileMenuOpen = false; });
 
   afterNavigate(({ to }) => {
-    // Articles track themselves (with articleId) from +page.svelte onMount
-    // Only track non-article pages here
     if (!to?.url) return;
     const path = to.url.pathname;
-    // Skip paths that look like article slugs — they have their own tracker
-    // Article paths are /blog/<slug> (no sub-path, not a known section)
     const SECTIONS = ['/tag/', '/author/', '/search', '/account', '/login', '/register', '/privacy-policy'];
     const isSection = SECTIONS.some(s => path.includes(s)) || path === '/blog/' || path === '/blog';
     if (isSection) trackPageview(path);
@@ -33,6 +31,18 @@
   async function logout() {
     await fetch(`${base}/api/reader-logout`, { method: 'POST' });
     window.location.href = `${base}/`;
+  }
+
+  // ── Swipe-down to close ──────────────────────────────────────────────────
+  let swipeStartY = 0;
+
+  function onDrawerTouchStart(e: TouchEvent) {
+    swipeStartY = e.touches[0].clientY;
+  }
+
+  function onDrawerTouchEnd(e: TouchEvent) {
+    const delta = e.changedTouches[0].clientY - swipeStartY;
+    if (delta > 60) mobileMenuOpen = false;
   }
 </script>
 
@@ -74,39 +84,9 @@
         aria-expanded={mobileMenuOpen}
         onclick={() => mobileMenuOpen = !mobileMenuOpen}
       >
-        <span class="hamburger-bar"></span>
-        <span class="hamburger-bar"></span>
-        <span class="hamburger-bar" class:hidden-bar={mobileMenuOpen}></span>
+        <i class="ti ti-menu-2"></i>
       </button>
     </div>
-
-    {#if mobileMenuOpen}
-      <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-      <div class="mobile-menu" onclick={(e) => e.target === e.currentTarget && (mobileMenuOpen = false)}>
-        <nav class="mobile-nav" aria-label="Menu mobile">
-          {#each data.navItems as item (item.id)}
-            <a
-              href={item.url ?? '#'}
-              class:nav-active={page.url.pathname === item.url || (item.url !== '/blog' && page.url.pathname.startsWith(item.url ?? ''))}
-              target={item.openInNewTab ? '_blank' : undefined}
-              rel={item.openInNewTab ? 'noopener noreferrer' : undefined}
-            >{item.label}</a>
-          {/each}
-          <div class="mobile-reader-nav">
-            {#if data.reader}
-              <a href="{base}/account" class="mobile-account">
-                <span class="reader-avatar">{data.reader.displayName.charAt(0).toUpperCase()}</span>
-                <span>{data.reader.displayName}</span>
-              </a>
-              <button class="btn-logout" onclick={logout}>Esci</button>
-            {:else}
-              <a href="{base}/login" class="mobile-auth-link">Accedi</a>
-              <a href="{base}/register" class="mobile-auth-btn">Registrati</a>
-            {/if}
-          </div>
-        </nav>
-      </div>
-    {/if}
   </header>
 
   <main class="site-main">
@@ -126,6 +106,64 @@
     </div>
   </footer>
 </div>
+
+{#if mobileMenuOpen}
+  <!-- Backdrop -->
+  <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+  <div
+    class="drawer-backdrop"
+    transition:fade={{ duration: 200 }}
+    onclick={() => mobileMenuOpen = false}
+  ></div>
+
+  <!-- Drawer -->
+  <div
+    class="drawer"
+    transition:fly={{ y: 400, duration: 300, easing: cubicOut }}
+    ontouchstart={onDrawerTouchStart}
+    ontouchend={onDrawerTouchEnd}
+    role="dialog"
+    aria-modal="true"
+    aria-label="Menu di navigazione"
+  >
+    <div class="drawer-handle" aria-hidden="true"></div>
+
+    <nav class="drawer-nav" aria-label="Menu mobile">
+      {#each data.navItems as item (item.id)}
+        <a
+          href={item.url ?? '#'}
+          class:nav-active={page.url.pathname === item.url || (item.url !== '/blog' && page.url.pathname.startsWith(item.url ?? ''))}
+          target={item.openInNewTab ? '_blank' : undefined}
+          rel={item.openInNewTab ? 'noopener noreferrer' : undefined}
+        >{item.label}</a>
+      {/each}
+
+      {#if data.reader}
+        <a href="{base}/account" class="drawer-account">
+          <span class="reader-avatar sm">{data.reader.displayName.charAt(0).toUpperCase()}</span>
+          <span>{data.reader.displayName}</span>
+        </a>
+        <button class="drawer-logout" onclick={logout}>Esci dall'account</button>
+      {:else}
+        <div class="drawer-auth">
+          <a href="{base}/login" class="drawer-auth-link">Accedi</a>
+          <a href="{base}/register" class="drawer-auth-btn">Registrati</a>
+        </div>
+      {/if}
+    </nav>
+
+    <div class="drawer-theme">
+      <div class="drawer-theme-row">
+        <span class="drawer-theme-label">Modalità</span>
+        <ThemeToggle />
+      </div>
+      <div class="drawer-theme-row drawer-theme-color">
+        <span class="drawer-theme-label">Tema colore</span>
+        <ThemeSwitcher />
+      </div>
+    </div>
+  </div>
+{/if}
 
 <FeedbackModal bind:open={feedbackOpen} />
 <Toast />
@@ -194,6 +232,7 @@
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
   }
+  .reader-avatar.sm { width: 26px; height: 26px; font-size: 12px; }
   .reader-name {
     font-family: var(--font-sans); font-size: var(--text-sm); font-weight: var(--weight-medium);
     color: var(--color-notte);
@@ -245,7 +284,6 @@
     font-size: var(--text-sm);
     color: var(--color-lilla);
   }
-
   .footer-right {
     margin-left: auto;
     display: flex;
@@ -269,84 +307,106 @@
   /* ── Hamburger ─────────────────────────────────────────────────────────── */
   .hamburger {
     display: none;
-    flex-direction: column;
+    align-items: center;
     justify-content: center;
-    gap: 5px;
     width: 44px;
     height: 44px;
     background: none;
     border: none;
     cursor: pointer;
-    padding: 10px;
+    color: var(--color-notte);
+    font-size: 22px;
     margin-left: auto;
     flex-shrink: 0;
+    border-radius: var(--radius-md);
+    transition: background var(--transition-fast);
   }
-  .hamburger-bar {
-    display: block;
-    width: 20px;
-    height: 2px;
-    background: var(--color-notte);
-    border-radius: 2px;
-    transition: opacity var(--transition-fast);
-  }
-  .hamburger-bar.hidden-bar { opacity: 0; }
+  .hamburger:hover { background: var(--color-iris); }
 
-  /* ── Mobile menu ────────────────────────────────────────────────────────── */
-  .mobile-menu {
-    position: absolute;
-    top: 60px;
+  /* ── Drawer backdrop ───────────────────────────────────────────────────── */
+  .drawer-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: rgba(0, 0, 0, 0.4);
+  }
+
+  /* ── Drawer ────────────────────────────────────────────────────────────── */
+  .drawer {
+    position: fixed;
+    bottom: 0;
     left: 0;
     right: 0;
-    z-index: 20;
-    background: rgba(245, 243, 251, 0.98);
-    backdrop-filter: blur(8px);
-    border-bottom: 0.5px solid var(--color-bordo);
+    z-index: 50;
+    background: var(--color-nebbia);
+    border-top: 0.5px solid var(--color-bordo);
+    border-radius: 16px 16px 0 0;
+    padding: var(--space-2) var(--space-5) calc(var(--space-6) + env(safe-area-inset-bottom));
+    max-height: 85vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
-  :global([data-theme='dark']) .mobile-menu {
-    background: rgba(15, 13, 26, 0.98);
+
+  .drawer-handle {
+    width: 36px;
+    height: 4px;
+    background: var(--color-bordo);
+    border-radius: 99px;
+    margin: var(--space-2) auto var(--space-4);
   }
-  .mobile-nav {
-    padding: var(--space-4) var(--space-4) var(--space-6);
+
+  /* ── Drawer nav links ──────────────────────────────────────────────────── */
+  .drawer-nav {
     display: flex;
     flex-direction: column;
+    margin-bottom: var(--space-4);
   }
-  .mobile-nav a {
+  .drawer-nav a {
     font-family: var(--font-sans);
     font-size: var(--text-base);
     font-weight: var(--weight-medium);
     color: var(--color-lilla);
     text-decoration: none;
     border: none;
-    padding: var(--space-3) 0;
     border-bottom: 0.5px solid var(--color-bordo);
+    padding: 14px 0;
     min-height: 44px;
     display: flex;
     align-items: center;
     transition: color var(--transition-fast);
   }
-  .mobile-nav a:hover, .mobile-nav a.nav-active { color: var(--color-notte); }
-  .mobile-nav a.nav-active { font-weight: var(--weight-semibold); color: var(--color-viola); }
+  .drawer-nav a:hover { color: var(--color-notte); }
+  .drawer-nav a.nav-active { color: var(--color-viola); font-weight: var(--weight-semibold); }
 
-  .mobile-reader-nav {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    padding-top: var(--space-4);
-    flex-wrap: wrap;
-  }
-  .mobile-account {
+  .drawer-account {
     display: flex;
     align-items: center;
     gap: var(--space-2);
-    text-decoration: none;
-    border: none;
-    color: var(--color-notte);
+  }
+  .drawer-logout {
     font-family: var(--font-sans);
     font-size: var(--text-sm);
-    font-weight: var(--weight-medium);
+    color: var(--color-lilla);
+    background: none;
+    border: none;
+    border-bottom: 0.5px solid var(--color-bordo);
+    padding: 14px 0;
     min-height: 44px;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+    transition: color var(--transition-fast);
   }
-  .mobile-auth-link {
+  .drawer-logout:hover { color: var(--color-notte); }
+
+  .drawer-auth {
+    display: flex;
+    gap: var(--space-3);
+    padding: var(--space-3) 0;
+    border-bottom: 0.5px solid var(--color-bordo);
+    align-items: center;
+  }
+  .drawer-auth-link {
     font-family: var(--font-sans);
     font-size: var(--text-sm);
     font-weight: var(--weight-medium);
@@ -359,8 +419,8 @@
     padding: 0 var(--space-2);
     transition: color var(--transition-fast);
   }
-  .mobile-auth-link:hover { color: var(--color-notte); }
-  .mobile-auth-btn {
+  .drawer-auth-link:hover { color: var(--color-notte); }
+  .drawer-auth-btn {
     font-family: var(--font-sans);
     font-size: var(--text-sm);
     font-weight: var(--weight-medium);
@@ -375,9 +435,31 @@
     align-items: center;
     transition: background var(--transition-fast);
   }
-  .mobile-auth-btn:hover { background: var(--color-lavanda); color: white; border-color: transparent; }
+  .drawer-auth-btn:hover { background: var(--color-lavanda); color: white; border-color: transparent; }
 
-  /* ── Responsive breakpoints ─────────────────────────────────────────────── */
+  /* ── Drawer theme section ──────────────────────────────────────────────── */
+  .drawer-theme {
+    padding-top: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+  .drawer-theme-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+  }
+  .drawer-theme-color { align-items: flex-start; }
+  .drawer-theme-label {
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--color-notte);
+    flex-shrink: 0;
+  }
+
+  /* ── Responsive ─────────────────────────────────────────────────────────── */
   @media (max-width: 1024px) {
     .site-nav { gap: var(--space-4); }
     .reader-nav { gap: var(--space-2); }
