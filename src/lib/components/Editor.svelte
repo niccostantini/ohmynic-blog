@@ -1,5 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
+  import { base } from '$app/paths';
+  import { addToast } from '$lib/stores/toast';
 
   let {
     content = $bindable(''),
@@ -44,6 +46,35 @@
     mountEditor(sourceValue);
   }
 
+  // ── R2 image upload ─────────────────────────────────────────────────────────
+
+  const MAX_UPLOAD_SIZE = 15 * 1024 * 1024; // 15 MB
+
+  async function uploadImageFile(file: File): Promise<string> {
+    if (file.size > MAX_UPLOAD_SIZE) {
+      addToast('Il file supera il limite di 15 MB.', 'error');
+      throw new Error('File troppo grande');
+    }
+    if (!file.type.startsWith('image/')) {
+      addToast('Sono accettate solo immagini.', 'error');
+      throw new Error('Tipo file non valido');
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const res = await fetch(`${base}/api/upload`, { method: 'POST', body: formData });
+
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      addToast(body.error ?? 'Upload fallito. Riprova.', 'error');
+      throw new Error('Upload fallito');
+    }
+
+    const { url } = await res.json();
+    return url as string;
+  }
+
   async function mountEditor(initialHtml: string) {
     if (rootRef) { rootRef.unmount(); rootRef = null; }
     insertFootnoteFn = null;
@@ -77,7 +108,7 @@
     const schema = BlockNoteSchema.create({
       blockSpecs: {
         ...defaultBlockSpecs,
-        image: imageBlockSpec(),
+        image: imageBlockSpec(uploadImageFile),
         callout: calloutBlockSpec(),
         footnoteList: footnoteListBlockSpec(),
       },
