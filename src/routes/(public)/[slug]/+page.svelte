@@ -294,7 +294,8 @@
     font-size: var(--text-xl);
     font-weight: var(--weight-semibold);
     color: var(--color-notte);
-    margin: var(--space-8) 0 var(--space-4);
+    margin: var(--space-8) 0 var(--space-3);
+    line-height: 1.2em;
   }
   :global(.prose blockquote) {
     border-left: 3px solid var(--color-lavanda);
