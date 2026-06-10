@@ -1,4 +1,5 @@
 import { pgTable, text, timestamp, boolean, uuid, primaryKey, jsonb, integer, index, type AnyPgColumn } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 
 export const users = pgTable('users', {
   id: text('id').primaryKey(),
@@ -41,6 +42,7 @@ export const articles = pgTable('articles', {
   showComments: boolean('show_comments').notNull().default(false),
   showInFeed: boolean('show_in_feed').notNull().default(true),
   showInNavbar: boolean('show_in_navbar').notNull().default(false),
+  visibleTo: text('visible_to').array().notNull().default(sql`'{public}'`),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

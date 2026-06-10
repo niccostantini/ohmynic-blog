@@ -6,7 +6,10 @@ import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
   if (locals.reader) redirect(302, `${base}/`);
-  return { passwordReset: url.searchParams.get('reset') === '1' };
+  return {
+    passwordReset: url.searchParams.get('reset') === '1',
+    redirectTo: url.searchParams.get('redirect'),
+  };
 };
 
 export const actions: Actions = {

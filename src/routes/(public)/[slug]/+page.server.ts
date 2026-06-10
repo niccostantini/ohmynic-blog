@@ -1,4 +1,5 @@
-import { error } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
+import { base } from '$app/paths';
 import {
   getArticleBySlugWithAuthor,
   getArticleBySlugForPreview,
@@ -20,6 +21,24 @@ export const load: PageServerLoad = async ({ params, locals, url }) => {
   if (!result) error(404, 'Articolo non trovato');
 
   const { article, author } = result;
+
+  // Visibility guard — only applies to pages (articles are always public when published)
+  if (article.type === 'page' && !previewToken) {
+    const visibleTo = article.visibleTo ?? ['public'];
+    if (!visibleTo.includes('public')) {
+      const user = locals.user;
+      const reader = locals.reader;
+
+      if (!user && !reader) {
+        redirect(302, `${base}/login?redirect=${base}/${params.slug}`);
+      }
+
+      const role = user?.role ?? 'reader';
+      if (role !== 'admin' && !visibleTo.includes(role)) {
+        redirect(302, `${base}/login?redirect=${base}/${params.slug}`);
+      }
+    }
+  }
 
   // Calculate reading time on the fly if not yet stored
   const readingTimeMinutes = article.readingTimeMinutes ?? readingTime(article.content);

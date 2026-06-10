@@ -112,6 +112,7 @@ export async function updateArticle(id: string, data: Partial<{
   showComments: boolean;
   showInFeed: boolean;
   showInNavbar: boolean;
+  visibleTo: string[];
 }>) {
   const result = await db
     .update(articles)
@@ -487,6 +488,7 @@ export async function createPage(data: {
     showInFeed: false,
     showComments: false,
     showInNavbar: false,
+    visibleTo: ['public'],
     previewToken: randomUUID(),
     readingTimeMinutes: readingTime(data.content),
   }).returning();

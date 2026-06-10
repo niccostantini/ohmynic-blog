@@ -2,6 +2,7 @@
   import { enhance } from '$app/forms';
   import { base } from '$app/paths';
   import Editor from '$lib/components/Editor.svelte';
+  import VisibilityChips from '$lib/components/VisibilityChips.svelte';
   import { addToast } from '$lib/stores/toast';
   import type { PageData, ActionData } from './$types';
 
@@ -14,6 +15,7 @@
   let showCoverInArticle = $state(data.page.showCoverInArticle ?? true);
   let showComments = $state(data.page.showComments ?? false);
   let showInNavbar = $state(data.page.showInNavbar ?? false);
+  let visibleTo = $state<string[]>(data.page.visibleTo ?? ['public']);
   let content = $state(data.page.content);
   let blocksJson = $state<string | null>(data.page.blocksJson ?? null);
 
@@ -25,6 +27,7 @@
     showCoverInArticle = data.page.showCoverInArticle ?? true;
     showComments = data.page.showComments ?? false;
     showInNavbar = data.page.showInNavbar ?? false;
+    visibleTo = data.page.visibleTo ?? ['public'];
   });
 
   let getContentFn: (() => string) | null = null;
@@ -82,6 +85,7 @@
   >
     <input type="hidden" name="content" value={content} />
     <input type="hidden" name="blocksJson" value={blocksJson ?? ''} />
+    <input type="hidden" name="visibleTo" value={JSON.stringify(visibleTo)} />
 
     <div class="field">
       <input
@@ -131,6 +135,18 @@
             </label>
           </div>
         {/if}
+      </div>
+
+      <div class="visibility-field">
+        <span class="visibility-label">Visibile a</span>
+        <VisibilityChips bind:selected={visibleTo} />
+        <p class="visibility-hint">
+          {#if visibleTo.includes('public')}
+            Questa pagina è visibile a tutti i visitatori.
+          {:else}
+            Questa pagina richiede accesso — gli utenti non autorizzati vengono reindirizzati al login.
+          {/if}
+        </p>
       </div>
 
       <div class="toggles-row">
@@ -363,6 +379,24 @@
     color: var(--color-prugna);
     cursor: pointer;
     margin-bottom: 0;
+  }
+
+  .visibility-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding-bottom: var(--space-4);
+    border-bottom: 0.5px solid var(--color-bordo);
+  }
+  .visibility-label {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--color-prugna);
+  }
+  .visibility-hint {
+    font-size: var(--text-xs);
+    color: var(--color-lilla);
+    margin: 0;
   }
 
   .toggles-row {

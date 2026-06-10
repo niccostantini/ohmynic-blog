@@ -13,6 +13,10 @@
     <div class="auth-logo">Oh<em>My</em>Nic!</div>
     <h1>Bentornato</h1>
 
+    {#if data.redirectTo}
+      <p class="access-hint">Accedi per visualizzare questa pagina.</p>
+    {/if}
+
     {#if data.passwordReset}
       <p class="success">Password reimpostata con successo. Puoi accedere ora.</p>
     {/if}
@@ -60,4 +64,5 @@
   .auth-link.small { margin-top: var(--space-2); font-size: var(--text-xs); }
   .auth-link a { color: var(--color-viola); font-weight: var(--weight-medium); }
   .success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); font-size: var(--text-sm); margin-bottom: var(--space-4); }
+  .access-hint { background: var(--color-nebbia); color: var(--color-prugna); border: 0.5px solid var(--color-bordo); border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); font-size: var(--text-sm); margin-bottom: var(--space-4); text-align: center; }
 </style>

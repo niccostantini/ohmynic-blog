@@ -33,6 +33,10 @@ export const actions: Actions = {
     const slugRaw = data.get('slug');
     const showComments = data.get('showComments') === 'on';
     const showInNavbar = data.get('showInNavbar') === 'on';
+    const visibleToRaw = data.get('visibleTo');
+    const visibleTo: string[] = visibleToRaw
+      ? (() => { try { return JSON.parse(visibleToRaw as string); } catch { return ['public']; } })()
+      : ['public'];
 
     if (typeof title !== 'string' || !title.trim()) {
       return fail(400, { error: 'Il titolo è obbligatorio.' });
@@ -72,6 +76,7 @@ export const actions: Actions = {
       showComments,
       showInNavbar,
       showCoverInArticle,
+      visibleTo,
     });
 
     // Sync navbar item

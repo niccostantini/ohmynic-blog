@@ -1,13 +1,26 @@
 import { eq, asc } from 'drizzle-orm';
 import { db } from '../index';
-import { navItems } from '../schema';
+import { navItems, articles } from '../schema';
 
 export async function getVisibleNavItems() {
-  return db
-    .select()
+  const rows = await db
+    .select({
+      id: navItems.id,
+      label: navItems.label,
+      url: navItems.url,
+      pageId: navItems.pageId,
+      type: navItems.type,
+      position: navItems.position,
+      visible: navItems.visible,
+      openInNewTab: navItems.openInNewTab,
+      pageVisibleTo: articles.visibleTo,
+    })
     .from(navItems)
+    .leftJoin(articles, eq(navItems.pageId, articles.id))
     .where(eq(navItems.visible, true))
     .orderBy(asc(navItems.position));
+
+  return rows;
 }
 
 export async function getAllNavItems() {
