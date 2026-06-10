@@ -42,7 +42,7 @@
         </div>
         <label class="checkbox-field">
           <input type="checkbox" name="privacy" required />
-          <span>Ho letto la <a href="{base}/privacy" target="_blank">privacy policy</a></span>
+          <span>Ho letto e accetto la <a href="{base}/privacy" target="_blank">privacy policy</a> e la <a href="{base}/cookie-policy" target="_blank">cookie policy</a></span>
         </label>
         <button type="submit" class="btn-primary">Crea account</button>
       </form>

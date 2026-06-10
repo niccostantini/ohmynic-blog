@@ -28,7 +28,7 @@ export const actions: Actions = {
     if (password !== confirm)
       return fail(400, { error: 'Le password non coincidono.' });
     if (!privacy)
-      return fail(400, { error: 'Devi accettare la privacy policy.' });
+      return fail(400, { error: 'Devi accettare la privacy policy e la cookie policy.' });
 
     const cleanEmail = email.trim().toLowerCase();
     const existing = await getReaderByEmail(cleanEmail);
