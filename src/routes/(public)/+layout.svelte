@@ -100,11 +100,12 @@
       <nav class="footer-links" aria-label="Link legali">
         <a href="{base}/privacy">Privacy policy</a>
         <a href="{base}/cookie-policy">Cookie policy</a>
-      </nav>
-      <div class="footer-right">
         <button class="footer-feedback-link" onclick={() => feedbackOpen = true}>
           Segnala un problema
         </button>
+      </nav>
+      <div class="footer-controls">
+        <ThemeToggle />
         <ThemeSwitcher />
       </div>
     </div>
@@ -278,7 +279,6 @@
     margin: 0 auto;
     display: flex;
     align-items: center;
-    justify-content: space-between;
     flex-wrap: wrap;
     gap: var(--space-4);
     font-size: var(--text-xl);
@@ -288,12 +288,15 @@
     font-size: var(--text-sm);
     color: var(--color-lilla);
   }
-  .footer-right {
-    margin-left: auto;
+
+  /* ── Footer links (legal + feedback) ──────────────────────────────────── */
+  .footer-links {
     display: flex;
-    align-items: center;
     gap: var(--space-4);
+    align-items: center;
+    flex-wrap: wrap;
   }
+  .footer-links a,
   .footer-feedback-link {
     font-family: var(--font-sans);
     font-size: var(--text-xs);
@@ -302,26 +305,24 @@
     border: none;
     padding: 0;
     cursor: pointer;
-    text-decoration: underline;
-    text-underline-offset: 2px;
+    text-decoration: none;
     transition: color var(--transition-fast);
   }
+  .footer-links a:hover,
   .footer-feedback-link:hover { color: var(--color-notte); }
 
-  .footer-links {
+  /* ── Footer controls (ThemeToggle + ThemeSwitcher) ────────────────────── */
+  .footer-controls {
+    margin-left: auto;
     display: flex;
-    gap: var(--space-4);
     align-items: center;
+    gap: var(--space-4);
   }
-  .footer-links a {
-    font-family: var(--font-sans);
-    font-size: var(--text-xs);
-    color: var(--color-lilla);
-    text-decoration: none;
-    border: none;
-    transition: color var(--transition-fast);
+  /* ThemeToggle non è nel footer su desktop — è già nell'header */
+  .footer-controls :global(.theme-toggle),
+  .footer-controls :global(.hc-toggle) {
+    display: none;
   }
-  .footer-links a:hover { color: var(--color-notte); }
 
   /* ── Hamburger ─────────────────────────────────────────────────────────── */
   .hamburger {
@@ -492,8 +493,29 @@
     .hamburger { display: flex; }
 
     .site-footer { padding: var(--space-8) var(--space-4); margin-top: var(--space-12); }
-    .footer-inner { flex-direction: column; align-items: flex-start; gap: var(--space-3); }
-    .footer-right { margin-left: 0; width: 100%; }
-    .footer-links { gap: var(--space-3); }
+    .footer-inner { flex-direction: column; align-items: flex-start; gap: var(--space-4); }
+    .footer-links { gap: 14px; flex-wrap: wrap; }
+    .footer-links a,
+    .footer-feedback-link {
+      font-size: 12px;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .footer-controls {
+      margin-left: 0;
+      width: 100%;
+      justify-content: space-between;
+    }
+    .footer-controls :global(.theme-toggle),
+    .footer-controls :global(.hc-toggle) { display: flex; }
+    .footer-controls :global(.switcher-label) { display: none; }
+    .footer-controls :global(.theme-switcher) { gap: 0; }
+    .footer-controls :global(.circles) { gap: 6px; }
+    .footer-controls :global(.circle) { width: 22px; height: 22px; }
+    .footer-controls :global(.circle.selected) {
+      border: none;
+      box-shadow: 0 0 0 2px var(--color-nebbia), 0 0 0 3.5px var(--color-notte);
+      transform: none;
+    }
   }
 </style>
