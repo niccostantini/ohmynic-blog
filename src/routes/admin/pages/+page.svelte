@@ -117,16 +117,20 @@
     color: var(--color-lilla);
     background: var(--color-nebbia);
     border-bottom: 0.5px solid var(--color-bordo);
+    border-right: 0.5px solid var(--color-bordo);
     font-size: var(--text-xs);
     text-transform: uppercase;
     letter-spacing: var(--tracking-wider);
     white-space: nowrap;
   }
+  .pages-table th:last-child { border-right: none; }
   .pages-table td {
     padding: var(--space-3) var(--space-4);
-    border-bottom: 0.5px solid var(--color-bordo);
+    border-bottom: 0.5px solid var(--color-bordo-soft);
+    border-right: 0.5px solid var(--color-bordo-soft);
     vertical-align: middle;
   }
+  .pages-table td:last-child { border-right: none; }
   .pages-table tr:last-child td { border-bottom: none; }
 
   .page-row:hover td { background: var(--color-nebbia); }
