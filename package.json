@@ -8,7 +8,7 @@
 		"build": "vite build",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
-		"postinstall": "mkdir -p static/fonts && cp node_modules/@tabler/icons-webfont/dist/fonts/tabler-icons.woff2 node_modules/@tabler/icons-webfont/dist/fonts/tabler-icons.woff node_modules/@tabler/icons-webfont/dist/fonts/tabler-icons.ttf static/fonts/ && cp node_modules/@tabler/icons-webfont/dist/tabler-icons.min.css static/fonts/tabler-icons.css && sed -i.bak 's|url(\"./fonts/|url(\"/fonts/|g' static/fonts/tabler-icons.css && rm -f static/fonts/tabler-icons.css.bak",
+		"postinstall": "mkdir -p static/fonts && cp node_modules/@tabler/icons-webfont/dist/fonts/tabler-icons.woff2 node_modules/@tabler/icons-webfont/dist/fonts/tabler-icons.woff node_modules/@tabler/icons-webfont/dist/fonts/tabler-icons.ttf static/fonts/ && cp node_modules/@tabler/icons-webfont/dist/tabler-icons.min.css static/fonts/tabler-icons.css && sed -i.bak 's|url(\"./fonts/|url(\"./|g' static/fonts/tabler-icons.css && rm -f static/fonts/tabler-icons.css.bak",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"db:generate": "drizzle-kit generate",
