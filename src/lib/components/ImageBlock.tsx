@@ -16,7 +16,7 @@ type UploadFn = (file: File) => Promise<string>;
 // ── Block spec factory ────────────────────────────────────────────────────────
 
 export const imageBlockSpec = (uploadFile?: UploadFn) =>
-  createReactBlockSpec(
+  (createReactBlockSpec(
     {
       type: 'image' as const,
       propSchema: {
@@ -181,4 +181,4 @@ export const imageBlockSpec = (uploadFile?: UploadFn) =>
         return { url, caption, position };
       },
     }
-  );
+  ))();
