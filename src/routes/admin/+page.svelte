@@ -227,4 +227,34 @@
     transition: background var(--transition-fast);
   }
   .btn-accent:hover { background: var(--color-viola); }
+
+  /* ── Mobile card stack ───────────────────────────────────────────────── */
+  @media (max-width: 640px) {
+    .page-header { margin-bottom: var(--space-4); }
+    .table-head { display: none; }
+    .article-table { border-radius: var(--radius-md); }
+    .table-row {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+      padding: var(--space-4);
+    }
+    .article-title {
+      font-size: var(--text-base);
+      white-space: normal;
+    }
+    .table-row .meta { font-size: var(--text-xs); }
+    .table-row > span:nth-child(2),
+    .table-row > span:nth-child(3) {
+      display: inline;
+    }
+    .table-row > span:nth-child(2) { margin-right: var(--space-2); }
+    .actions { gap: var(--space-3); }
+    .actions a {
+      font-size: var(--text-sm);
+      font-weight: var(--weight-medium);
+      color: var(--color-viola);
+      text-decoration: none;
+    }
+  }
 </style>

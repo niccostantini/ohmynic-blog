@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 220" width="220" height="220">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,600&amp;display=swap');
+    </style>
+  </defs>
+  <circle cx="110" cy="110" r="108" fill="#1e1630"/>
+  <circle cx="110" cy="110" r="108" fill="none" stroke="#9b6ff0" stroke-width="3"/>
+  <text x="95" y="135" font-family="'Cormorant Garamond', Georgia, 'Times New Roman', serif" font-size="72" font-weight="600" fill="#f0ecff" text-anchor="middle" font-style="italic">OMN</text>
+  <text x="178" y="135" font-family="'Cormorant Garamond', Georgia, 'Times New Roman', serif" font-size="72" font-weight="600" fill="#9b6ff0" text-anchor="middle" font-style="italic">!</text>
+</svg>

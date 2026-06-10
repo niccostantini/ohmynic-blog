@@ -20,7 +20,7 @@
   --color-bordo-soft: #ede9f8;   /* Bordi sottili, hover states */
 
   /* --- Tipografia --- */
-  --font-serif:   'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --font-serif:   'Playfair Display', Georgia, 'Times New Roman', serif;
   --font-sans:    'Inter', system-ui, sans-serif;
 
   /* Scale tipografica */

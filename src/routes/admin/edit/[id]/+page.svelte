@@ -139,6 +139,9 @@
   // ── History collapse ───────────────────────────────────────────────────────
   let historyOpen = $state(false);
 
+  // ── Editorial panel collapse (collapsed by default on mobile) ─────────────
+  let commentsOpen = $state(true);
+
   function formatDate(d: Date | string | null) {
     if (!d) return '';
     return new Date(d).toLocaleDateString('it-IT', {
@@ -496,19 +499,21 @@
   <!-- ── Editorial comments panel ──────────────────────────────────────────── -->
   <div class="editorial-panel" id="editorial-panel">
     <div class="panel-header">
-      <div class="panel-title">
+      <button type="button" class="panel-title panel-toggle" onclick={() => commentsOpen = !commentsOpen}>
+        <span class="panel-toggle-arrow">{commentsOpen ? '▾' : '▸'}</span>
         Commenti di redazione
         {#if openCommentsCount > 0}
           <span class="open-badge">{openCommentsCount}</span>
         {/if}
-      </div>
-      {#if canCreateComments}
+      </button>
+      {#if canCreateComments && commentsOpen}
         <button type="button" class="btn-ghost btn-sm" onclick={openFreeCommentForm}>
           + Aggiungi commento
         </button>
       {/if}
     </div>
 
+  {#if commentsOpen}
     <div class="comment-filters">
       {#each [['all', 'Tutti'], ['block', 'Con riferimento'], ['free', 'Liberi'], ['orphan', 'Orfani']] as [val, label] (val)}
         <button
@@ -645,6 +650,7 @@
         {/each}
       </div>
     {/if}
+  {/if}
   </div>
 
   <!-- ── Delete ──────────────────────────────────────────────────────────── -->
@@ -1458,5 +1464,44 @@
     margin-top: var(--space-3);
     padding-left: 16px;
     border-left: 2px solid var(--color-bordo);
+  }
+
+  /* ── Panel toggle button ──────────────────────────────────────────────── */
+  .panel-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    text-align: left;
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    font-weight: var(--weight-semibold);
+    color: var(--color-notte);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    transition: color var(--transition-fast);
+  }
+  .panel-toggle:hover { color: var(--color-viola); }
+  .panel-toggle-arrow { font-size: var(--text-xs); color: var(--color-lilla); }
+
+  /* ── Mobile: modal full-screen + panels collapsed ─────────────────────── */
+  @media (max-width: 640px) {
+    .editor-page { max-width: 100%; }
+    .editor-header { gap: var(--space-2); }
+    h1 { font-size: var(--text-xl); }
+    .title-input { font-size: var(--text-2xl); }
+
+    .modal-backdrop {
+      align-items: flex-end;
+      padding: 0;
+    }
+    .modal {
+      border-radius: 16px 16px 0 0;
+      max-width: 100%;
+      max-height: 92vh;
+      overflow-y: auto;
+    }
+    .modal.modal-wide { max-width: 100%; }
   }
 </style>

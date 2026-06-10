@@ -55,6 +55,40 @@
 
   function onDragEnd() { dragIndex = null; dragOverIndex = null; }
 
+  // ── Touch events for iOS Safari drag-and-drop ─────────────────────────────
+  function onTouchStart(_e: TouchEvent, i: number) {
+    dragIndex = i;
+  }
+
+  function onTouchMove(e: TouchEvent) {
+    e.preventDefault();
+    if (dragIndex === null) return;
+    const touch = e.touches[0];
+    const el = document.elementFromPoint(touch.clientX, touch.clientY);
+    const li = el?.closest('[data-nav-index]') as HTMLElement | null;
+    if (!li) return;
+    const targetIndex = parseInt(li.dataset.navIndex ?? '', 10);
+    if (isNaN(targetIndex) || targetIndex === dragIndex) return;
+    const reordered = [...navItems];
+    const [moved] = reordered.splice(dragIndex, 1);
+    reordered.splice(targetIndex, 0, moved);
+    navItems = reordered;
+    dragIndex = targetIndex;
+    dragOverIndex = targetIndex;
+  }
+
+  async function onTouchEnd() {
+    dragIndex = null;
+    dragOverIndex = null;
+    try {
+      await fetch(`${base}/admin/api/nav-items/reorder`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(navItems.map((item, idx) => ({ id: item.id, position: idx }))),
+      });
+    } catch { addToast('Errore nel salvataggio ordine', 'error'); }
+  }
+
   async function toggleVisible(item: NavItem) {
     const newVisible = !item.visible;
     navItems = navItems.map(i => i.id === item.id ? { ...i, visible: newVisible } : i);
@@ -248,10 +282,14 @@
           class:dragging={dragIndex === i}
           class:hidden-item={!item.visible}
           draggable="true"
+          data-nav-index={i}
           ondragstart={(e) => onDragStart(e, i)}
           ondragover={(e) => onDragOver(e, i)}
           ondrop={onDrop}
           ondragend={onDragEnd}
+          ontouchstart={(e) => onTouchStart(e, i)}
+          ontouchmove={onTouchMove}
+          ontouchend={onTouchEnd}
         >
           <span class="drag-handle" title="Trascina per riordinare">
             <i class="ti ti-grip-vertical"></i>
