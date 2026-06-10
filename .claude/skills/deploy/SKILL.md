@@ -1,3 +1,8 @@
+---
+name: deploy
+description: Istruzioni e procedure per compilare e fare il deploy dell'applicazione.
+---
+
 # Deploy su DigitalOcean — ohmynic.co
 
 ## Prerequisiti sul droplet (una volta sola)
