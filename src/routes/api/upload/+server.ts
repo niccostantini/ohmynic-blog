@@ -1,22 +1,19 @@
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
-import { json, error } from '@sveltejs/kit';
+import { json } from '@sveltejs/kit';
+import { env } from '$env/dynamic/private';
+import sharp from 'sharp';
 import type { RequestHandler } from './$types';
 
-// Lazy-init: R2 vars might not be set in local dev
-let s3: S3Client | null = null;
-
 function getS3(): S3Client {
-  if (s3) return s3;
-
-  const accountId  = process.env.R2_ACCOUNT_ID;
-  const accessKey  = process.env.R2_ACCESS_KEY_ID;
-  const secretKey  = process.env.R2_SECRET_ACCESS_KEY;
+  const accountId  = env.R2_ACCOUNT_ID;
+  const accessKey  = env.R2_ACCESS_KEY_ID;
+  const secretKey  = env.R2_SECRET_ACCESS_KEY;
 
   if (!accountId || !accessKey || !secretKey) {
     throw new Error('R2 credentials not configured');
   }
 
-  s3 = new S3Client({
+  return new S3Client({
     region: 'auto',
     endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
     credentials: {
@@ -24,7 +21,6 @@ function getS3(): S3Client {
       secretAccessKey: secretKey,
     },
   });
-  return s3;
 }
 
 const MAX_SIZE = 15 * 1024 * 1024; // 15 MB
@@ -45,8 +41,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     );
   }
 
-  const bucket    = process.env.R2_BUCKET_NAME;
-  const publicUrl = process.env.R2_PUBLIC_URL;
+  const bucket    = env.R2_BUCKET_NAME;
+  const publicUrl = env.R2_PUBLIC_URL;
 
   if (!bucket || !publicUrl) {
     return new Response(
@@ -80,17 +76,32 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     );
   }
 
-  // Build a collision-proof key
-  const ext = file.name.split('.').pop()?.toLowerCase() ?? 'bin';
-  const key = `uploads/${Date.now()}-${crypto.randomUUID()}.${ext}`;
+  const raw = Buffer.from(await file.arrayBuffer());
 
-  const buffer = Buffer.from(await file.arrayBuffer());
+  let buffer: Buffer;
+  let contentType: string;
+  let ext: string;
+
+  if (file.type === 'image/gif') {
+    buffer = raw;
+    contentType = 'image/gif';
+    ext = 'gif';
+  } else {
+    buffer = await sharp(raw)
+      .resize({ width: 2000, withoutEnlargement: true })
+      .webp({ quality: 82 })
+      .toBuffer();
+    contentType = 'image/webp';
+    ext = 'webp';
+  }
+
+  const key = `uploads/${Date.now()}-${crypto.randomUUID()}.${ext}`;
 
   await client.send(new PutObjectCommand({
     Bucket: bucket,
     Key: key,
     Body: buffer,
-    ContentType: file.type,
+    ContentType: contentType,
     CacheControl: 'public, max-age=31536000, immutable',
   }));
 

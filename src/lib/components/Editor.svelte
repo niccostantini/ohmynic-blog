@@ -108,7 +108,7 @@
     const schema = BlockNoteSchema.create({
       blockSpecs: {
         ...defaultBlockSpecs,
-        image: imageBlockSpec(uploadImageFile),
+        image: imageBlockSpec(uploadImageFile)(),
         callout: calloutBlockSpec(),
         footnoteList: footnoteListBlockSpec(),
       },
@@ -510,13 +510,38 @@
         if (initialBlocksJson) {
           try {
             blocks = JSON.parse(initialBlocksJson);
+            // Backfill props added after initial save (schema migrations).
+            // BlockNote rejects blocks with missing props instead of using defaults.
+            blocks = blocks.map((b: any) => {
+              if (b.type === 'image' && b.props) {
+                const pos = b.props.position;
+                const isFloat = pos === 'float-right' || pos === 'float-left';
+                if (!('width' in b.props)) {
+                  // Missing prop: use correct default per position
+                  return { ...b, props: { ...b.props, width: isFloat ? '42' : '100' } };
+                }
+                if (isFloat && b.props.width === '100') {
+                  // Old default was 100 for floats — normalize to 42 so CSS float works correctly
+                  return { ...b, props: { ...b.props, width: '42' } };
+                }
+              }
+              return b;
+            });
           } catch { /* fall through to HTML */ }
         }
         if (!blocks || blocks.length === 0) {
           blocks = (editor as any).tryParseHTMLToBlocks(html);
         }
         if (blocks && blocks.length > 0) {
-          (editor as any).replaceBlocks((editor as any).document, blocks);
+          try {
+            (editor as any).replaceBlocks((editor as any).document, blocks);
+          } catch {
+            // Schema mismatch: fall back to HTML parsing
+            const htmlBlocks = (editor as any).tryParseHTMLToBlocks(html);
+            if (htmlBlocks?.length > 0) {
+              (editor as any).replaceBlocks((editor as any).document, htmlBlocks);
+            }
+          }
         }
         syncFootnotes();
       }, []);
@@ -834,6 +859,11 @@
     float: none;
     width: 100%;
     clear: both;
+  }
+
+  /* Resize handle — visibile al hover del blocco immagine */
+  :global([data-img-pos]:hover .img-resize-handle) {
+    opacity: 1 !important;
   }
   /* Clearfix so floats don't bleed past the editor */
   :global(.bn-editor::after) {
