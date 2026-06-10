@@ -280,7 +280,7 @@
     color: var(--color-prugna);
     margin-bottom: var(--space-12);
   }
-  :global(.prose p) { margin-bottom: var(--space-3); }
+  :global(.prose p) { margin-bottom: var(--space-2); }
   :global(.prose h2) {
     font-family: var(--font-serif);
     font-size: var(--text-2xl);
