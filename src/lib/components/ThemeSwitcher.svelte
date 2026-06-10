@@ -48,6 +48,7 @@
     position: relative;
     width: 28px;
     height: 28px;
+    min-height: 0;
     border-radius: 50%;
     border: 0.5px solid var(--color-bordo);
     cursor: pointer;

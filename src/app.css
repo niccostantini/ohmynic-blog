@@ -54,7 +54,7 @@ html {
   .prose figure.image.float-right,
   .prose figure.image.float-left {
     float: none;
-    width: 100%;
+    width: 100% !important;
     margin: 0 0 1rem;
   }
 }

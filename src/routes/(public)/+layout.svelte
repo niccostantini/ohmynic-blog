@@ -1,7 +1,7 @@
 <script lang="ts">
   import { base } from '$app/paths';
   import { afterNavigate } from '$app/navigation';
-  import { fly, fade } from 'svelte/transition';
+  import { fly, fade, slide } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
   import Logo from '$lib/components/Logo.svelte';
   import ThemeToggle from '$lib/components/ThemeToggle.svelte';
@@ -17,6 +17,7 @@
 
   let feedbackOpen = $state(false);
   let mobileMenuOpen = $state(false);
+  let prefsOpen = $state(false);
 
   afterNavigate(() => { mobileMenuOpen = false; });
 
@@ -94,20 +95,41 @@
   </main>
 
   <footer class="site-footer">
-    <div class="footer-inner">
-      <Logo />
-      <p class="footer-copy">© {new Date().getFullYear()} OhMyNic! — Tutti i diritti riservati.</p>
-      <nav class="footer-links" aria-label="Link legali">
-        <a href="{base}/privacy">Privacy policy</a>
-        <a href="{base}/cookie-policy">Cookie policy</a>
-        <button class="footer-feedback-link" onclick={() => feedbackOpen = true}>
-          Segnala un problema
-        </button>
-      </nav>
-      <div class="footer-controls">
-        <ThemeToggle />
-        <ThemeSwitcher />
+    {#if prefsOpen}
+      <div class="footer-prefs" transition:slide={{ duration: 200 }}>
+        <div class="footer-prefs-inner">
+          <div class="pref-row">
+            <span class="pref-label">Modalità</span>
+            <ThemeToggle />
+          </div>
+          <div class="pref-row">
+            <span class="pref-label">Colore tema</span>
+            <ThemeSwitcher />
+          </div>
+        </div>
       </div>
+    {/if}
+    <div class="footer-inner">
+      <a href="{base}/" class="logo-link"><Logo /></a>
+      <div class="footer-meta">
+        <p class="footer-copy">© {new Date().getFullYear()} OhMyNic!</p>
+        <nav class="footer-links" aria-label="Link legali">
+          <a href="{base}/privacy">Privacy policy</a>
+          <a href="{base}/cookie-policy">Cookie policy</a>
+          <button class="footer-feedback-link" onclick={() => feedbackOpen = true}>
+            Segnala un problema
+          </button>
+        </nav>
+      </div>
+      <button
+        class="footer-prefs-btn"
+        class:open={prefsOpen}
+        onclick={() => prefsOpen = !prefsOpen}
+        aria-expanded={prefsOpen}
+      >
+        <i class="ti ti-adjustments-horizontal" aria-hidden="true"></i>
+        <span>Personalizza</span>
+      </button>
     </div>
   </footer>
 </div>
@@ -174,7 +196,7 @@
 <Toast />
 
 <style>
-  .site { display: flex; flex-direction: column; min-height: 100vh; }
+  .site { display: flex; flex-direction: column; min-height: 100vh; min-height: 100svh; }
 
   .site-header {
     position: sticky;
@@ -265,31 +287,66 @@
 
   .site-main { flex: 1; }
 
+  /* ── Footer ───────────────────────────────────────────────────────────── */
   .site-footer {
-    margin-top: var(--space-20);
-    padding: var(--space-10) var(--space-8);
+    margin-top: var(--space-12);
     border-top: 0.5px solid var(--color-bordo);
     background: white;
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
   }
-  :global([data-theme='dark']) .site-footer {
-    background: var(--color-iris);
+  :global([data-theme='dark']) .site-footer { background: var(--color-iris); }
+
+  /* Pannello preferenze (espandibile) */
+  .footer-prefs {
+    border-bottom: 0.5px solid var(--color-bordo-soft);
+    overflow: hidden;
   }
+  .footer-prefs-inner {
+    max-width: var(--max-width-wide);
+    margin: 0 auto;
+    padding: var(--space-3) var(--space-8);
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+  }
+  .pref-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  .pref-label {
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    color: var(--color-lilla);
+    white-space: nowrap;
+  }
+  .footer-prefs :global(.switcher-label) { display: none; }
+
+  /* Barra principale footer */
   .footer-inner {
     max-width: var(--max-width-wide);
     margin: 0 auto;
+    padding: var(--space-2) var(--space-8);
     display: flex;
     align-items: center;
-    flex-wrap: wrap;
+    gap: var(--space-6);
+  }
+  .footer-meta {
+    display: flex;
+    align-items: center;
     gap: var(--space-4);
-    font-size: var(--text-xl);
+    flex: 1;
+    flex-wrap: wrap;
   }
   .footer-copy {
     font-family: var(--font-sans);
     font-size: var(--text-sm);
     color: var(--color-lilla);
+    white-space: nowrap;
   }
-
-  /* ── Footer links (legal + feedback) ──────────────────────────────────── */
   .footer-links {
     display: flex;
     gap: var(--space-4);
@@ -311,17 +368,34 @@
   .footer-links a:hover,
   .footer-feedback-link:hover { color: var(--color-notte); }
 
-  /* ── Footer controls (ThemeToggle + ThemeSwitcher) ────────────────────── */
-  .footer-controls {
-    margin-left: auto;
+  /* Pulsante Personalizza */
+  .footer-prefs-btn {
     display: flex;
     align-items: center;
-    gap: var(--space-4);
+    gap: var(--space-2);
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    color: var(--color-lilla);
+    background: none;
+    border: 0.5px solid transparent;
+    border-radius: var(--radius-md);
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    flex-shrink: 0;
+    line-height: 1;
   }
-  /* ThemeToggle non è nel footer su desktop — è già nell'header */
-  .footer-controls :global(.theme-toggle),
-  .footer-controls :global(.hc-toggle) {
-    display: none;
+  .footer-prefs-btn i { font-size: 14px; line-height: 1; }
+  .footer-prefs-btn:hover {
+    color: var(--color-viola);
+    border-color: var(--color-bordo);
+    background: var(--color-iris);
+  }
+  .footer-prefs-btn.open {
+    color: var(--color-lavanda);
+    border-color: var(--color-lavanda);
+    background: var(--color-iris);
   }
 
   /* ── Hamburger ─────────────────────────────────────────────────────────── */
@@ -483,6 +557,8 @@
   @media (max-width: 1024px) {
     .site-nav { gap: var(--space-4); }
     .reader-nav { gap: var(--space-2); }
+    .footer-inner { padding: var(--space-3) var(--space-5); gap: var(--space-4); }
+    .footer-prefs-inner { padding: var(--space-3) var(--space-5); }
   }
 
   @media (max-width: 640px) {
@@ -492,30 +568,47 @@
     .reader-nav { display: none; }
     .hamburger { display: flex; }
 
-    .site-footer { padding: var(--space-8) var(--space-4); margin-top: var(--space-12); }
-    .footer-inner { flex-direction: column; align-items: flex-start; gap: var(--space-4); }
-    .footer-links { gap: 14px; flex-wrap: wrap; }
-    .footer-links a,
-    .footer-feedback-link {
-      font-size: 12px;
-      text-decoration: underline;
-      text-underline-offset: 2px;
+    /* ── Footer mobile ─────────────────────────────────────────── */
+    .site-footer {
+      margin-top: var(--space-10);
     }
-    .footer-controls {
-      margin-left: 0;
-      width: 100%;
-      justify-content: space-between;
+
+    /* Pannello preferenze mobile */
+    .footer-prefs-inner {
+      padding: var(--space-4) var(--space-4);
+      flex-direction: column;
+      gap: var(--space-3);
     }
-    .footer-controls :global(.theme-toggle),
-    .footer-controls :global(.hc-toggle) { display: flex; }
-    .footer-controls :global(.switcher-label) { display: none; }
-    .footer-controls :global(.theme-switcher) { gap: 0; }
-    .footer-controls :global(.circles) { gap: 6px; }
-    .footer-controls :global(.circle) { width: 22px; height: 22px; }
-    .footer-controls :global(.circle.selected) {
+    .pref-row { justify-content: space-between; }
+    .footer-prefs :global(.circles) { gap: 8px; flex-wrap: nowrap; }
+    .footer-prefs :global(.circle) { width: 26px; height: 26px; flex-shrink: 0; }
+    .footer-prefs :global(.circle.selected) {
       border: none;
       box-shadow: 0 0 0 2px var(--color-nebbia), 0 0 0 3.5px var(--color-notte);
       transform: none;
     }
+
+    /* Barra principale mobile: logo | btn */
+    .footer-inner {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      grid-template-areas: "logo prefs" "meta meta";
+      row-gap: var(--space-1);
+      column-gap: var(--space-3);
+      padding: var(--space-3) var(--space-4) calc(var(--space-3) + env(safe-area-inset-bottom));
+    }
+    .logo-link { grid-area: logo; align-self: center; }
+    .footer-prefs-btn { grid-area: prefs; align-self: center; }
+    .footer-meta {
+      grid-area: meta;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+      flex: none;
+    }
+    .footer-copy { font-size: 11px; }
+    .footer-links { gap: 10px; flex-wrap: wrap; }
+    .footer-links a,
+    .footer-feedback-link { font-size: 11px; }
   }
 </style>
