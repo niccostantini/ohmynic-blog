@@ -280,21 +280,21 @@
     color: var(--color-prugna);
     margin-bottom: var(--space-12);
   }
-  :global(.prose p) { margin-bottom: var(--space-5); }
+  :global(.prose p) { margin-bottom: var(--space-3); }
   :global(.prose h2) {
     font-family: var(--font-serif);
     font-size: var(--text-2xl);
     font-weight: var(--weight-semibold);
     color: var(--color-notte);
     letter-spacing: var(--tracking-tight);
-    margin: var(--space-10) 0 var(--space-4);
+    margin: var(--space-16) 0 var(--space-10);
   }
   :global(.prose h3) {
     font-family: var(--font-serif);
     font-size: var(--text-xl);
     font-weight: var(--weight-semibold);
     color: var(--color-notte);
-    margin: var(--space-8) 0 var(--space-3);
+    margin: var(--space-12) 0 var(--space-5);
   }
   :global(.prose blockquote) {
     border-left: 3px solid var(--color-lavanda);
@@ -456,8 +456,8 @@
   }
 
   @media (max-width: 640px) {
-    :global(.prose h2) { font-size: 20px; margin: var(--space-8) 0 var(--space-3); }
-    :global(.prose h3) { font-size: var(--text-base); margin: var(--space-6) 0 var(--space-2); }
+    :global(.prose h2) { font-size: 20px; margin: var(--space-10) 0 var(--space-6); }
+    :global(.prose h3) { font-size: var(--text-base); margin: var(--space-8) 0 var(--space-4); }
   }
 
   .comments-wrap {
