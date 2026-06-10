@@ -23,7 +23,7 @@
   afterNavigate(({ to }) => {
     if (!to?.url) return;
     const path = to.url.pathname;
-    const SECTIONS = ['/tag/', '/author/', '/search', '/account', '/login', '/register', '/privacy-policy'];
+    const SECTIONS = ['/tag/', '/author/', '/search', '/account', '/login', '/register', '/privacy', '/cookie-policy'];
     const isSection = SECTIONS.some(s => path.includes(s)) || path === '/blog/' || path === '/blog';
     if (isSection) trackPageview(path);
   });
@@ -97,6 +97,10 @@
     <div class="footer-inner">
       <Logo />
       <p class="footer-copy">© {new Date().getFullYear()} OhMyNic! — Tutti i diritti riservati.</p>
+      <nav class="footer-links" aria-label="Link legali">
+        <a href="{base}/privacy">Privacy policy</a>
+        <a href="{base}/cookie-policy">Cookie policy</a>
+      </nav>
       <div class="footer-right">
         <button class="footer-feedback-link" onclick={() => feedbackOpen = true}>
           Segnala un problema
@@ -304,6 +308,21 @@
   }
   .footer-feedback-link:hover { color: var(--color-notte); }
 
+  .footer-links {
+    display: flex;
+    gap: var(--space-4);
+    align-items: center;
+  }
+  .footer-links a {
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    color: var(--color-lilla);
+    text-decoration: none;
+    border: none;
+    transition: color var(--transition-fast);
+  }
+  .footer-links a:hover { color: var(--color-notte); }
+
   /* ── Hamburger ─────────────────────────────────────────────────────────── */
   .hamburger {
     display: none;
@@ -475,5 +494,6 @@
     .site-footer { padding: var(--space-8) var(--space-4); margin-top: var(--space-12); }
     .footer-inner { flex-direction: column; align-items: flex-start; gap: var(--space-3); }
     .footer-right { margin-left: 0; width: 100%; }
+    .footer-links { gap: var(--space-3); }
   }
 </style>
