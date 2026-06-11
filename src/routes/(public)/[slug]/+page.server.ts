@@ -30,12 +30,14 @@ export const load: PageServerLoad = async ({ params, locals, url }) => {
       const reader = locals.reader;
 
       if (!user && !reader) {
+        // Unauthenticated — send to login
         redirect(302, `${base}/login?redirect=${encodeURIComponent(`${base}/${params.slug}`)}`);
       }
 
+      // Authenticated but wrong role — 403 (avoid redirect loop for logged-in readers)
       const role = user?.role ?? 'reader';
       if (role !== 'admin' && !visibleTo.includes(role)) {
-        redirect(302, `${base}/login?redirect=${encodeURIComponent(`${base}/${params.slug}`)}`);
+        error(403, 'Accesso negato');
       }
     }
   }

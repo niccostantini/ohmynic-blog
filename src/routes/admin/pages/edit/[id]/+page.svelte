@@ -49,6 +49,7 @@
     if (getBlocksJsonFn) blocksJson = getBlocksJsonFn();
     input.formData.set('content', content);
     input.formData.set('blocksJson', blocksJson ?? '');
+    input.formData.set('visibleTo', JSON.stringify(visibleTo));
   }
 
   const isPublished = $derived(data.page.status === 'published');
