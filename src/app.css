@@ -99,11 +99,17 @@ html {
   font-size: 0.9rem;
   line-height: 1rem;
 }
-.prose .callout-text { margin: 0 !important; }
 .prose .callout-text {
   margin: 0 !important;
   font-size: 0.8rem !important;
   line-height: 1rem !important;
+}
+
+p.bn-inline-content.callout-text > span.bn-inline-content-section:has(> sup) {
+  vertical-align: top;
+  position: relative;
+  top: 0.3rem;
+  line-height: 0;
 }
 
 /* mobile: float collassa a blockquote-style */
