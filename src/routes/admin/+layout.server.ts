@@ -1,6 +1,7 @@
 import { redirect } from '@sveltejs/kit';
 import { base } from '$app/paths';
 import { countNewFeedback } from '$lib/db/queries/feedback';
+import { getVisibleNavItems } from '$lib/db/queries/navItems';
 import type { LayoutServerLoad } from './$types';
 
 export const load: LayoutServerLoad = async ({ locals, url }) => {
@@ -16,5 +17,17 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 
   const newFeedbackCount = locals.user.role === 'admin' ? await countNewFeedback() : 0;
 
-  return { user: locals.user, newFeedbackCount };
+  // Carica i navItems pubblici con le stesse regole di visibilità del layout pubblico
+  const role = locals.user.role;
+  const allNavItems = await getVisibleNavItems();
+  const navItems = allNavItems
+    .filter(item => {
+      if (!item.pageId || !item.pageVisibleTo) return true;
+      if (item.pageVisibleTo.includes('public')) return true;
+      if (role === 'admin') return true;
+      return item.pageVisibleTo.includes(role);
+    })
+    .map(({ pageVisibleTo: _, ...item }) => item);
+
+  return { user: locals.user, newFeedbackCount, navItems };
 };
