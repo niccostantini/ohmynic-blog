@@ -3,6 +3,7 @@
   import { base } from '$app/paths';
   import { invalidate } from '$app/navigation';
   import Editor from '$lib/components/Editor.svelte';
+  import CoverImagePicker from '$lib/components/CoverImagePicker.svelte';
   import { TRANSITION_CHECKLISTS } from '$lib/workflow/checklists';
   import { addToast } from '$lib/stores/toast';
   import type { PageData, ActionData } from './$types';
@@ -13,8 +14,6 @@
   let title = $state(data.article.title);
   let content = $state(data.article.content);
   let excerpt = $state(data.article.excerpt ?? '');
-  let coverImage = $state(data.article.coverImage ?? '');
-  let showCoverInArticle = $state(data.article.showCoverInArticle ?? true);
   let tagInput = $state('');
   let selectedTags = $state<string[]>(data.articleTags.map((t) => t.name));
 
@@ -409,19 +408,14 @@
         <textarea name="excerpt" rows="3" bind:value={excerpt} disabled={isReadOnly}></textarea>
       </div>
       <div class="field">
-        <label>Immagine copertina (URL)</label>
-        <input name="coverImage" type="url" bind:value={coverImage} disabled={isReadOnly} />
-        {#if coverImage}
-          <label class="cover-toggle">
-            <input
-              type="checkbox"
-              name="showCoverInArticle"
-              bind:checked={showCoverInArticle}
-              disabled={isReadOnly}
-            />
-            Mostra nell'articolo
-          </label>
-        {/if}
+        <label>Immagine copertina</label>
+        <CoverImagePicker
+          initialUrl={data.article.coverImage ?? ''}
+          initialFocus={data.article.coverImageFocus ?? '50% 50%'}
+          initialShowInArticle={data.article.showCoverInArticle ?? true}
+          showArticleToggle={true}
+          disabled={isReadOnly}
+        />
       </div>
       <div class="field">
         <label>Tag</label>

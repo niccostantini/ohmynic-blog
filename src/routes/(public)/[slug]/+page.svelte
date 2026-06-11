@@ -139,7 +139,12 @@
   </div>
 
   {#if data.article.coverImage && data.article.showCoverInArticle !== false}
-    <img src={data.article.coverImage} alt={data.article.title} class="article-cover" />
+    <img
+      src={data.article.coverImage}
+      alt={data.article.title}
+      class="article-cover"
+      style={data.article.coverImageFocus ? `object-position: ${data.article.coverImageFocus}` : undefined}
+    />
   {/if}
 
   <div class="prose" bind:this={proseEl}>

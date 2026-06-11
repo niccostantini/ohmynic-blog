@@ -31,6 +31,7 @@ export const articles = pgTable('articles', {
   content: text('content').notNull(),
   excerpt: text('excerpt'),
   coverImage: text('cover_image'),
+  coverImageFocus: text('cover_image_focus').default('50% 50%'),
   blocksJson: text('blocks_json'),
   status: text('status', { enum: ['draft', 'review', 'approved', 'published'] }).notNull().default('draft'),
   publishedAt: timestamp('published_at'),

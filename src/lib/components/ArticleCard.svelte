@@ -4,7 +4,8 @@
   type Tag = { id: string; name: string; slug: string };
   type Article = {
     id: string; title: string; slug: string; excerpt: string | null;
-    coverImage: string | null; publishedAt: Date | string | null; createdAt: Date | string;
+    coverImage: string | null; coverImageFocus?: string | null;
+    publishedAt: Date | string | null; createdAt: Date | string;
     readingTimeMinutes?: number | null;
   };
 
@@ -23,7 +24,12 @@
 <div class="card">
   {#if article.coverImage}
     <a href="{base}/{article.slug}" class="card-image-link" tabindex="-1" aria-hidden="true">
-      <img src={article.coverImage} alt={article.title} class="card-cover" />
+      <img
+        src={article.coverImage}
+        alt={article.title}
+        class="card-cover"
+        style={article.coverImageFocus ? `object-position: ${article.coverImageFocus}` : undefined}
+      />
     </a>
   {/if}
   <div class="card-body">

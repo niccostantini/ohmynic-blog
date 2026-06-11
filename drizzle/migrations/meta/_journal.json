@@ -106,6 +106,13 @@
       "when": 1780664351969,
       "tag": "0014_feedback",
       "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1749657600000,
+      "tag": "0018_cover_image_focus",
+      "breakpoints": true
     }
   ]
 }

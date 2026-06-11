@@ -1,6 +1,7 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
   import Editor from '$lib/components/Editor.svelte';
+  import CoverImagePicker from '$lib/components/CoverImagePicker.svelte';
   import type { PageData, ActionData } from './$types';
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -8,7 +9,6 @@
   let title = $state('');
   let content = $state('');
   let excerpt = $state('');
-  let coverImage = $state('');
   let tagInput = $state('');
   let selectedTags = $state<string[]>([]);
 
@@ -81,13 +81,8 @@
       </div>
 
       <div class="field">
-        <label>Immagine copertina (URL)</label>
-        <input
-          name="coverImage"
-          type="url"
-          placeholder="https://..."
-          bind:value={coverImage}
-        />
+        <label>Immagine copertina</label>
+        <CoverImagePicker showArticleToggle={false} />
       </div>
 
       <div class="field">

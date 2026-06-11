@@ -52,6 +52,7 @@ export const actions: Actions = {
     const content = data.get('content');
     const excerpt = data.get('excerpt');
     const coverImage = data.get('coverImage');
+    const coverImageFocus = data.get('coverImageFocus');
     const tagsRaw = data.get('tags');
     // Only update showCoverInArticle if a cover image URL is present (checkbox is visible)
     const hasCoverImage = typeof coverImage === 'string' && coverImage.trim().length > 0;
@@ -96,6 +97,7 @@ export const actions: Actions = {
       blocksJson,
       excerpt: finalExcerpt,
       coverImage: typeof coverImage === 'string' && coverImage.trim() ? coverImage.trim() : undefined,
+      coverImageFocus: typeof coverImageFocus === 'string' && coverImageFocus.trim() ? coverImageFocus.trim() : undefined,
       readingTimeMinutes: readingTime(content),
       showCoverInArticle,
     });

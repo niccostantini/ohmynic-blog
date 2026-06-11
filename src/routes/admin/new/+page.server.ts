@@ -17,6 +17,7 @@ export const actions: Actions = {
     const content = data.get('content');
     const excerpt = data.get('excerpt');
     const coverImage = data.get('coverImage');
+    const coverImageFocus = data.get('coverImageFocus');
     const tagsRaw = data.get('tags');
 
     if (typeof title !== 'string' || !title.trim()) {
@@ -39,6 +40,7 @@ export const actions: Actions = {
       content,
       excerpt: finalExcerpt,
       coverImage: typeof coverImage === 'string' && coverImage.trim() ? coverImage.trim() : undefined,
+      coverImageFocus: typeof coverImageFocus === 'string' && coverImageFocus.trim() ? coverImageFocus.trim() : undefined,
       status: 'draft',
       authorId: user.id,
     });

@@ -81,6 +81,7 @@ export async function createArticle(data: {
   content: string;
   excerpt?: string;
   coverImage?: string;
+  coverImageFocus?: string;
   status?: ArticleStatus;
   publishedAt?: Date;
   authorId?: string;
@@ -102,6 +103,7 @@ export async function updateArticle(id: string, data: Partial<{
   blocksJson: string | null;
   excerpt: string;
   coverImage: string;
+  coverImageFocus: string;
   status: ArticleStatus;
   publishedAt: Date | null;
   updatedAt: Date;
