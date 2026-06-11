@@ -13,6 +13,7 @@ export async function getFeaturedItems() {
         slug: articles.slug,
         excerpt: articles.excerpt,
         coverImage: articles.coverImage,
+        coverImageFocus: articles.coverImageFocus,
         publishedAt: articles.publishedAt,
         type: articles.type,
         status: articles.status,

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { base } from '$app/paths';
   import ArticleCard from './ArticleCard.svelte';
+  import FeaturedCard from './FeaturedCard.svelte';
 
   let {
     initialUrl = '',
@@ -31,7 +32,7 @@
   let focusX = $derived(parseFloat(focus.split(' ')[0]) || 50);
   let focusY = $derived(parseFloat(focus.split(' ')[1]) || 50);
 
-  // Fake article for the card preview — updates live as title/excerpt/url/focus change
+  // Fake article for previews — updates live as title/excerpt/url/focus change
   let previewArticle = $derived({
     id: 'preview',
     title: title || 'Titolo dell\'articolo',
@@ -42,6 +43,7 @@
     publishedAt: new Date('2025-01-01'),
     createdAt: new Date('2025-01-01'),
     readingTimeMinutes: 5,
+    type: 'article',
   });
 
   async function handleFileSelect(e: Event) {
@@ -148,14 +150,14 @@
       </div>
     </div>
 
-    <!-- Previews: header (left) + card (right) -->
+    <!-- Previews: featured-main (left) + card lista (right) -->
     <div class="previews-grid">
 
-      <!-- Header articolo -->
-      <div class="preview-col preview-col-header">
-        <p class="preview-label">Header articolo</p>
-        <div class="preview-header">
-          <img src={url} alt="" style="object-position: {focus}" draggable="false" />
+      <!-- Primo in evidenza — usa FeaturedCard reale -->
+      <div class="preview-col preview-col-featured">
+        <p class="preview-label">Primo in evidenza</p>
+        <div class="card-preview-wrap">
+          <FeaturedCard article={previewArticle} tags={[]} variant="main" href="#" />
         </div>
       </div>
 
@@ -319,23 +321,7 @@
     font-family: var(--font-sans);
   }
 
-  /* Header: aspect-ratio 2.5:1 matches typical landscape banner proportions */
-  .preview-header {
-    width: 100%;
-    aspect-ratio: 2.5 / 1;
-    overflow: hidden;
-    border-radius: 8px;
-    border: 1px solid var(--color-bordo, #c9b8f0);
-  }
-  .preview-header img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-    pointer-events: none;
-  }
-
-  /* Card: uses the real ArticleCard component — pointer-events off for admin */
+  /* Both previews use the real components — pointer-events off for admin */
   .card-preview-wrap {
     pointer-events: none;
     user-select: none;
