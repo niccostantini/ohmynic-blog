@@ -105,6 +105,10 @@ html {
   line-height: 1rem !important;
 }
 
+span.bn-inline-content-section:has(> sup) {
+  line-height: 0;
+}
+
 p.bn-inline-content.callout-text > span.bn-inline-content-section:has(> sup) {
   vertical-align: top;
   position: relative;
