@@ -415,6 +415,8 @@
           initialShowInArticle={data.article.showCoverInArticle ?? true}
           showArticleToggle={true}
           disabled={isReadOnly}
+          {title}
+          {excerpt}
         />
       </div>
       <div class="field">

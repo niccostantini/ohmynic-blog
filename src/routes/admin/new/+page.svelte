@@ -82,7 +82,7 @@
 
       <div class="field">
         <label>Immagine copertina</label>
-        <CoverImagePicker showArticleToggle={false} />
+        <CoverImagePicker showArticleToggle={false} {title} {excerpt} />
       </div>
 
       <div class="field">

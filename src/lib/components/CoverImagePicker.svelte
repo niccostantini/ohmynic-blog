@@ -1,5 +1,6 @@
 <script lang="ts">
   import { base } from '$app/paths';
+  import ArticleCard from './ArticleCard.svelte';
 
   let {
     initialUrl = '',
@@ -7,12 +8,16 @@
     initialShowInArticle = true,
     showArticleToggle = true,
     disabled = false,
+    title = '',
+    excerpt = '',
   }: {
     initialUrl?: string;
     initialFocus?: string;
     initialShowInArticle?: boolean;
     showArticleToggle?: boolean;
     disabled?: boolean;
+    title?: string;
+    excerpt?: string;
   } = $props();
 
   let url = $state(initialUrl);
@@ -25,6 +30,19 @@
 
   let focusX = $derived(parseFloat(focus.split(' ')[0]) || 50);
   let focusY = $derived(parseFloat(focus.split(' ')[1]) || 50);
+
+  // Fake article for the card preview — updates live as title/excerpt/url/focus change
+  let previewArticle = $derived({
+    id: 'preview',
+    title: title || 'Titolo dell\'articolo',
+    slug: 'preview',
+    excerpt: excerpt || 'Qui apparirà l\'estratto del tuo articolo…',
+    coverImage: url || null,
+    coverImageFocus: focus,
+    publishedAt: new Date('2025-01-01'),
+    createdAt: new Date('2025-01-01'),
+    readingTimeMinutes: 5,
+  });
 
   async function handleFileSelect(e: Event) {
     const file = (e.target as HTMLInputElement).files?.[0];
@@ -68,7 +86,7 @@
 
 <svelte:window onmousemove={onWindowMouseMove} onmouseup={onWindowMouseUp} />
 
-<!-- Hidden form fields -->
+<!-- Hidden form fields for submit -->
 <input type="hidden" name="coverImage" value={url} />
 <input type="hidden" name="coverImageFocus" value={focus} />
 
@@ -107,44 +125,48 @@
   </div>
 
   {#if url}
-    <div class="picker-area">
-      <!-- Focus picker -->
-      <div class="picker-section">
-        <p class="section-label">
-          Punto focale
-          <span class="section-hint">clicca o trascina per impostare il centro del crop</span>
-        </p>
+    <!-- Focus picker: full image with crosshair dot -->
+    <div class="picker-section">
+      <p class="section-label">
+        Punto focale
+        <span class="section-hint">clicca o trascina per impostare il centro del crop</span>
+        <span class="focus-coords">{focusX}% {focusY}%</span>
+      </p>
+      <div
+        class="focus-picker"
+        bind:this={pickerEl}
+        onmousedown={onPickerMouseDown}
+        style="cursor: {disabled ? 'default' : 'crosshair'}"
+        role="presentation"
+      >
+        <!-- object-contain so the full image is visible, dot overlaid precisely -->
+        <img src={url} alt="Copertina" draggable="false" />
         <div
-          class="focus-picker"
-          bind:this={pickerEl}
-          onmousedown={onPickerMouseDown}
-          style="cursor: {disabled ? 'default' : 'crosshair'}"
-          role="presentation"
-        >
-          <img src={url} alt="Copertina" draggable="false" />
-          <div
-            class="focus-dot"
-            style="left: {focusX}%; top: {focusY}%"
-            aria-label="Punto focale: {focusX}%, {focusY}%"
-          ></div>
+          class="focus-dot"
+          style="left: {focusX}%; top: {focusY}%"
+        ></div>
+      </div>
+    </div>
+
+    <!-- Previews: header (left) + card (right) -->
+    <div class="previews-grid">
+
+      <!-- Header articolo -->
+      <div class="preview-col preview-col-header">
+        <p class="preview-label">Header articolo</p>
+        <div class="preview-header">
+          <img src={url} alt="" style="object-position: {focus}" draggable="false" />
         </div>
       </div>
 
-      <!-- Previews -->
-      <div class="previews-row">
-        <div class="preview-item">
-          <p class="preview-label">Header articolo</p>
-          <div class="preview-header">
-            <img src={url} alt="" style="object-position: {focus}" draggable="false" />
-          </div>
-        </div>
-        <div class="preview-item">
-          <p class="preview-label">Card lista</p>
-          <div class="preview-card">
-            <img src={url} alt="" style="object-position: {focus}" draggable="false" />
-          </div>
+      <!-- Card homepage — usa l'ArticleCard reale -->
+      <div class="preview-col preview-col-card">
+        <p class="preview-label">Card homepage</p>
+        <div class="card-preview-wrap">
+          <ArticleCard article={previewArticle} tags={[]} />
         </div>
       </div>
+
     </div>
 
     {#if showArticleToggle}
@@ -165,7 +187,7 @@
   .cover-picker {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 0.85rem;
   }
 
   /* ── Upload row ── */
@@ -223,13 +245,7 @@
   }
   .remove-btn:hover { color: #e05555; border-color: #e05555; }
 
-  /* ── Picker area ── */
-  .picker-area {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
+  /* ── Focus picker ── */
   .picker-section { display: flex; flex-direction: column; gap: 0.4rem; }
 
   .section-label {
@@ -243,54 +259,55 @@
     gap: 0.5rem;
     flex-wrap: wrap;
   }
-
-  .section-hint {
-    font-weight: 400;
+  .section-hint { font-weight: 400; color: #b0a4d0; }
+  .focus-coords {
+    margin-left: auto;
+    font-family: monospace;
+    font-size: 0.72rem;
     color: #b0a4d0;
+    font-weight: 400;
   }
 
-  /* Focus picker: full image with dot overlay */
   .focus-picker {
     position: relative;
-    display: inline-block;
     width: 100%;
-    max-height: 240px;
-    overflow: hidden;
     border-radius: 8px;
     border: 1px solid var(--color-bordo, #c9b8f0);
+    overflow: hidden;
     user-select: none;
+    background: #f0ecf9;
   }
 
+  /* Show full image so the focus dot maps 1:1 to the actual image pixels */
   .focus-picker img {
     width: 100%;
-    height: 240px;
+    max-height: 260px;
     object-fit: contain;
-    background: #f0ecf9;
     display: block;
     pointer-events: none;
   }
 
   .focus-dot {
     position: absolute;
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
     border-radius: 50%;
     background: rgba(124, 85, 212, 0.85);
     border: 2.5px solid white;
     box-shadow: 0 0 0 1.5px rgba(124, 85, 212, 0.5), 0 2px 8px rgba(0,0,0,0.25);
     transform: translate(-50%, -50%);
     pointer-events: none;
-    transition: left 0.05s, top 0.05s;
   }
 
-  /* ── Previews ── */
-  .previews-row {
+  /* ── Previews grid ── */
+  .previews-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.75rem;
+    grid-template-columns: 1fr 280px;
+    gap: 1rem;
+    align-items: start;
   }
 
-  .preview-item { display: flex; flex-direction: column; gap: 0.3rem; }
+  .preview-col { display: flex; flex-direction: column; gap: 0.35rem; }
 
   .preview-label {
     font-size: 0.72rem;
@@ -302,11 +319,12 @@
     font-family: var(--font-sans);
   }
 
+  /* Header: aspect-ratio 2.5:1 matches typical landscape banner proportions */
   .preview-header {
     width: 100%;
-    height: 90px;
+    aspect-ratio: 2.5 / 1;
     overflow: hidden;
-    border-radius: 6px;
+    border-radius: 8px;
     border: 1px solid var(--color-bordo, #c9b8f0);
   }
   .preview-header img {
@@ -317,19 +335,10 @@
     pointer-events: none;
   }
 
-  .preview-card {
-    width: 100%;
-    height: 60px;
-    overflow: hidden;
-    border-radius: 6px;
-    border: 1px solid var(--color-bordo, #c9b8f0);
-  }
-  .preview-card img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
+  /* Card: uses the real ArticleCard component — pointer-events off for admin */
+  .card-preview-wrap {
     pointer-events: none;
+    user-select: none;
   }
 
   /* ── Toggle ── */
@@ -345,4 +354,10 @@
   }
   .article-toggle.disabled { cursor: default; opacity: 0.6; }
   .article-toggle input { cursor: pointer; accent-color: var(--color-viola, #7c55d4); }
+
+  @media (max-width: 640px) {
+    .previews-grid {
+      grid-template-columns: 1fr;
+    }
+  }
 </style>
