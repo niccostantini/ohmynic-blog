@@ -73,7 +73,7 @@
   --radius-pill: 999px;
 
   /* --- Layout --- */
-  --max-width-prose:   680px;   /* Colonna articolo */
+  --max-width-prose:   700px;   /* Colonna articolo */
   --max-width-content: 960px;   /* Layout generale */
   --max-width-wide:    1200px;  /* Layout full */
 
