@@ -65,14 +65,11 @@ export async function getArticleById(id: string) {
 }
 
 export async function getAllArticlesAdmin(authorId?: string, status?: ArticleStatus) {
-  const conditions: ReturnType<typeof eq>[] = [];
+  const conditions: ReturnType<typeof eq>[] = [eq(articles.type, 'article')];
   if (authorId) conditions.push(eq(articles.authorId, authorId));
   if (status) conditions.push(eq(articles.status, status));
 
-  const q = db.select().from(articles).orderBy(desc(articles.createdAt));
-  if (conditions.length === 1) return q.where(conditions[0]);
-  if (conditions.length > 1) return q.where(and(...conditions));
-  return q;
+  return db.select().from(articles).where(and(...conditions)).orderBy(desc(articles.createdAt));
 }
 
 export async function createArticle(data: {
