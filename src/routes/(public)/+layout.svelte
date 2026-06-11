@@ -73,6 +73,8 @@
             <span class="reader-name">{data.reader.displayName}</span>
           </a>
           <button class="btn-logout" onclick={logout}>Esci</button>
+        {:else if data.adminUser}
+          <a href="{base}/admin" class="nav-btn">Pannello di controllo</a>
         {:else}
           <a href="{base}/login" class="nav-link">Accedi</a>
           <a href="{base}/register" class="nav-btn">Registrati</a>

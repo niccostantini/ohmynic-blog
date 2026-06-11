@@ -85,7 +85,9 @@
     </div>
   {/if}
 
-  {#if data.results.length === 0}
+  {#if !data.query && data.activeTags.length === 0}
+    <p class="search-prompt">Digita qualcosa nel campo qui sopra, oppure filtra per tag.</p>
+  {:else if data.results.length === 0}
     <div class="no-results">
       <p class="no-results-msg">
         {#if data.query}
@@ -378,6 +380,14 @@
     font-size: var(--text-sm);
     color: var(--color-lilla);
     padding: 0 var(--space-1);
+  }
+
+  /* ── stato vuoto iniziale ── */
+  .search-prompt {
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    color: var(--color-lilla);
+    padding: var(--space-6) 0;
   }
 
   /* ── no results ── */

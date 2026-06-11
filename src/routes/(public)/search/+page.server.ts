@@ -19,14 +19,11 @@ export const load: PageServerLoad = async ({ url }) => {
     ? tagsParam.split(',').map((s) => s.trim()).filter(Boolean)
     : [];
 
-  // redirect only if truly nothing to show
-  if (!query && activeTags.length === 0) redirect(302, `${base}/`);
-
   const page = Math.max(1, Number(url.searchParams.get('page')) || 1);
 
   const [rawResults, total, allTags] = await Promise.all([
-    searchArticles(query, { tagSlugs: activeTags, page, perPage: PER_PAGE }),
-    countSearchResults(query, activeTags),
+    query || activeTags.length > 0 ? searchArticles(query, { tagSlugs: activeTags, page, perPage: PER_PAGE }) : Promise.resolve([]),
+    query || activeTags.length > 0 ? countSearchResults(query, activeTags) : Promise.resolve(0),
     getTagsWithCount(),
   ]);
 

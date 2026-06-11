@@ -25,6 +25,7 @@ export const load: LayoutServerLoad = async ({ locals }) => {
 
   return {
     reader: locals.reader ?? null,
+    adminUser: locals.user ? { role: locals.user.role, displayName: locals.user.displayName } : null,
     navItems: clientNavItems,
   };
 };
