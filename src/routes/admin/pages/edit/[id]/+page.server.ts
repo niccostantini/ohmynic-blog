@@ -34,9 +34,6 @@ export const actions: Actions = {
     const showComments = data.get('showComments') === 'on';
     const showInNavbar = data.get('showInNavbar') === 'on';
     const visibleToRaw = data.get('visibleTo');
-    const visibleTo: string[] = visibleToRaw
-      ? (() => { try { return JSON.parse(visibleToRaw as string); } catch { return ['public']; } })()
-      : ['public'];
 
     if (typeof title !== 'string' || !title.trim()) {
       return fail(400, { error: 'Il titolo è obbligatorio.' });
@@ -47,6 +44,10 @@ export const actions: Actions = {
 
     const existing = await getArticleById(params.id);
     if (!existing || existing.type !== 'page') error(404, 'Pagina non trovata');
+
+    const visibleTo: string[] = visibleToRaw
+      ? (() => { try { return JSON.parse(visibleToRaw as string); } catch { return existing.visibleTo; } })()
+      : existing.visibleTo;
 
     // Use custom slug if provided, otherwise keep existing
     let slug = existing.slug;
@@ -85,12 +86,20 @@ export const actions: Actions = {
     return { saved: true };
   },
 
-  publish: async ({ params, locals }) => {
+  publish: async ({ params, locals, request }) => {
     const user = locals.user!;
     if (user.role !== 'admin') return fail(403, { error: 'Accesso negato' });
 
     const existing = await getArticleById(params.id);
     if (!existing || existing.type !== 'page') error(404, 'Pagina non trovata');
+
+    // Save any pending metadata changes (including visibleTo) before publishing
+    const data = await request.formData();
+    const visibleToRaw = data.get('visibleTo');
+    const visibleTo: string[] = visibleToRaw
+      ? (() => { try { return JSON.parse(visibleToRaw as string); } catch { return existing.visibleTo; } })()
+      : existing.visibleTo;
+    await updateArticle(params.id, { visibleTo });
 
     await changeArticleStatus(params.id, existing.status, 'published', user.id, 'Pagina pubblicata');
 

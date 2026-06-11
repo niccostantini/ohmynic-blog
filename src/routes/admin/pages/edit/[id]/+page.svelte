@@ -185,6 +185,7 @@
   >
     <input type="hidden" name="content" value={content} />
     <input type="hidden" name="blocksJson" value={blocksJson ?? ''} />
+    <input type="hidden" name="visibleTo" value={JSON.stringify(visibleTo)} />
   </form>
 
   <form id="unpublish-form" method="POST" action="?/unpublish" use:enhance style="display:none"></form>

@@ -22,20 +22,20 @@ export const load: PageServerLoad = async ({ params, locals, url }) => {
 
   const { article, author } = result;
 
-  // Visibility guard — only applies to pages (articles are always public when published)
-  if (article.type === 'page' && !previewToken) {
-    const visibleTo = article.visibleTo ?? ['public'];
+  // Visibility guard: fail-closed — null/empty visibleTo means private
+  if (!previewToken) {
+    const visibleTo: string[] = article.visibleTo?.length ? article.visibleTo : [];
     if (!visibleTo.includes('public')) {
       const user = locals.user;
       const reader = locals.reader;
 
       if (!user && !reader) {
-        redirect(302, `${base}/login?redirect=${base}/${params.slug}`);
+        redirect(302, `${base}/login?redirect=${encodeURIComponent(`${base}/${params.slug}`)}`);
       }
 
       const role = user?.role ?? 'reader';
       if (role !== 'admin' && !visibleTo.includes(role)) {
-        redirect(302, `${base}/login?redirect=${base}/${params.slug}`);
+        redirect(302, `${base}/login?redirect=${encodeURIComponent(`${base}/${params.slug}`)}`);
       }
     }
   }
