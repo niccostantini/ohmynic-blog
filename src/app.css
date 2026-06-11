@@ -97,8 +97,14 @@ html {
   font-weight: 600;
   margin-bottom: 0.25rem !important;
   font-size: 0.9rem;
+  line-height: 1rem;
 }
 .prose .callout-text { margin: 0 !important; }
+.prose .callout-text {
+  margin: 0 !important;
+  font-size: 0.8rem !important;
+  line-height: 1rem !important;
+}
 
 /* mobile: float collassa a blockquote-style */
 @media (max-width: 640px) {
