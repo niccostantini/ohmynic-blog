@@ -30,6 +30,9 @@ html {
     display: inline-flex;
     align-items: center;
   }
+  .prose h3 {
+    font-size: var(--text-lg);
+  }
 }
 
 /* ── Image con float (BlockNote custom block) ──────────────────────────── */
@@ -77,9 +80,9 @@ html {
 .prose .callout.float-left  { float: left;   width: 42%; margin: 0.25rem 1.5rem 1rem 0; }
 .prose .callout.center      { float: none;   width: 70%; margin: 1rem auto; }
 
-.prose .callout.nota       { background: #ece7fa; border-color: #c9b8f0; color: #3b2f5e; }
-.prose .callout.attenzione { background: #faeeda; border-color: #fac775; color: #633806; }
-.prose .callout.info       { background: #e6f1fb; border-color: #b5d4f4; color: #0c447c; }
+.prose .callout.nota       { background: #ece7fa; border-color: #b099e8 !important; color: #3b2f5e; }
+.prose .callout.attenzione { background: #faeeda; border-color: #fac775 !important; color: #633806; }
+.prose .callout.info       { background: #e6f1fb; border-color: #0c447c !important; color: #0c447c; }
 
 .prose .callout-inner {
   display: flex;
@@ -129,6 +132,9 @@ p.bn-inline-content.callout-text > span.bn-inline-content-section:has(> sup) {
     border-top: none;
     border-right: none;
     border-bottom: none;
+  }
+  .prose .footnotes {
+    overflow-wrap: break-word;
   }
 }
 /* ─────────────────────────────────────────────────────────────────────────── */
