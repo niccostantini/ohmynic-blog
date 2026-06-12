@@ -417,6 +417,8 @@
           disabled={isReadOnly}
           {title}
           {excerpt}
+          slug={data.article.slug}
+          tagSlug={data.articleTags[0]?.slug ?? 'default'}
         />
       </div>
       <div class="field">

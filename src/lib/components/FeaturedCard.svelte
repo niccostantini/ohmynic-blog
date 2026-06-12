@@ -1,5 +1,6 @@
 <script lang="ts">
   import { base } from '$app/paths';
+  import ArticlePlaceholder from '$lib/components/ArticlePlaceholder.svelte';
 
   type Tag = { id: string; name: string; slug: string };
   type Article = {
@@ -37,8 +38,8 @@
   class:featured-main={variant === 'main'}
   class:featured-side={variant === 'side'}
 >
-  {#if article.coverImage}
-    <div class="featured-cover-wrap">
+  <div class="featured-cover-wrap">
+    {#if article.coverImage}
       <img
         src={article.coverImage}
         alt={article.title}
@@ -46,16 +47,18 @@
         style={article.coverImageFocus ? `object-position: ${article.coverImageFocus}` : undefined}
         draggable="false"
       />
-    </div>
-  {/if}
+    {:else}
+      <ArticlePlaceholder slug={article.slug} tagSlug={tags[0]?.slug ?? 'default'} />
+    {/if}
+  </div>
   <div class="featured-body">
     <div class="featured-meta-top">
       <span class="featured-badge"><i class="ti ti-star"></i> In evidenza</span>
       {#if article.type === 'page'}
         <span class="type-badge">Pagina</span>
-      {:else if tags.length > 0}
+      {:else if tags.some(t => t.name)}
         <div class="featured-tags">
-          {#each tags.slice(0, 2) as tag}
+          {#each tags.filter(t => t.name).slice(0, 2) as tag}
             <span class="featured-tag">{tag.name}</span>
           {/each}
         </div>
@@ -87,7 +90,7 @@
     box-shadow: var(--shadow-md);
   }
 
-  .featured-cover-wrap { flex-shrink: 0; }
+  .featured-cover-wrap { flex-shrink: 0; overflow: hidden; }
   .featured-main .featured-cover { height: 220px; }
   .featured-side .featured-cover { height: 140px; }
   .featured-cover {
@@ -95,6 +98,9 @@
     object-fit: cover;
     display: block;
   }
+  /* Placeholder: stessa altezza dell'immagine di copertina */
+  .featured-main .featured-cover-wrap :global(.card-placeholder) { height: 220px; }
+  .featured-side .featured-cover-wrap :global(.card-placeholder) { height: 140px; }
 
   .featured-body {
     padding: var(--space-5);
@@ -183,6 +189,8 @@
   @media (max-width: 640px) {
     .featured-main .featured-cover,
     .featured-side .featured-cover { height: 180px; }
+    .featured-main .featured-cover-wrap :global(.card-placeholder),
+    .featured-side .featured-cover-wrap :global(.card-placeholder) { height: 180px; }
     .featured-main .featured-title,
     .featured-side .featured-title { font-size: var(--text-xl); }
     .featured-side .featured-excerpt { -webkit-line-clamp: 3; line-clamp: 3; }

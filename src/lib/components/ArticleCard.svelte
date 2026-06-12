@@ -1,5 +1,6 @@
 <script lang="ts">
   import { base } from '$app/paths';
+  import ArticlePlaceholder from '$lib/components/ArticlePlaceholder.svelte';
 
   type Tag = { id: string; name: string; slug: string };
   type Article = {
@@ -22,20 +23,22 @@
 </script>
 
 <div class="card">
-  {#if article.coverImage}
-    <a href="{base}/{article.slug}" class="card-image-link" tabindex="-1" aria-hidden="true">
+  <a href="{base}/{article.slug}" class="card-image-link" tabindex="-1" aria-hidden="true">
+    {#if article.coverImage}
       <img
         src={article.coverImage}
         alt={article.title}
         class="card-cover"
         style={article.coverImageFocus ? `object-position: ${article.coverImageFocus}` : undefined}
       />
-    </a>
-  {/if}
+    {:else}
+      <ArticlePlaceholder slug={article.slug} tagSlug={tags[0]?.slug ?? 'default'} />
+    {/if}
+  </a>
   <div class="card-body">
-    {#if tags.length > 0}
+    {#if tags.some(t => t.name)}
       <div class="card-tags">
-        {#each tags as tag}
+        {#each tags.filter(t => t.name) as tag}
           <a href={getTagHref ? getTagHref(tag.slug) : `${base}/tag/${tag.slug}`} class="tag">{tag.name}</a>
         {/each}
       </div>
@@ -74,7 +77,7 @@
   }
   .card-cover {
     width: 100%;
-    height: 200px;
+    aspect-ratio: 16 / 9;
     object-fit: cover;
     display: block;
   }
@@ -104,7 +107,7 @@
   .tag:hover { background: var(--color-bordo); }
   .card-title {
     font-family: var(--font-serif);
-    font-size: var(--text-xl);
+    font-size: 18px;
     font-weight: var(--weight-semibold);
     line-height: var(--leading-snug);
     color: var(--color-notte);
@@ -120,7 +123,7 @@
   .card-title-link:hover { color: var(--color-lavanda); }
   .card-excerpt {
     font-family: var(--font-sans);
-    font-size: var(--text-base);
+    font-size: 12px;
     line-height: var(--leading-relaxed);
     color: var(--color-grafite);
     margin-bottom: var(--space-4);
@@ -138,12 +141,12 @@
   }
   .card-date {
     font-family: var(--font-sans);
-    font-size: var(--text-sm);
+    font-size: var(--text-xs);
     color: var(--color-lilla);
   }
   .card-reading-time {
     font-family: var(--font-sans);
-    font-size: var(--text-sm);
+    font-size: var(--text-xs);
     color: var(--color-lilla);
     flex-shrink: 0;
   }

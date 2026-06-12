@@ -11,6 +11,8 @@
     disabled = false,
     title = '',
     excerpt = '',
+    slug = '',
+    tagSlug = 'default',
   }: {
     initialUrl?: string;
     initialFocus?: string;
@@ -19,6 +21,8 @@
     disabled?: boolean;
     title?: string;
     excerpt?: string;
+    slug?: string;
+    tagSlug?: string;
   } = $props();
 
   let url = $state(initialUrl);
@@ -36,7 +40,7 @@
   let previewArticle = $derived({
     id: 'preview',
     title: title || 'Titolo dell\'articolo',
-    slug: 'preview',
+    slug: slug || 'preview',
     excerpt: excerpt || 'Qui apparirà l\'estratto del tuo articolo…',
     coverImage: url || null,
     coverImageFocus: focus,
@@ -45,6 +49,10 @@
     readingTimeMinutes: 5,
     type: 'article',
   });
+  // Tag minimale per il colore del placeholder
+  let previewTags = $derived(
+    tagSlug !== 'default' ? [{ id: 'preview-tag', name: '', slug: tagSlug }] : []
+  );
 
   async function handleFileSelect(e: Event) {
     const file = (e.target as HTMLInputElement).files?.[0];
@@ -150,27 +158,6 @@
       </div>
     </div>
 
-    <!-- Previews: featured-main (left) + card lista (right) -->
-    <div class="previews-grid">
-
-      <!-- Primo in evidenza — usa FeaturedCard reale -->
-      <div class="preview-col preview-col-featured">
-        <p class="preview-label">Primo in evidenza</p>
-        <div class="card-preview-wrap">
-          <FeaturedCard article={previewArticle} tags={[]} variant="main" href="#" />
-        </div>
-      </div>
-
-      <!-- Card homepage — usa l'ArticleCard reale -->
-      <div class="preview-col preview-col-card">
-        <p class="preview-label">Card homepage</p>
-        <div class="card-preview-wrap">
-          <ArticleCard article={previewArticle} tags={[]} />
-        </div>
-      </div>
-
-    </div>
-
     {#if showArticleToggle}
       <label class="article-toggle" class:disabled>
         <input
@@ -183,6 +170,27 @@
       </label>
     {/if}
   {/if}
+
+  <!-- Previews: sempre visibili (placeholder se no copertina, immagine se caricata) -->
+  <div class="previews-grid">
+
+    <!-- Primo in evidenza — usa FeaturedCard reale -->
+    <div class="preview-col preview-col-featured">
+      <p class="preview-label">Primo in evidenza</p>
+      <div class="card-preview-wrap">
+        <FeaturedCard article={previewArticle} tags={previewTags} variant="main" href="#" />
+      </div>
+    </div>
+
+    <!-- Card homepage — usa l'ArticleCard reale -->
+    <div class="preview-col preview-col-card">
+      <p class="preview-label">Card homepage</p>
+      <div class="card-preview-wrap">
+        <ArticleCard article={previewArticle} tags={previewTags} />
+      </div>
+    </div>
+
+  </div>
 </div>
 
 <style>
