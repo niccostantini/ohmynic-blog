@@ -10,7 +10,8 @@
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('../assets/fonts/inter-v20-latin/inter-v20-latin-regular.woff2') format('woff2');
+  /* Stable path in static/fonts/ so the preload in app.html matches this URL. */
+  src: url('/blog/fonts/inter-regular.woff2') format('woff2');
 }
 
 @font-face {
@@ -34,7 +35,8 @@
   font-style: normal;
   font-weight: 600;
   font-display: swap;
-  src: url('../assets/fonts/inter-v20-latin/inter-v20-latin-600.woff2') format('woff2');
+  /* Stable path in static/fonts/ so the preload in app.html matches this URL. */
+  src: url('/blog/fonts/inter-600.woff2') format('woff2');
 }
 
 @font-face {
