@@ -1,3 +1,24 @@
+# NOTE: As of 2026-06, nginx handles reverse proxying (Caddy failed because
+# nginx was already on :80). This file is kept for reference only.
+# The active config is on the server at /etc/nginx/sites-enabled/ohmynic.
+#
+# See DEPLOY.md for the current nginx config with cache headers.
+
 ohmynic.co {
+  # robots.txt at domain root (SvelteKit base is /blog)
+  handle /robots.txt {
+    header Content-Type "text/plain; charset=utf-8"
+    respond "User-agent: *\nDisallow: /admin/\nDisallow: /admin-login/\n\nSitemap: https://ohmynic.co/blog/sitemap.xml\n" 200
+  }
+
+  # Immutable Vite assets: 1 year
+  @immutable path /blog/_app/immutable/*
+  header @immutable Cache-Control "public, max-age=31536000, immutable"
+
+  # Static fonts: 1 year + CORS for preload
+  @fonts path /blog/fonts/*
+  header @fonts Cache-Control "public, max-age=31536000, immutable"
+  header @fonts Access-Control-Allow-Origin "*"
+
   reverse_proxy localhost:3000
 }
