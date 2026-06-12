@@ -601,7 +601,7 @@
     }
     .logo-link { grid-area: logo; align-self: center; }
     .footer-inner a.logo-link {
-      font-size: var(--text-lg);
+      font-size: var(--text-lg) !important;
     }
     .footer-prefs-btn { grid-area: prefs; align-self: center; }
     .footer-meta {
