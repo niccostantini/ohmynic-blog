@@ -1,0 +1,43 @@
+/* ── BlockNote editor — admin-only styles ───────────────────────────────────
+   Imported exclusively in src/routes/admin/+layout.svelte.
+   Never shipped to public pages.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* Footnote superscript alignment inside BlockNote inline content */
+span.bn-inline-content-section:has(> sup) {
+  line-height: 0;
+}
+
+p.bn-inline-content.callout-text > span.bn-inline-content-section:has(> sup) {
+  vertical-align: top;
+  position: relative;
+  top: 0.3rem;
+  line-height: 0;
+}
+
+/* Dark mode — BlockNote editor chrome */
+[data-theme='dark'] .bn-editor {
+  background: var(--color-iris) !important;
+  color: var(--color-notte) !important;
+  border-color: var(--color-bordo) !important;
+}
+[data-theme='dark'] .bn-block-content,
+[data-theme='dark'] .bn-inline-content {
+  color: var(--color-notte) !important;
+}
+[data-theme='dark'] .bn-block-content::before {
+  color: var(--color-lilla) !important;
+}
+[data-theme='dark'] .bn-menu,
+[data-theme='dark'] .bn-toolbar {
+  background: #1a1630 !important;
+  border: 0.5px solid #2a2340 !important;
+  color: #f0ecff !important;
+}
+[data-theme='dark'] .bn-menu-item:hover,
+[data-theme='dark'] .bn-menu-item[data-selected='true'] {
+  background: #2a2340 !important;
+}
+[data-theme='dark'] .bn-toolbar button:hover {
+  background: #2a2340 !important;
+}

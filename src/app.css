@@ -108,16 +108,6 @@ html {
   line-height: 1rem !important;
 }
 
-span.bn-inline-content-section:has(> sup) {
-  line-height: 0;
-}
-
-p.bn-inline-content.callout-text > span.bn-inline-content-section:has(> sup) {
-  vertical-align: top;
-  position: relative;
-  top: 0.3rem;
-  line-height: 0;
-}
 
 /* mobile: float collassa a blockquote-style */
 @media (max-width: 640px) {
@@ -231,32 +221,6 @@ body {
   color: inherit !important;
 }
 
-/* ── Dark mode — BlockNote editor ────────────────────────────────────────── */
-[data-theme='dark'] .bn-editor {
-  background: var(--color-iris) !important;
-  color: var(--color-notte) !important;
-  border-color: var(--color-bordo) !important;
-}
-[data-theme='dark'] .bn-block-content,
-[data-theme='dark'] .bn-inline-content {
-  color: var(--color-notte) !important;
-}
-[data-theme='dark'] .bn-block-content::before {
-  color: var(--color-lilla) !important;
-}
-[data-theme='dark'] .bn-menu,
-[data-theme='dark'] .bn-toolbar {
-  background: #1a1630 !important;
-  border: 0.5px solid #2a2340 !important;
-  color: #f0ecff !important;
-}
-[data-theme='dark'] .bn-menu-item:hover,
-[data-theme='dark'] .bn-menu-item[data-selected='true'] {
-  background: #2a2340 !important;
-}
-[data-theme='dark'] .bn-toolbar button:hover {
-  background: #2a2340 !important;
-}
 
 /* ── Dark mode — callout mobile override ─────────────────────────────────── */
 @media (max-width: 640px) {

@@ -7,6 +7,7 @@
   import ThemeToggle from '$lib/components/ThemeToggle.svelte';
   import Toast from '$lib/components/Toast.svelte';
   import FeedbackModal from '$lib/components/FeedbackModal.svelte';
+  import '$lib/styles/admin-editor.css';
 
   let { data, children }: { data: LayoutData; children: Snippet } = $props();
 
@@ -31,6 +32,8 @@
 
 <svelte:head>
   <meta name="robots" content="noindex, nofollow" />
+  <!-- Load icons synchronously for admin — UX requires them immediately -->
+  <link rel="stylesheet" href="{base}/fonts/tabler-icons.css">
 </svelte:head>
 
 <div class="admin-shell">
