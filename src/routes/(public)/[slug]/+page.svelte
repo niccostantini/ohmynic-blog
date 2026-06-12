@@ -1,6 +1,6 @@
 <script lang="ts">
   import { base } from '$app/paths';
-  import { onMount } from 'svelte';
+  import { onMount, mount } from 'svelte';
   import ArticleCard from '$lib/components/ArticleCard.svelte';
   import CommentForm from '$lib/components/CommentForm.svelte';
   import CommentList from '$lib/components/CommentList.svelte';
@@ -8,6 +8,7 @@
   import TagList from '$lib/components/TagList.svelte';
   import { trackPageview, initCompletionTracking } from '$lib/analytics';
   import ReadingProgress from '$lib/components/ReadingProgress.svelte';
+  import Poll from '$lib/components/Poll.svelte';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
@@ -15,11 +16,92 @@
   let proseEl = $state<HTMLElement | null>(null);
 
   onMount(() => {
-    // Pageview con articleId
     trackPageview(window.location.pathname, data.article.id);
-    // Completion tracking
-    if (proseEl) return initCompletionTracking(data.article.id, proseEl);
+
+    let cleanup: (() => void) | undefined;
+    if (proseEl) {
+      cleanup = initCompletionTracking(data.article.id, proseEl) ?? undefined;
+
+      // Idrata i placeholder dei sondaggi con Poll.svelte
+      const placeholders = proseEl.querySelectorAll<HTMLElement>('.poll-embed[data-poll-id]');
+      for (const el of placeholders) {
+        hydratePoll(el);
+      }
+    }
+
+    return cleanup;
   });
+
+  async function hydratePoll(el: HTMLElement) {
+    const pollId = el.getAttribute('data-poll-id');
+    if (!pollId) return;
+
+    // Use server-preloaded data when available, otherwise fetch from API
+    const pd = data.polls?.[pollId];
+    let question: string;
+    let allowMultiple: boolean;
+    let closed: boolean;
+    let initialResults: Parameters<typeof Poll>[0]['initialResults'];
+    let initialUserVotedOptionIds: string[];
+
+    if (pd) {
+      question = pd.poll.question;
+      allowMultiple = pd.poll.allowMultiple;
+      closed = pd.poll.closed;
+      initialResults = pd.results;
+      initialUserVotedOptionIds = pd.userVotedOptionIds;
+    } else {
+      // Fallback: fetch from API
+      let apiOk = false;
+      try {
+        const res = await fetch(`${base}/api/polls/${pollId}/results`);
+        if (res.ok) {
+          const json = await res.json();
+          question = el.getAttribute('data-poll-question') ?? '';
+          allowMultiple = false;
+          closed = false;
+          initialResults = { options: json.options, totalVoters: json.totalVoters };
+          initialUserVotedOptionIds = json.userVotedOptionIds ?? [];
+          apiOk = true;
+        }
+      } catch { /* ignore */ }
+
+      if (!apiOk) {
+        // Poll not in DB yet (article saved before migration, or sync pending) —
+        // render from DOM attributes so the block is always visible.
+        question = el.getAttribute('data-poll-question') ?? '';
+        allowMultiple = false;
+        closed = false;
+        let rawOptions: { id: string; label: string }[] = [];
+        try { rawOptions = JSON.parse(el.getAttribute('data-options') ?? '[]'); } catch { /* */ }
+        initialResults = {
+          options: rawOptions.map((o, i) => ({
+            optionId: o.id,
+            label: o.label,
+            position: i,
+            votes: 0,
+            percentage: 0,
+          })),
+          totalVoters: 0,
+        };
+        initialUserVotedOptionIds = [];
+      }
+    }
+
+    el.innerHTML = '';
+    mount(Poll, {
+      target: el,
+      props: {
+        pollId,
+        question,
+        allowMultiple,
+        closed,
+        reader: data.reader ?? null,
+        initialResults,
+        initialUserVotedOptionIds,
+      },
+    });
+  }
 
   let bookmarked = $state(data.bookmarked ?? false);
   let bookmarkLoading = $state(false);

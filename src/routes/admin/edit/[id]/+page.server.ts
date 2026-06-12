@@ -108,6 +108,13 @@ export const actions: Actions = {
       await setArticleTags(params.id, tagIds);
     }
 
+    // Sync poll blocks to DB (fire-and-forget)
+    if (blocksJson) {
+      syncPollsFromBlocks(params.id, blocksJson).catch((err) => {
+        console.error('[polls] syncPollsFromBlocks failed:', err);
+      });
+    }
+
     // Fire-and-forget block comment reconciliation
     const blockSnapshotsRaw = data.get('blockSnapshots');
     if (typeof blockSnapshotsRaw === 'string' && blockSnapshotsRaw.length > 2) {
@@ -277,3 +284,43 @@ export const actions: Actions = {
     redirect(302, `${base}/admin`);
   },
 };
+
+// ── Poll sync helper ──────────────────────────────────────────────────────────
+
+async function syncPollsFromBlocks(articleId: string, blocksJson: string) {
+  const { upsertPoll } = await import('$lib/db/queries/polls');
+
+  function findPolls(blocks: any[]): any[] {
+    const found: any[] = [];
+    for (const b of blocks) {
+      if (b.type === 'poll' && b.props?.pollId) found.push(b);
+      if (Array.isArray(b.children)) found.push(...findPolls(b.children));
+    }
+    return found;
+  }
+
+  let blocks: any[];
+  try {
+    blocks = JSON.parse(blocksJson);
+  } catch {
+    return;
+  }
+
+  const pollBlocks = findPolls(blocks);
+  if (pollBlocks.length === 0) return;
+
+  await Promise.all(
+    pollBlocks.map((b) => {
+      let opts: { id: string; label: string }[] = [];
+      try { opts = JSON.parse(b.props.options || '[]'); } catch { /* ignore */ }
+      return upsertPoll({
+        id: b.props.pollId,
+        articleId,
+        question: b.props.question || '',
+        options: opts,
+        allowMultiple: b.props.allowMultiple === true,
+        closed: b.props.closed === true,
+      });
+    }),
+  );
+}

@@ -182,6 +182,37 @@ export const featuredItems = pgTable('featured_items', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+// ── Poll ──────────────────────────────────────────────────────────────────────
+
+export const polls = pgTable('polls', {
+  id: uuid('id').primaryKey(),
+  articleId: uuid('article_id').notNull().references(() => articles.id, { onDelete: 'cascade' }),
+  question: text('question').notNull(),
+  allowMultiple: boolean('allow_multiple').notNull().default(false),
+  closed: boolean('closed').notNull().default(false),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const pollOptions = pgTable('poll_options', {
+  id: uuid('id').primaryKey(),
+  pollId: uuid('poll_id').notNull().references(() => polls.id, { onDelete: 'cascade' }),
+  label: text('label').notNull(),
+  position: integer('position').notNull().default(0),
+}, (t) => [
+  index('poll_options_poll_id_idx').on(t.pollId),
+]);
+
+export const pollVotes = pgTable('poll_votes', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  pollId: uuid('poll_id').notNull().references(() => polls.id, { onDelete: 'cascade' }),
+  optionId: uuid('option_id').notNull().references(() => pollOptions.id, { onDelete: 'restrict' }),
+  readerId: uuid('reader_id').notNull().references(() => readers.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (t) => [
+  index('poll_votes_poll_id_idx').on(t.pollId),
+]);
+
 export const articleReadCompletions = pgTable('article_read_completions', {
   id: uuid('id').primaryKey().defaultRandom(),
   articleId: uuid('article_id').notNull().references(() => articles.id, { onDelete: 'cascade' }),

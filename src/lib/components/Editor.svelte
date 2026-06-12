@@ -101,6 +101,7 @@
     const { calloutBlockSpec } = await import('./CalloutBlock.js');
     const { imageBlockSpec } = await import('./ImageBlock.js');
     const { footnoteInlineContentSpec, footnoteListBlockSpec, FootnoteContext } = await import('$lib/editor/footnotes/index.js');
+    const { pollBlockSpec } = await import('./PollBlock.js');
 
     await import('@blocknote/mantine/style.css');
 
@@ -111,6 +112,7 @@
         image: imageBlockSpec(uploadImageFile)(),
         callout: calloutBlockSpec(),
         footnoteList: footnoteListBlockSpec(),
+        poll: pollBlockSpec(),
       },
       inlineContentSpecs: {
         ...defaultInlineContentSpecs,
@@ -138,6 +140,10 @@
       if (type === 'callout') {
         const title = block.props?.title;
         return { snapshot: title ? `[Callout] ${title}` : '[Callout]', blockType: type };
+      }
+      if (type === 'poll') {
+        const q = block.props?.question;
+        return { snapshot: q ? `[Sondaggio] ${q}` : '[Sondaggio]', blockType: type };
       }
       return { snapshot: `[Blocco: ${type}]`, blockType: type };
     }
@@ -583,7 +589,24 @@
             );
           },
         }));
-        return filterSuggestionItems([...defaults, imageItem, ...callouts] as any, query) as any;
+        const pollItem = {
+          title: 'Sondaggio',
+          group: 'Media',
+          icon: createElement('span', { style: { fontSize: '1.1rem' } }, '📊'),
+          onItemClick: () => {
+            // UUID assegnati all'inserimento — evita race condition con useEffect
+            const defaultOptions = JSON.stringify([
+              { id: crypto.randomUUID(), label: 'Opzione 1' },
+              { id: crypto.randomUUID(), label: 'Opzione 2' },
+            ]);
+            (editor as any).insertBlocks(
+              [{ type: 'poll', props: { pollId: crypto.randomUUID(), question: 'Qual è la tua risposta?', options: defaultOptions, allowMultiple: false, closed: false } }],
+              (editor as any).getTextCursorPosition().block,
+              'after',
+            );
+          },
+        };
+        return filterSuggestionItems([...defaults, imageItem, pollItem, ...callouts] as any, query) as any;
       }, [editor]);
 
       // ── Context value ────────────────────────────────────────────────────────
