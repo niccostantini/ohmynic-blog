@@ -1,7 +1,6 @@
 <script lang="ts">
   import { base } from '$app/paths';
   import { enhance } from '$app/forms';
-  import Poll from '$lib/components/Poll.svelte';
   import type { PageData } from './$types';
   import type { PollResults } from '$lib/db/queries/polls';
 
@@ -190,30 +189,14 @@
         </button>
       </div>
 
-      <!-- Poll component in results mode -->
-      <div class="dialog-poll">
-        {#if loadingResults}
-          <div class="loading-state">
-            <i class="ti ti-loader-2 spin"></i> Caricamento risultati…
-          </div>
-        {:else if results}
-          <Poll
-            pollId={activePoll.id}
-            question={activePoll.question}
-            allowMultiple={activePoll.allowMultiple}
-            closed={activePoll.closed}
-            reader={null}
-            initialResults={results}
-            initialUserVotedOptionIds={[]}
-            forceResults={true}
-          />
-        {:else}
-          <p class="no-results">Nessun dato disponibile per questo sondaggio.</p>
-        {/if}
-      </div>
-
       <!-- Charts section -->
-      {#if results && results.options.length > 0}
+      {#if loadingResults}
+        <div class="loading-state">
+          <i class="ti ti-loader-2 spin"></i> Caricamento risultati…
+        </div>
+      {:else if !results}
+        <div class="loading-state">Nessun dato disponibile per questo sondaggio.</div>
+      {:else if results.options.length > 0}
         <div class="charts-section">
           <div class="chart-switcher" role="group" aria-label="Tipo di grafico">
             {#each (['anello', 'torta', 'colonne'] as const) as type}
@@ -518,6 +501,7 @@
     background: var(--color-nebbia);
     box-shadow: var(--shadow-lg);
     color: var(--color-prugna);
+    margin: auto;
   }
 
   .results-dialog::backdrop {
@@ -568,25 +552,13 @@
   }
   .dialog-close:hover { color: var(--color-notte); background: var(--color-iris); }
 
-  .dialog-poll {
-    padding: var(--space-5) var(--space-6);
-    border-bottom: 0.5px solid var(--color-bordo);
-  }
-
   .loading-state {
     display: flex;
     align-items: center;
     gap: var(--space-2);
     color: var(--color-lilla);
     font-size: var(--text-sm);
-    padding: var(--space-4) 0;
-  }
-
-  .no-results {
-    color: var(--color-lilla);
-    font-size: var(--text-sm);
-    margin: 0;
-    padding: var(--space-4) 0;
+    padding: var(--space-6) var(--space-6);
   }
 
   /* ── Charts ─────────────────────────────────────────────────────────────── */
