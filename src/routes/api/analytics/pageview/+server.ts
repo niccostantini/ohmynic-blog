@@ -1,11 +1,19 @@
 import { json } from '@sveltejs/kit';
 import { db } from '$lib/db/index';
 import { pageViews } from '$lib/db/schema';
+import { lt } from 'drizzle-orm';
 import type { RequestHandler } from './$types';
+
+const RETENTION_MONTHS = 13;
+
+async function pruneOldPageviews() {
+  const cutoff = new Date();
+  cutoff.setMonth(cutoff.getMonth() - RETENTION_MONTHS);
+  await db.delete(pageViews).where(lt(pageViews.createdAt, cutoff));
+}
 
 export const POST: RequestHandler = async ({ request, locals }) => {
   try {
-    // Rispetta Do Not Track
     if (request.headers.get('dnt') === '1') {
       return json({ ok: true });
     }
@@ -14,11 +22,9 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
     if (!path || !sessionId) return json({ ok: true });
 
-    // Non tracciare route admin
     if (String(path).startsWith('/blog/admin')) return json({ ok: true });
 
     const country = request.headers.get('cf-ipcountry') ?? null;
-    const userAgent = request.headers.get('user-agent')?.slice(0, 512) ?? null;
 
     await db.insert(pageViews).values({
       path: String(path).slice(0, 512),
@@ -26,9 +32,14 @@ export const POST: RequestHandler = async ({ request, locals }) => {
       referrer: referrer ? String(referrer).slice(0, 512) : null,
       sessionId: String(sessionId).slice(0, 64),
       country,
-      userAgent,
+      userAgent: null,
       readerId: locals.reader?.id ?? null,
     });
+
+    // Probabilistic retention cleanup (~1% of requests)
+    if (Math.random() < 0.01) {
+      pruneOldPageviews().catch(() => {});
+    }
   } catch {
     // Mai bloccare l'utente per un errore di analytics
   }
