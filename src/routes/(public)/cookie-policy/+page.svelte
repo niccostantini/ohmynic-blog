@@ -22,15 +22,14 @@
     <h2>2. Cosa sono cookie e storage locale</h2>
     <p>
       I <strong>cookie</strong> sono piccoli file di testo salvati dal browser sul tuo dispositivo quando visiti un sito.
-      Questo sito usa anche il <strong>localStorage</strong> e il <strong>sessionStorage</strong> del browser,
-      meccanismi analoghi ai cookie ma gestiti interamente dal tuo browser, non trasmessi automaticamente al server
-      a ogni richiesta.
+      Questo sito usa anche il <strong>localStorage</strong> e il <strong>sessionStorage</strong>, meccanismi gestiti dal browser
+      che non vengono automaticamente inviati al server a ogni richiesta.
     </p>
 
     <h2>3. Cookie impostati da questo sito</h2>
     <p>
-      Questo sito non usa cookie di profilazione, cookie pubblicitari o cookie di terze parti.
-      I soli cookie impostati sono tecnici e strettamente necessari al funzionamento del servizio.
+      Questo sito non usa cookie di profilazione, pubblicitari o di terze parti.
+      I soli cookie utilizzati sono tecnici e necessari al funzionamento del servizio.
     </p>
 
     <table>
@@ -45,29 +44,30 @@
       <tbody>
         <tr>
           <td><code>auth_session</code></td>
-          <td>Sessione di autenticazione per gli utenti staff/admin del CMS. Impostato esclusivamente dopo il login su <code>/admin-login</code>; non riguarda i visitatori del blog.</td>
-          <td>30 giorni (o fino al logout)</td>
+          <td>Sessione di autenticazione per utenti staff/admin del CMS.</td>
+          <td>30 giorni o fino al logout</td>
           <td>HttpOnly, Secure, SameSite=Strict</td>
         </tr>
         <tr>
           <td><code>reader_session</code></td>
-          <td>Sessione di autenticazione per i lettori registrati. Impostato solo dopo il login volontario su <code>/login</code>; i visitatori non registrati non ricevono questo cookie.</td>
-          <td>30 giorni (o fino al logout)</td>
+          <td>Sessione per utenti registrati che effettuano login volontario.</td>
+          <td>30 giorni o fino al logout</td>
           <td>HttpOnly, Secure, SameSite=Lax</td>
         </tr>
       </tbody>
     </table>
 
     <p>
-      Entrambi i cookie sono <strong>strettamente necessari</strong> per fornire il servizio di autenticazione
-      richiesto esplicitamente dall'utente. Ai sensi dell'art. 5(3) della Direttiva ePrivacy non è richiesto
-      il consenso per cookie strettamente necessari.
+      Questi cookie sono strettamente necessari per fornire funzionalità richieste dall'utente
+      e non richiedono consenso ai sensi dell'art. 5(3) della Direttiva ePrivacy.
     </p>
 
-    <h2>4. Storage locale (localStorage e sessionStorage)</h2>
+    <h2>4. Storage locale</h2>
+
+    <h3>localStorage</h3>
     <p>
-      Il sito salva alcune preferenze estetiche nel <strong>localStorage</strong> del tuo browser.
-      Questi dati non vengono mai trasmessi al server e non contengono dati personali.
+      Il sito salva alcune preferenze nel localStorage del tuo browser. Questi dati restano sul dispositivo
+      e non vengono mai trasmessi al server.
     </p>
 
     <table>
@@ -81,26 +81,36 @@
       <tbody>
         <tr>
           <td><code>ohmynic-theme</code></td>
-          <td>Preferenza tema: <code>light</code>, <code>dark</code> o <code>system</code></td>
+          <td>Preferenza tema UI (chiaro/scuro/sistema)</td>
           <td>Fino a cancellazione manuale</td>
         </tr>
         <tr>
           <td><code>ohmynic-theme-color</code></td>
-          <td>Preferenza colore dell'interfaccia</td>
+          <td>Preferenza colore interfaccia</td>
           <td>Fino a cancellazione manuale</td>
         </tr>
         <tr>
           <td><code>ohmynic-theme-hc</code></td>
-          <td>Preferenza modalità alto contrasto (<code>on</code>/<code>off</code>)</td>
+          <td>Preferenza modalità alto contrasto</td>
+          <td>Fino a cancellazione manuale</td>
+        </tr>
+        <tr>
+          <td><code>ohmynic-cookie-notice</code></td>
+          <td>Memorizza la chiusura del banner informativo sui cookie</td>
+          <td>Fino a cancellazione manuale</td>
+        </tr>
+        <tr>
+          <td><code>ohmynic-analytics-optout</code></td>
+          <td>Preferenza di opt-out dalle statistiche interne. Se impostato, nessun dato di visita viene raccolto.</td>
           <td>Fino a cancellazione manuale</td>
         </tr>
       </tbody>
     </table>
 
+    <h3>sessionStorage</h3>
     <p>
-      Nel <strong>sessionStorage</strong> viene salvato temporaneamente un identificativo di sessione
-      per l'analytics interno (vedi sezione 5). Questo dato esiste solo per la durata della scheda del browser
-      e viene eliminato automaticamente alla sua chiusura.
+      Viene utilizzato per salvare un identificativo temporaneo di sessione per le statistiche interne.
+      Il dato esiste solo per la durata della scheda del browser e non viene mantenuto oltre la sessione.
     </p>
 
     <table>
@@ -114,90 +124,88 @@
       <tbody>
         <tr>
           <td><code>ohmynic-sid</code></td>
-          <td>UUID casuale generato lato client, usato come identificativo di sessione per l'analytics. Non è collegato a nessun profilo o account.</td>
-          <td>Durata della scheda del browser (sessionStorage)</td>
+          <td>UUID casuale generato lato client per identificare la sessione di navigazione nelle statistiche interne. Non è collegato a nessun profilo o account.</td>
+          <td>Durata della scheda del browser</td>
         </tr>
       </tbody>
     </table>
 
     <h2>5. Analytics interni</h2>
+
     <p>
-      Questo sito raccoglie statistiche di utilizzo tramite un sistema di analytics sviluppato internamente,
-      senza ricorrere a strumenti di terze parti (come Google Analytics).
+      Il sito utilizza un sistema di analytics sviluppato internamente, senza servizi di terze parti.
     </p>
 
-    <h3>Dati raccolti per ogni visita</h3>
+    <h3>Dati raccolti per visita</h3>
     <ul>
-      <li><strong>URL della pagina</strong> visitata</li>
-      <li><strong>URL di provenienza</strong> (referrer), se presente</li>
-      <li><strong>Paese</strong> di accesso, derivato dall'indirizzo IP tramite il servizio Cloudflare — <em>l'indirizzo IP non viene mai memorizzato</em></li>
-      <li><strong>Identificativo di sessione</strong> (l'UUID da sessionStorage descritto sopra) — pseudonimo, non persistente oltre la sessione</li>
-      <li><strong>Percentuale di lettura</strong> dell'articolo (25%, 50%, 75%, 100%), quando il lettore scorre la pagina</li>
+      <li>URL della pagina visitata</li>
+      <li>Referrer (URL di provenienza), se presente</li>
+      <li>Paese di accesso, derivato dall'indirizzo IP tramite Cloudflare — l'indirizzo IP non viene mai memorizzato</li>
+      <li>Identificativo di sessione (UUID da sessionStorage, non persistente)</li>
+      <li>Progressione di lettura dell'articolo (25%, 50%, 75%, 100%)</li>
     </ul>
 
-    <h3>Dati NON raccolti</h3>
+    <h3>Dati non raccolti</h3>
     <ul>
       <li>Indirizzo IP</li>
       <li>Dati del dispositivo o del browser (nessun fingerprinting)</li>
-      <li>Dati comportamentali cross-sito</li>
-      <li>Qualsiasi dato trasmesso a terze parti</li>
+      <li>Tracciamento cross-site</li>
+      <li>Dati inviati a terze parti</li>
     </ul>
 
-    <h3>Lettori registrati</h3>
+    <h3>Utenti autenticati</h3>
     <p>
-      Se sei loggato come lettore, le statistiche di visita vengono associate al tuo account.
-      Questo consente funzionalità come la cronologia degli articoli letti nel tuo profilo.
+      Per i lettori registrati e autenticati, le statistiche di visita possono essere associate all'account
+      per fornire funzionalità del servizio (come la cronologia personale). Questo non costituisce profilazione.
     </p>
 
-    <h3>Do Not Track</h3>
+    <h3>Opt-out e Do Not Track</h3>
     <p>
-      Questo sito rispetta il segnale <strong>Do Not Track (DNT)</strong> del browser.
-      Se DNT è attivato nelle impostazioni del tuo browser, nessun dato di analytics viene raccolto né trasmesso.
+      Puoi disattivare le statistiche in qualsiasi momento tramite il banner presente nel footer del sito
+      oppure dalle impostazioni del browser (segnale Do Not Track). Se l'opt-out è attivo o DNT è abilitato,
+      nessun dato di visita viene raccolto né trasmesso.
     </p>
 
     <h3>Base giuridica</h3>
     <p>
-      Il trattamento a fini di analytics si basa sul <strong>legittimo interesse</strong> del titolare
-      (art. 6(1)(f) GDPR) a comprendere l'utilizzo del sito per migliorarne i contenuti.
-      L'interesse legittimo è bilanciato con la minimizzazione dei dati: nessun IP memorizzato,
-      nessuna terza parte coinvolta, identificativo non persistente, rispetto del segnale DNT.
+      Il trattamento si basa sul legittimo interesse (art. 6(1)(f) GDPR) al miglioramento del servizio,
+      bilanciato con la minimizzazione dei dati e l'assenza di terze parti.
+      L'opt-out è disponibile in qualsiasi momento senza che ciò comprometta la fruizione del sito.
     </p>
 
     <h3>Conservazione</h3>
     <p>
-      I dati di analytics vengono conservati per un massimo di <strong>13 mesi</strong>,
-      dopo i quali vengono eliminati automaticamente.
+      I dati di analytics vengono conservati per un massimo di 13 mesi, poi eliminati automaticamente.
     </p>
 
     <h2>6. Nessun cookie di terze parti</h2>
     <p>
-      Questo sito non carica contenuti da social network, reti pubblicitarie o servizi di analisi di terze parti
-      che potrebbero impostare cookie sul tuo browser. Non sono presenti pulsanti di condivisione social
-      con tracciamento esterno, pixel di conversione o script di profilazione.
+      Il sito non utilizza servizi di terze parti che impostano cookie o tracker esterni.
+      Non sono presenti script di profilazione, pixel pubblicitari o reti di distribuzione che tracciano gli utenti.
     </p>
 
     <h2>7. Come gestire cookie e storage locale</h2>
     <p>
-      Puoi controllare e cancellare cookie e storage locale direttamente dal tuo browser. I passaggi variano
-      a seconda del browser utilizzato; in generale li trovi in <strong>Impostazioni → Privacy e sicurezza</strong>.
+      Puoi gestire, bloccare o cancellare cookie e storage locale direttamente dal tuo browser, in genere
+      in <strong>Impostazioni → Privacy e sicurezza → Cookie e altri dati dei siti</strong>.
     </p>
     <p>
       Tieni presente che disabilitare i cookie tecnici (<code>auth_session</code>, <code>reader_session</code>)
-      impedirà il corretto funzionamento del login.
+      impedirà il funzionamento corretto del login.
     </p>
 
-    <h2>8. I tuoi diritti</h2>
+    <h2>8. Diritti dell'interessato</h2>
     <p>In qualità di interessato, hai il diritto di:</p>
     <ul>
-      <li><strong>Accesso</strong> — ottenere conferma se stiamo trattando dati che ti riguardano e riceverne copia (art. 15 GDPR)</li>
+      <li><strong>Accesso</strong> — ottenere conferma del trattamento e riceverne copia (art. 15 GDPR)</li>
       <li><strong>Rettifica</strong> — correggere dati inesatti (art. 16 GDPR)</li>
       <li><strong>Cancellazione</strong> — ottenere la cancellazione dei tuoi dati (art. 17 GDPR)</li>
       <li><strong>Limitazione</strong> — limitare il trattamento in determinati casi (art. 18 GDPR)</li>
       <li><strong>Portabilità</strong> — ricevere i tuoi dati in formato strutturato (art. 20 GDPR)</li>
-      <li><strong>Opposizione</strong> — opporti al trattamento basato sul legittimo interesse (art. 21 GDPR)</li>
+      <li><strong>Opposizione</strong> — opporti al trattamento basato su legittimo interesse (art. 21 GDPR)</li>
     </ul>
     <p>
-      Per esercitare questi diritti scrivi a <a href="mailto:privacy@ohmynic.co">privacy@ohmynic.co</a>.
+      Per esercitare i tuoi diritti scrivi a <a href="mailto:privacy@ohmynic.co">privacy@ohmynic.co</a>.
       Risponderemo entro 30 giorni.
     </p>
 
@@ -263,28 +271,21 @@
     margin: var(--space-6) 0 var(--space-3);
   }
 
-  .prose p {
-    margin-bottom: var(--space-4);
-  }
+  .prose p { margin-bottom: var(--space-4); }
 
   .prose ul {
     padding-left: var(--space-6);
     margin: var(--space-3) 0 var(--space-4);
   }
 
-  .prose li {
-    margin-bottom: var(--space-2);
-  }
+  .prose li { margin-bottom: var(--space-2); }
 
   .prose a {
     color: var(--color-viola);
     text-decoration: underline;
     text-underline-offset: 2px;
   }
-
-  .prose a:hover {
-    color: var(--color-lavanda);
-  }
+  .prose a:hover { color: var(--color-lavanda); }
 
   .prose code {
     font-family: monospace;
@@ -318,22 +319,11 @@
     line-height: 1.5;
   }
 
-  .prose tr:last-child td {
-    border-bottom: none;
-  }
+  .prose tr:last-child td { border-bottom: none; }
 
   @media (max-width: 640px) {
-    .article-wrap {
-      padding: var(--space-6) var(--space-4);
-    }
-
-    .prose table {
-      font-size: 0.78rem;
-    }
-
-    .prose th,
-    .prose td {
-      padding: var(--space-2);
-    }
+    .article-wrap { padding: var(--space-6) var(--space-4); }
+    .prose table { font-size: 0.78rem; }
+    .prose th, .prose td { padding: var(--space-2); }
   }
 </style>
