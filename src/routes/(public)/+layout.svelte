@@ -8,6 +8,7 @@
   import ThemeSwitcher from '$lib/components/ThemeSwitcher.svelte';
   import FeedbackModal from '$lib/components/FeedbackModal.svelte';
   import Toast from '$lib/components/Toast.svelte';
+  import CookieBanner from '$lib/components/CookieBanner.svelte';
   import { trackPageview } from '$lib/analytics';
   import type { LayoutData } from './$types';
 
@@ -196,6 +197,7 @@
 
 <FeedbackModal bind:open={feedbackOpen} />
 <Toast />
+<CookieBanner />
 
 <style>
   .site { display: flex; flex-direction: column; min-height: 100vh; min-height: 100svh; }

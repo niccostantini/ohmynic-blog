@@ -4,6 +4,7 @@
  */
 
 const SESSION_KEY = 'ohmynic-sid';
+const OPTOUT_KEY  = 'ohmynic-analytics-optout';
 
 function getSessionId(): string {
   let id = sessionStorage.getItem(SESSION_KEY);
@@ -18,6 +19,10 @@ function isDNT(): boolean {
   return navigator.doNotTrack === '1';
 }
 
+function isOptedOut(): boolean {
+  try { return localStorage.getItem(OPTOUT_KEY) === '1'; } catch { return false; }
+}
+
 function isTrackedPath(path: string): boolean {
   if (path.startsWith('/blog/admin')) return false;
   if (['/blog/login', '/blog/register', '/blog/account'].includes(path)) return false;
@@ -28,7 +33,7 @@ function isTrackedPath(path: string): boolean {
 
 export function trackPageview(path: string, articleId?: string | null) {
   if (typeof window === 'undefined') return;
-  if (isDNT()) return;
+  if (isDNT() || isOptedOut()) return;
   if (!isTrackedPath(path)) return;
 
   const sessionId = getSessionId();
@@ -49,7 +54,7 @@ export function initCompletionTracking(
   proseEl: HTMLElement,
 ): () => void {
   if (typeof window === 'undefined') return () => {};
-  if (isDNT()) return () => {};
+  if (isDNT() || isOptedOut()) return () => {};
 
   const sessionId = getSessionId();
   const reached = new Set<number>();
