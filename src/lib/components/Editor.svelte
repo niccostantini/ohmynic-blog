@@ -562,7 +562,7 @@
         const imageItem = {
           title: 'Immagine',
           group: 'Media',
-          icon: createElement('span', { style: { fontSize: '1.1rem' } }, '🖼'),
+          icon: createElement('i', { className: 'ti ti-photo', style: { fontSize: '1.1rem' } }),
           onItemClick: () => {
             (editor as any).insertBlocks(
               [{ type: 'image', props: { url: '', caption: '', position: 'full' } }],
@@ -573,14 +573,14 @@
         };
         const callouts = (
           [
-            { emoji: '💡', label: 'Callout Nota',       variant: 'nota'       },
-            { emoji: '⚠️', label: 'Callout Attenzione', variant: 'attenzione' },
-            { emoji: 'ℹ️', label: 'Callout Info',       variant: 'info'       },
+            { icon: 'ti-bulb',          label: 'Callout Nota',       variant: 'nota'       },
+            { icon: 'ti-alert-triangle', label: 'Callout Attenzione', variant: 'attenzione' },
+            { icon: 'ti-info-circle',    label: 'Callout Info',       variant: 'info'       },
           ] as const
-        ).map(({ emoji, label, variant }) => ({
+        ).map(({ icon, label, variant }) => ({
           title: label,
           group: 'Callout',
-          icon: createElement('span', { style: { fontSize: '1.1rem' } }, emoji),
+          icon: createElement('i', { className: `ti ${icon}`, style: { fontSize: '1.1rem' } }),
           onItemClick: () => {
             (editor as any).insertBlocks(
               [{ type: 'callout', props: { variant, position: 'center', title: '' }, content: '' }],
