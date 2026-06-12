@@ -20,6 +20,7 @@
     previewOptions = [],
     initialResults = null,
     initialUserVotedOptionIds = [],
+    forceResults = false,
   }: {
     pollId: string;
     question: string;
@@ -30,6 +31,7 @@
     previewOptions?: PollOption[];
     initialResults?: { options: OptionResult[]; totalVoters: number } | null;
     initialUserVotedOptionIds?: string[];
+    forceResults?: boolean;
   } = $props();
 
   // Snapshot props → local state once (intentional: updated by vote/refresh, not reactive to prop)
@@ -40,7 +42,7 @@
   let voteError = $state<string | null>(null);
 
   const hasVoted = $derived(userVotedOptionIds.length > 0);
-  const showResults = $derived(hasVoted || closed);
+  const showResults = $derived(hasVoted || closed || forceResults);
 
   function toggleOption(id: string) {
     if (allowMultiple) {

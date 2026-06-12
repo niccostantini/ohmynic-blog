@@ -1,6 +1,6 @@
 import { db } from '$lib/db';
-import { polls, pollOptions, pollVotes } from '$lib/db/schema';
-import { eq, and, sql, inArray } from 'drizzle-orm';
+import { polls, pollOptions, pollVotes, articles } from '$lib/db/schema';
+import { eq, and, sql, inArray, desc } from 'drizzle-orm';
 
 export type PollOptionResult = {
   optionId: string;
@@ -143,4 +143,31 @@ export async function getPollExportData(pollId: string) {
     .where(eq(pollOptions.pollId, pollId))
     .groupBy(pollOptions.id, pollOptions.label, pollOptions.position)
     .orderBy(pollOptions.position);
+}
+
+export async function getAllPollsWithArticles() {
+  return db
+    .select({
+      id: polls.id,
+      question: polls.question,
+      allowMultiple: polls.allowMultiple,
+      closed: polls.closed,
+      createdAt: polls.createdAt,
+      articleId: polls.articleId,
+      articleTitle: articles.title,
+      articleSlug: articles.slug,
+      totalVoters: sql<number>`cast(count(distinct ${pollVotes.readerId}) as int)`,
+    })
+    .from(polls)
+    .leftJoin(articles, eq(polls.articleId, articles.id))
+    .leftJoin(pollVotes, eq(pollVotes.pollId, polls.id))
+    .groupBy(polls.id, articles.id)
+    .orderBy(desc(polls.createdAt));
+}
+
+export async function togglePollClosed(pollId: string, closed: boolean) {
+  await db
+    .update(polls)
+    .set({ closed, updatedAt: new Date() })
+    .where(eq(polls.id, pollId));
 }

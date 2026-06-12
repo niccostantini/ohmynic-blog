@@ -91,6 +91,11 @@
               <i class="ti ti-chart-dots-3"></i> Analytics
             </a>
           {/if}
+          {#if isEditor}
+            <a href="{base}/admin/polls" class:active={page.url.pathname.startsWith(`${base}/admin/polls`)} role="menuitem">
+              <i class="ti ti-chart-bar"></i> Sondaggi
+            </a>
+          {/if}
           {#if isAdmin}
             <a href="{base}/admin/feedback" class:active={page.url.pathname.startsWith(`${base}/admin/feedback`)} role="menuitem">
               <i class="ti ti-flag-3"></i>
