@@ -2,6 +2,17 @@ import { eq, desc, and, ne, inArray, sql, lte, or, isNull } from 'drizzle-orm';
 import { db } from '../index';
 import { articles, articleTags, tags, users, articleStatusLog, editorialComments } from '../schema';
 
+export async function getPublishedSlugsForSitemap() {
+  return db
+    .select({ slug: articles.slug, updatedAt: articles.updatedAt, type: articles.type })
+    .from(articles)
+    .where(and(
+      eq(articles.status, 'published'),
+      or(isNull(articles.publishedAt), lte(articles.publishedAt, new Date()))
+    ))
+    .orderBy(desc(articles.updatedAt));
+}
+
 export function readingTime(content: string): number {
   const text = content.replace(/<[^>]*>/g, '');
   const words = text.trim().split(/\s+/).filter(Boolean).length;
