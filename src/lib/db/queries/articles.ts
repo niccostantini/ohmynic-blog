@@ -99,8 +99,8 @@ export async function updateArticle(id: string, data: Partial<{
   content: string;
   blocksJson: string | null;
   excerpt: string;
-  coverImage: string;
-  coverImageFocus: string;
+  coverImage: string | null;
+  coverImageFocus: string | null;
   status: ArticleStatus;
   publishedAt: Date | null;
   updatedAt: Date;

@@ -96,8 +96,8 @@ export const actions: Actions = {
       content,
       blocksJson,
       excerpt: finalExcerpt,
-      coverImage: typeof coverImage === 'string' && coverImage.trim() ? coverImage.trim() : undefined,
-      coverImageFocus: typeof coverImageFocus === 'string' && coverImageFocus.trim() ? coverImageFocus.trim() : undefined,
+      coverImage: typeof coverImage === 'string' && coverImage.trim() ? coverImage.trim() : null,
+      coverImageFocus: typeof coverImageFocus === 'string' && coverImageFocus.trim() ? coverImageFocus.trim() : null,
       readingTimeMinutes: readingTime(content),
       showCoverInArticle,
     });
