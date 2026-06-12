@@ -160,10 +160,12 @@ p.bn-inline-content.callout-text > span.bn-inline-content-section:has(> sup) {
 /* triangolo custom che ruota all'apertura */
 .prose details summary::before {
   content: '▶';
-  font-size: 0.65em;
   color: var(--color-lavanda);
   transition: transform var(--transition-fast);
   flex-shrink: 0;
+  font-size: .80em;
+  position: relative;
+  top: 12px;
 }
 .prose details[open] summary::before { transform: rotate(90deg); }
 
@@ -195,18 +197,38 @@ body {
 /* ── Dark mode — callout ──────────────────────────────────────────────────── */
 [data-theme='dark'] .prose .callout.nota {
   background: #221843;
-  border-color: #4a3578;
+  border-color: #4a3578 !important;
   color: #c4b8e8;
 }
 [data-theme='dark'] .prose .callout.attenzione {
   background: #2a1a08;
-  border-color: #6b3f10;
+  border-color: #6b3f10 !important;
   color: #e4c49e;
 }
 [data-theme='dark'] .prose .callout.info {
   background: #0a1e34;
-  border-color: #1a4878;
+  border-color: #1a4878 !important;
   color: #9ac4e8;
+}
+
+/* ── Dark mode — prose text (overrides hardcoded inline color styles from editor) ── */
+[data-theme='dark'] .prose h2,
+[data-theme='dark'] .prose h3 {
+  color: var(--color-notte) !important;
+}
+[data-theme='dark'] .prose h2 span,
+[data-theme='dark'] .prose h3 span {
+  color: inherit !important;
+}
+[data-theme='dark'] .prose > p,
+[data-theme='dark'] .prose > ul li,
+[data-theme='dark'] .prose > ol li {
+  color: var(--color-prugna) !important;
+}
+[data-theme='dark'] .prose > p span,
+[data-theme='dark'] .prose > ul li span,
+[data-theme='dark'] .prose > ol li span {
+  color: inherit !important;
 }
 
 /* ── Dark mode — BlockNote editor ────────────────────────────────────────── */
