@@ -1,6 +1,7 @@
 <script lang="ts">
   import { base } from '$app/paths';
   import ArticlePlaceholder from '$lib/components/ArticlePlaceholder.svelte';
+  import { buildSrcset } from '$lib/utils/image';
 
   type Tag = { id: string; name: string; slug: string };
   type Article = {
@@ -19,11 +20,13 @@
     tags = [],
     variant = 'main',
     href,
+    priority = false,
   }: {
     article: Article;
     tags?: Tag[];
     variant?: 'main' | 'side';
     href?: string;
+    priority?: boolean;
   } = $props();
 
   function formatDate(d: Date | string | null) {
@@ -45,7 +48,12 @@
         alt={article.title}
         class="featured-cover"
         style={article.coverImageFocus ? `object-position: ${article.coverImageFocus}` : undefined}
+        srcset={buildSrcset(article.coverImage) ?? undefined}
+        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 600px"
         draggable="false"
+        loading={priority ? 'eager' : 'lazy'}
+        fetchpriority={priority ? 'high' : undefined}
+        decoding="async"
       />
     {:else}
       <ArticlePlaceholder slug={article.slug} tagSlug={tags[0]?.slug ?? 'default'} />
@@ -91,8 +99,8 @@
   }
 
   .featured-cover-wrap { flex-shrink: 0; overflow: hidden; }
-  .featured-main .featured-cover { height: 220px; }
-  .featured-side .featured-cover { height: 140px; }
+  .featured-main .featured-cover { height: 220px; aspect-ratio: 16 / 9; }
+  .featured-side .featured-cover { height: 140px; aspect-ratio: 16 / 9; }
   .featured-cover {
     width: 100%;
     object-fit: cover;

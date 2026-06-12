@@ -1,6 +1,7 @@
 <script lang="ts">
   import { base } from '$app/paths';
   import ArticlePlaceholder from '$lib/components/ArticlePlaceholder.svelte';
+  import { buildSrcset } from '$lib/utils/image';
 
   type Tag = { id: string; name: string; slug: string };
   type Article = {
@@ -10,10 +11,11 @@
     readingTimeMinutes?: number | null;
   };
 
-  let { article, tags = [], getTagHref }: {
+  let { article, tags = [], getTagHref, priority = false }: {
     article: Article;
     tags: Tag[];
     getTagHref?: (slug: string) => string;
+    priority?: boolean;
   } = $props();
 
   function formatDate(d: Date | string | null) {
@@ -30,6 +32,10 @@
         alt={article.title}
         class="card-cover"
         style={article.coverImageFocus ? `object-position: ${article.coverImageFocus}` : undefined}
+        srcset={buildSrcset(article.coverImage) ?? undefined}
+        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 380px"
+        loading={priority ? 'eager' : 'lazy'}
+        decoding="async"
       />
     {:else}
       <ArticlePlaceholder slug={article.slug} tagSlug={tags[0]?.slug ?? 'default'} />
@@ -80,6 +86,7 @@
     aspect-ratio: 16 / 9;
     object-fit: cover;
     display: block;
+    background: var(--color-iris); /* placeholder color while loading */
   }
   .card-body {
     padding: var(--space-5);

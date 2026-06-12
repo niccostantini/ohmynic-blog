@@ -44,6 +44,7 @@
               article={item.article}
               tags={item.tags}
               variant={i === 0 ? 'main' : 'side'}
+              priority={i === 0}
             />
           {/each}
         </div>
