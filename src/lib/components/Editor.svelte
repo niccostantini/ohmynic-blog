@@ -592,15 +592,11 @@
         const pollItem = {
           title: 'Sondaggio',
           group: 'Media',
-          icon: createElement('span', { style: { fontSize: '1.1rem' } }, '📊'),
+          icon: createElement('i', { className: 'ti ti-chart-bar', style: { fontSize: '1.1rem' } }),
           onItemClick: () => {
-            // UUID assegnati all'inserimento — evita race condition con useEffect
-            const defaultOptions = JSON.stringify([
-              { id: crypto.randomUUID(), label: 'Opzione 1' },
-              { id: crypto.randomUUID(), label: 'Opzione 2' },
-            ]);
+            // pollId vuoto → il blocco mostra il picker "Nuovo / Esistente"
             (editor as any).insertBlocks(
-              [{ type: 'poll', props: { pollId: crypto.randomUUID(), question: 'Qual è la tua risposta?', options: defaultOptions, allowMultiple: false, closed: false } }],
+              [{ type: 'poll', props: { pollId: '', question: '', options: '', allowMultiple: false, closed: false } }],
               (editor as any).getTextCursorPosition().block,
               'after',
             );

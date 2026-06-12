@@ -171,3 +171,14 @@ export async function togglePollClosed(pollId: string, closed: boolean) {
     .set({ closed, updatedAt: new Date() })
     .where(eq(polls.id, pollId));
 }
+
+export async function getPollWithOptions(pollId: string) {
+  const poll = await db.select().from(polls).where(eq(polls.id, pollId)).limit(1);
+  if (!poll[0]) return null;
+  const options = await db
+    .select({ id: pollOptions.id, label: pollOptions.label, position: pollOptions.position })
+    .from(pollOptions)
+    .where(eq(pollOptions.pollId, pollId))
+    .orderBy(pollOptions.position);
+  return { ...poll[0], options };
+}
