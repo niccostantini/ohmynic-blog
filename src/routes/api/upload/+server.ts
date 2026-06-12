@@ -25,7 +25,11 @@ function getS3(): S3Client {
 
 const MAX_SIZE = 15 * 1024 * 1024; // 15 MB
 
-export const POST: RequestHandler = async ({ request, locals }) => {
+const ALLOWED_WIDTHS = [800, 1200, 1500, 2000] as const;
+
+export const POST: RequestHandler = async ({ request, locals, url: reqUrl }) => {
+  const maxWidthParam = parseInt(reqUrl.searchParams.get('maxWidth') ?? '2000');
+  const maxWidth: number = (ALLOWED_WIDTHS as readonly number[]).includes(maxWidthParam) ? maxWidthParam : 2000;
   // Only authenticated staff (admin / editor / contributor)
   if (!locals.user) {
     return new Response('Unauthorized', { status: 401 });
@@ -88,11 +92,11 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     ext = 'gif';
   } else {
     buffer = await sharp(raw)
-      .resize({ width: 2000, withoutEnlargement: true })
-      .webp({ quality: 82 })
+      .resize({ width: maxWidth, withoutEnlargement: true })
+      .avif({ quality: 60, effort: 4 })
       .toBuffer();
-    contentType = 'image/webp';
-    ext = 'webp';
+    contentType = 'image/avif';
+    ext = 'avif';
   }
 
   const key = `uploads/${Date.now()}-${crypto.randomUUID()}.${ext}`;

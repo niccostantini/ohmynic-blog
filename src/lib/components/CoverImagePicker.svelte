@@ -61,7 +61,7 @@
     try {
       const fd = new FormData();
       fd.append('file', file);
-      const res = await fetch(`${base}/api/upload`, { method: 'POST', body: fd });
+      const res = await fetch(`${base}/api/upload?maxWidth=1500`, { method: 'POST', body: fd });
       if (res.ok) {
         const data = await res.json();
         url = data.url;
