@@ -600,6 +600,9 @@
       padding: var(--space-3) var(--space-4) calc(var(--space-3) + env(safe-area-inset-bottom));
     }
     .logo-link { grid-area: logo; align-self: center; }
+    .footer-inner a.logo-link {
+      font-size: var(--text-lg);
+    }
     .footer-prefs-btn { grid-area: prefs; align-self: center; }
     .footer-meta {
       grid-area: meta;
