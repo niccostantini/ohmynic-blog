@@ -10,6 +10,8 @@
   }
 </script>
 
+<svelte:head><title>Pagine — OhMyNic!</title></svelte:head>
+
 <div class="page-head">
   <h1 class="page-title">Pagine</h1>
   <span class="total-count">{data.pages.length} totali</span>

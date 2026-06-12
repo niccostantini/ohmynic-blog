@@ -94,6 +94,8 @@
   }
 </script>
 
+<svelte:head><title>Sondaggi — OhMyNic!</title></svelte:head>
+
 <div class="page-wrap">
   <div class="page-header">
     <h1 class="page-title"><i class="ti ti-chart-bar"></i> Sondaggi</h1>
@@ -306,11 +308,11 @@
         <a
           href="{base}/api/polls/{activePoll.id}/export"
           download
-          class="btn-ghost-sm"
+          class="btn-accent"
         >
           <i class="ti ti-download"></i> Esporta CSV
         </a>
-        <button class="btn-ghost-sm" onclick={closeModal}>Chiudi</button>
+        <button class="btn-ghost" onclick={closeModal}>Chiudi</button>
       </div>
     </div>
   {/if}

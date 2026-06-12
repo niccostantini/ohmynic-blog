@@ -230,6 +230,8 @@
   }
 </script>
 
+<svelte:head><title>Impostazioni — OhMyNic!</title></svelte:head>
+
 <div class="settings-page">
   <h1>Impostazioni</h1>
 

@@ -178,6 +178,8 @@
   }
 </script>
 
+<svelte:head><title>Analytics — OhMyNic!</title></svelte:head>
+
 <div class="analytics-page">
 
   <!-- Header -->

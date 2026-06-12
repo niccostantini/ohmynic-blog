@@ -3,6 +3,8 @@
   let { form }: { form: ActionData } = $props();
 </script>
 
+<svelte:head><title>Cambia password — OhMyNic!</title></svelte:head>
+
 <div class="wrap">
   <div class="card">
     <h1 class="title">Cambia password</h1>

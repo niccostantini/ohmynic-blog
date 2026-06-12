@@ -163,6 +163,8 @@
   }
 </script>
 
+<svelte:head><title>Utenti — OhMyNic!</title></svelte:head>
+
 <div class="page-head">
   <h1 class="page-title">Utenti</h1>
 </div>
@@ -1416,4 +1418,30 @@
     transition: background var(--transition-fast);
   }
   .btn-danger-solid:hover { background: #991b1b; }
+
+  /* ── Dark mode overrides ──────────────────────────────────────────────────── */
+  :global([data-theme='dark']) .users-table { background: var(--color-iris); }
+  :global([data-theme='dark']) .role-admin       { background: var(--color-nebbia); color: var(--color-notte); }
+  :global([data-theme='dark']) .role-editor      { background: var(--color-iris);   color: var(--color-prugna); }
+  :global([data-theme='dark']) .role-contributor { background: var(--color-iris);   color: var(--color-prugna); }
+  :global([data-theme='dark']) .can-publish-badge { background: #0a2810; color: #6aaf50; }
+  :global([data-theme='dark']) .status-badge { background: var(--color-iris); color: var(--color-lilla); }
+  :global([data-theme='dark']) .status-badge.active,
+  :global([data-theme='dark']) .status-badge.status-active     { background: #0a2818; color: #5ab870; }
+  :global([data-theme='dark']) .status-badge.status-unverified { background: #1a1800; color: #c8a040; }
+  :global([data-theme='dark']) .status-badge.status-disabled   { background: var(--color-iris); color: var(--color-lilla); }
+  :global([data-theme='dark']) .alert-error   { background: #2e0808; color: #e07070; }
+  :global([data-theme='dark']) .alert-success { background: #08280f; color: #5ab870; }
+  :global([data-theme='dark']) .temp-pwd { background: #082010; color: #90d8a8; }
+  :global([data-theme='dark']) .toggle-inactive-track::after,
+  :global([data-theme='dark']) .toggle-track::after { background: var(--color-nebbia); }
+  :global([data-theme='dark']) .btn-deactivate { color: #e07070; }
+  :global([data-theme='dark']) .btn-reactivate { color: #5ab870; }
+  :global([data-theme='dark']) .btn-delete     { color: #e07070; }
+  :global([data-theme='dark']) .btn-danger-outline { border-color: #6a2020; color: #e07070; }
+  :global([data-theme='dark']) .btn-danger-outline:hover { background: #2e1010; }
+  :global([data-theme='dark']) .field-error-msg { color: #e07070; }
+  :global([data-theme='dark']) .edit-error { background: #2e0808; color: #e07070; }
+  :global([data-theme='dark']) .stat-value.verified { color: #5ab870; }
+  :global([data-theme='dark']) .reader-search { background: var(--color-iris); }
 </style>

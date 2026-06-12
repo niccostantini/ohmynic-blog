@@ -42,6 +42,8 @@
   }
 </script>
 
+<svelte:head><title>Feedback — OhMyNic!</title></svelte:head>
+
 <div class="page-head">
   <h1 class="page-title">Feedback</h1>
   <span class="total-count">{data.items.length} totali</span>
