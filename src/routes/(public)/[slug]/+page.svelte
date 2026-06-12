@@ -9,6 +9,7 @@
   import { trackPageview, initCompletionTracking } from '$lib/analytics';
   import ReadingProgress from '$lib/components/ReadingProgress.svelte';
   import Poll from '$lib/components/Poll.svelte';
+  import { buildSrcset } from '$lib/utils/image';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
@@ -26,6 +27,23 @@
       const placeholders = proseEl.querySelectorAll<HTMLElement>('.poll-embed[data-poll-id]');
       for (const el of placeholders) {
         hydratePoll(el);
+      }
+
+      // Fallback: se data.polls ha sondaggi non trovati nell'HTML (blocks_json
+      // in sync ma content non ha il placeholder), iniettali alla fine del prose
+      if (data.polls) {
+        const hydratedIds = new Set(
+          [...placeholders].map(el => el.getAttribute('data-poll-id')).filter(Boolean)
+        );
+        for (const pollId of Object.keys(data.polls)) {
+          if (!hydratedIds.has(pollId)) {
+            const el = document.createElement('div');
+            el.className = 'poll-embed';
+            el.setAttribute('data-poll-id', pollId);
+            proseEl.appendChild(el);
+            hydratePoll(el);
+          }
+        }
       }
     }
 
@@ -163,6 +181,11 @@
     <link rel="canonical" href="https://ohmynic.co/blog/{data.article.slug}" />
   {/if}
 
+  <!-- Preload LCP image so the browser fetches it during HTML parse -->
+  {#if data.article.coverImage && data.article.showCoverInArticle !== false}
+    <link rel="preload" as="image" href={data.article.coverImage} fetchpriority="high">
+  {/if}
+
   <!-- Open Graph -->
   <meta property="og:type" content="article" />
   <meta property="og:site_name" content="OhMyNic!" />
@@ -226,6 +249,11 @@
       alt={data.article.title}
       class="article-cover"
       style={data.article.coverImageFocus ? `object-position: ${data.article.coverImageFocus}` : undefined}
+      srcset={buildSrcset(data.article.coverImage, [800, 1200, 1600]) ?? undefined}
+      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 750px"
+      fetchpriority="high"
+      loading="eager"
+      decoding="async"
     />
   {/if}
 
@@ -353,6 +381,7 @@
 
   .article-cover {
     width: 100%;
+    aspect-ratio: 16 / 9;
     max-height: 480px;
     object-fit: cover;
     border-radius: var(--radius-lg);
