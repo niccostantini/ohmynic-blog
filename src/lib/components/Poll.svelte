@@ -177,22 +177,23 @@
 
 <style>
   .poll {
-    --poll-accent: var(--color-viola, #7c55d4);
-    --poll-accent-light: var(--color-lavanda, rgba(160, 120, 220, 0.18));
-    --poll-border: var(--color-lilla, #d8d0f0);
-    --poll-text: var(--color-notte, #1a1330);
-    --poll-muted: var(--color-nebbia, #8e82b0);
+    --poll-accent:  var(--color-viola, #7c55d4);
+    --poll-border:  var(--color-bordo, #d8d0f0);
+    --poll-text:    var(--color-notte, #1a1330);
+    --poll-muted:   var(--color-lilla, #8e82b0);
+    --poll-card:    var(--color-iris, #ece7fa);
+    --poll-bg:      var(--color-nebbia, #f5f3fb);
 
     border: 1px solid var(--poll-border);
     border-radius: 12px;
     padding: 1.2rem 1.4rem;
     margin: 1.5rem 0;
-    background: #fdfcff;
+    background: var(--poll-bg);
     font-family: var(--font-sans, system-ui, sans-serif);
   }
 
   .poll.preview {
-    background: #f9f7ff;
+    background: var(--poll-card);
     border-style: dashed;
   }
 
@@ -241,7 +242,7 @@
 
   .poll-option:not(.disabled):hover {
     border-color: var(--poll-accent);
-    background: var(--poll-accent-light);
+    background: var(--poll-card);
   }
 
   .poll-option.disabled {
@@ -315,7 +316,7 @@
 
   .poll-result-row {
     position: relative;
-    background: #f5f0ff;
+    background: var(--poll-card);
     border: 1px solid var(--poll-border);
     border-radius: 8px;
     padding: 0.55rem 0.75rem;
@@ -331,13 +332,13 @@
     left: 0;
     top: 0;
     bottom: 0;
-    background: var(--poll-accent-light);
+    background: var(--poll-border);
     border-radius: 8px;
     transition: width 0.4s ease;
   }
 
   .poll-result-row.voted .poll-result-bar {
-    background: rgba(124, 85, 212, 0.22);
+    background: color-mix(in srgb, var(--poll-accent) 22%, transparent);
   }
 
   .poll-result-content {
