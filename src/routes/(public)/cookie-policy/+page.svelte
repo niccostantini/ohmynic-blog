@@ -16,7 +16,7 @@
     <p>
       Il titolare del trattamento dei dati personali raccolti tramite questo sito è
       <strong>Niccolò Costantini</strong>, contattabile all'indirizzo
-      <a href="mailto:privacy@ohmynic.co">privacy@ohmynic.co</a>.
+      <a href="mailto:niccolo@ohmynic.co">niccolo@ohmynic.co</a>.
     </p>
 
     <h2>2. Cosa sono cookie e storage locale</h2>
@@ -205,7 +205,7 @@
       <li><strong>Opposizione</strong> — opporti al trattamento basato su legittimo interesse (art. 21 GDPR)</li>
     </ul>
     <p>
-      Per esercitare i tuoi diritti scrivi a <a href="mailto:privacy@ohmynic.co">privacy@ohmynic.co</a>.
+      Per esercitare i tuoi diritti scrivi a <a href="mailto:niccolo@ohmynic.co">niccolo@ohmynic.co</a>.
       Risponderemo entro 30 giorni.
     </p>
 
