@@ -1,5 +1,6 @@
 import React from 'react';
 import { createReactBlockSpec } from '@blocknote/react';
+import { base } from '$app/paths';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -278,7 +279,7 @@ export const pollBlockSpec = createReactBlockSpec(
                 <>
                   <span style={{ color: '#d8d0f0', margin: '0 0.1rem' }}>|</span>
                   <a
-                    href={`/api/polls/${pollId}/export`}
+                    href={`${base}/api/polls/${pollId}/export`}
                     download
                     style={{ ...btnBase, textDecoration: 'none', display: 'inline-block' }}
                     onMouseDown={(e) => e.stopPropagation()}
