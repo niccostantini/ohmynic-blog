@@ -15,7 +15,11 @@
   title={LABELS[$theme]}
   aria-label={LABELS[$theme]}
 >
-  <i class="ti ti-sun" class:icon-active={$theme === 'light'}></i>
+  <svg class:icon-active={$theme === 'light'} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+    <path d="M8 12a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"/>
+    <path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"/>
+  </svg>
   <span class="pill" class:pill-dark={$theme === 'dark'} class:pill-system={$theme === 'system'}>
     <span
       class="dot"
@@ -23,7 +27,10 @@
       class:dot-mid={$theme === 'system'}
     ></span>
   </span>
-  <i class="ti ti-moon" class:icon-active={$theme === 'dark'}></i>
+  <svg class:icon-active={$theme === 'dark'} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+    <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454l0 .008"/>
+  </svg>
 </button>
 
 <button
@@ -34,7 +41,11 @@
   aria-label={$highContrast ? 'Disattiva alto contrasto' : 'Attiva alto contrasto'}
   aria-pressed={$highContrast}
 >
-  <i class="ti ti-eye"></i>
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+    <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/>
+    <path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6"/>
+  </svg>
 </button>
 
 <style>
@@ -52,13 +63,14 @@
   }
   .theme-toggle:hover { color: var(--color-notte); }
 
-  .theme-toggle i {
-    font-size: 15px;
-    line-height: 1;
+  .theme-toggle svg {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
     opacity: 0.45;
     transition: opacity var(--transition-base);
   }
-  .theme-toggle i.icon-active {
+  .theme-toggle svg.icon-active {
     opacity: 1;
     color: var(--color-lavanda);
   }
@@ -98,13 +110,12 @@
     cursor: pointer;
     padding: 4px;
     color: var(--color-lilla);
-    font-size: 15px;
-    line-height: 1;
     border-radius: var(--radius-sm);
     transition: color var(--transition-fast);
     flex-shrink: 0;
     opacity: 0.5;
   }
+  .hc-toggle svg { width: 15px; height: 15px; }
   .hc-toggle:hover { color: var(--color-notte); opacity: 1; }
   .hc-toggle.hc-active {
     color: var(--color-lavanda);
