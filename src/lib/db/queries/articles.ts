@@ -312,6 +312,41 @@ export async function getTagsForArticle(articleId: string) {
     .then((rows) => rows.map((r) => r.tag));
 }
 
+export async function getTagsForArticles(articleIds: string[]): Promise<Record<string, { id: string; name: string; slug: string }[]>> {
+  if (articleIds.length === 0) return {};
+  const rows = await db
+    .select({ articleId: articleTags.articleId, tag: tags })
+    .from(tags)
+    .innerJoin(articleTags, eq(articleTags.tagId, tags.id))
+    .where(inArray(articleTags.articleId, articleIds));
+  const result: Record<string, { id: string; name: string; slug: string }[]> = {};
+  for (const { articleId, tag } of rows) {
+    if (!result[articleId]) result[articleId] = [];
+    result[articleId].push(tag);
+  }
+  return result;
+}
+
+export async function getArticlesForHomepage() {
+  return db
+    .select({
+      id: articles.id,
+      title: articles.title,
+      slug: articles.slug,
+      excerpt: articles.excerpt,
+      coverImage: articles.coverImage,
+      publishedAt: articles.publishedAt,
+      readingTimeMinutes: articles.readingTimeMinutes,
+    })
+    .from(articles)
+    .where(and(
+      eq(articles.status, 'published'),
+      eq(articles.type, 'article'),
+      or(isNull(articles.publishedAt), lte(articles.publishedAt, new Date()))
+    ))
+    .orderBy(desc(articles.publishedAt));
+}
+
 export function sanitizeSearchQuery(raw: string): string {
   return raw
     .trim()
