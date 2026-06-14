@@ -86,7 +86,8 @@
   font-style: normal;
   font-weight: 600;
   font-display: swap;
-  src: url('../assets/fonts/playfair-display-v40-latin/playfair-display-v40-latin-600.woff2') format('woff2');
+  /* Stable path in static/fonts/ so the preload in app.html matches this URL. */
+  src: url('/blog/fonts/playfair-600.woff2') format('woff2');
 }
 
 @font-face {

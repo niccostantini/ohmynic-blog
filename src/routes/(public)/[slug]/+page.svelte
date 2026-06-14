@@ -181,9 +181,18 @@
     <link rel="canonical" href="https://ohmynic.co/blog/{data.article.slug}" />
   {/if}
 
-  <!-- Preload LCP image so the browser fetches it during HTML parse -->
+  <!-- Preload LCP image so the browser fetches it during HTML parse.
+       imagesrcset/imagesizes mirror the <img> srcset so the browser picks the right
+       size for the viewport (avoids preloading full-res on mobile then downloading again). -->
   {#if data.article.coverImage && data.article.showCoverInArticle !== false}
-    <link rel="preload" as="image" href={data.article.coverImage} fetchpriority="high">
+    <link
+      rel="preload"
+      as="image"
+      href={data.article.coverImage}
+      imagesrcset={buildSrcset(data.article.coverImage, [800, 1200, 1600]) ?? undefined}
+      imagesizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 750px"
+      fetchpriority="high"
+    >
   {/if}
 
   <!-- Open Graph -->

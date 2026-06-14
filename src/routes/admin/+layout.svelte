@@ -32,7 +32,7 @@
 
 <svelte:head>
   <meta name="robots" content="noindex, nofollow" />
-  <!-- Load icons synchronously for admin — UX requires them immediately -->
+  <!-- Admin: sync load — icons needed immediately throughout the CMS -->
   <link rel="stylesheet" href="{base}/fonts/tabler-icons.css">
 </svelte:head>
 
@@ -341,5 +341,11 @@
     max-width: var(--max-width-wide);
     margin: 0 auto;
     padding: var(--space-8);
+  }
+
+  @media (max-width: 768px) {
+    .admin-header { padding: 0 var(--space-4); gap: var(--space-3); overflow: hidden; }
+    .site-nav { display: none; }
+    .admin-main { padding: var(--space-4); }
   }
 </style>

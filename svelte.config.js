@@ -1,5 +1,7 @@
 import adapter from '@sveltejs/adapter-node';
 
+const base = process.env.BASE_PATH ?? '/blog';
+
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
 	compilerOptions: {
@@ -8,7 +10,7 @@ const config = {
 	kit: {
 		adapter: adapter(),
 		paths: {
-			base: '/blog'
+			base
 		}
 	}
 };

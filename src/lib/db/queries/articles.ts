@@ -38,6 +38,18 @@ function publishedBySlug() {
 
 type ArticleStatus = 'draft' | 'review' | 'approved' | 'published';
 
+export async function getAllPublishedArticles() {
+  return db
+    .select()
+    .from(articles)
+    .where(and(
+      eq(articles.status, 'published'),
+      eq(articles.type, 'article'),
+      or(isNull(articles.publishedAt), lte(articles.publishedAt, new Date()))
+    ))
+    .orderBy(desc(articles.publishedAt));
+}
+
 export async function getPublishedArticles(page = 1, perPage = 10) {
   const offset = (page - 1) * perPage;
   return db

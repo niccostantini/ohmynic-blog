@@ -88,7 +88,9 @@
         aria-expanded={mobileMenuOpen}
         onclick={() => mobileMenuOpen = !mobileMenuOpen}
       >
-        <i class="ti ti-menu-2"></i>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 6l16 0"/><path d="M4 12l16 0"/><path d="M4 18l16 0"/>
+        </svg>
       </button>
     </div>
   </header>
@@ -130,7 +132,11 @@
         onclick={() => prefsOpen = !prefsOpen}
         aria-expanded={prefsOpen}
       >
-        <i class="ti ti-adjustments-horizontal" aria-hidden="true"></i>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 6a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M4 6l8 0"/><path d="M16 6l4 0"/>
+          <path d="M6 12a2 2 0 1 0 4 0a2 2 0 1 0 -6 0"/><path d="M4 12l2 0"/><path d="M10 12l10 0"/>
+          <path d="M15 18a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M4 18l11 0"/><path d="M19 18l1 0"/>
+        </svg>
         <span>Personalizza</span>
       </button>
     </div>
@@ -390,7 +396,7 @@
     flex-shrink: 0;
     line-height: 1;
   }
-  .footer-prefs-btn i { font-size: 14px; line-height: 1; }
+  .footer-prefs-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
   .footer-prefs-btn:hover {
     color: var(--color-viola);
     border-color: var(--color-bordo);

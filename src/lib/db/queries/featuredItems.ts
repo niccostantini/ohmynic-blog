@@ -15,6 +15,7 @@ export async function getFeaturedItems() {
         coverImage: articles.coverImage,
         coverImageFocus: articles.coverImageFocus,
         publishedAt: articles.publishedAt,
+        readingTimeMinutes: articles.readingTimeMinutes,
         type: articles.type,
         status: articles.status,
       },
