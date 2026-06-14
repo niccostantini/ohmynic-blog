@@ -306,7 +306,7 @@
 
   .hero-title {
     font-family: var(--font-serif);
-    font-size: var(--text-2xl);
+    font-size: var(--text-xl);
     font-weight: 700;
     color: #ffffff;
     line-height: 1.2;
@@ -368,7 +368,7 @@
 
   .sidebar-title {
     font-family: var(--font-serif);
-    font-size: var(--text-xl);
+    font-size: var(--text-lg);
     font-weight: var(--weight-semibold);
     color: var(--color-notte);
     line-height: var(--leading-snug);
