@@ -306,12 +306,18 @@
 
   .hero-title {
     font-family: var(--font-serif);
-    font-size: var(--text-xl);
+    font-size: var(--text-2xl);
     font-weight: 700;
     color: #ffffff;
     line-height: 1.2;
     letter-spacing: var(--tracking-tight);
     margin: 0 0 8px;
+  }
+  
+  @media (max-width: 640px)  {
+    .hero-title {
+      font-size: var(--text-xl);
+    }
   }
 
   .hero-title em {
@@ -368,7 +374,7 @@
 
   .sidebar-title {
     font-family: var(--font-serif);
-    font-size: var(--text-lg);
+    font-size: var(--text-xl);
     font-weight: var(--weight-semibold);
     color: var(--color-notte);
     line-height: var(--leading-snug);
@@ -377,6 +383,12 @@
     line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
+  }
+  
+  @media (max-width: 640px)  {
+    .sidebar-title {
+      font-size: var(--text-lg);
+    }
   }
 
   .sidebar-excerpt {
