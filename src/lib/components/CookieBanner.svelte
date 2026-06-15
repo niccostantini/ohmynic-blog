@@ -173,4 +173,16 @@
     .banner-text { font-size: 0.75rem; }
     .toggle-label { display: none; }
   }
+
+  /* Dark mode: banner background becomes light, so text must be dark */
+  :global([data-theme='dark']) .banner-text { color: rgba(15, 13, 26, 0.85); }
+  :global([data-theme='dark']) .banner-text a { color: var(--color-viola); }
+  :global([data-theme='dark']) .analytics-toggle { color: rgba(15, 13, 26, 0.65); }
+  :global([data-theme='dark']) .analytics-toggle:hover { color: #0f0d1a; }
+  :global([data-theme='dark']) .dismiss-btn {
+    color: #0f0d1a;
+    background: rgba(15, 13, 26, 0.1);
+    border-color: rgba(15, 13, 26, 0.2);
+  }
+  :global([data-theme='dark']) .dismiss-btn:hover { background: rgba(15, 13, 26, 0.2); }
 </style>
