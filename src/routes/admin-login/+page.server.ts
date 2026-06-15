@@ -19,22 +19,22 @@ export const actions: Actions = {
     const password = data.get('password');
 
     if (typeof username !== 'string' || typeof password !== 'string') {
-      return fail(400, { error: 'Dati non validi.', username: '' });
+      return fail(400, { error: 'Dati non validi.', username: '', fieldError: 'both' as const });
     }
 
     const [user] = await db.select().from(users).where(eq(users.username, username)).limit(1);
 
     if (!user) {
-      return fail(400, { error: 'Username o password errati.', username });
+      return fail(400, { error: 'Username o password errati.', username, fieldError: 'both' as const });
     }
 
     const validPassword = await verify(user.passwordHash, password);
     if (!validPassword) {
-      return fail(400, { error: 'Username o password errati.', username });
+      return fail(400, { error: 'Username o password errati.', username, fieldError: 'both' as const });
     }
 
     if (!user.active) {
-      return fail(403, { error: 'Account disattivato. Contatta un amministratore.', username });
+      return fail(403, { error: 'Account disattivato. Contatta un amministratore.', username, fieldError: 'none' as const });
     }
 
     const session = await lucia.createSession(user.id, {});

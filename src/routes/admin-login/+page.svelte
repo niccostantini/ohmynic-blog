@@ -1,6 +1,40 @@
 <script lang="ts">
+  import { enhance } from '$app/forms';
+  import { addToast, dismissToast } from '$lib/stores/toast';
   import type { ActionData, PageData } from './$types';
+
   let { data, form }: { data: PageData; form: ActionData } = $props();
+
+  let usernameError = $state(false);
+  let passwordError = $state(false);
+  let activeToastId = $state<string | undefined>();
+
+  function showError(message: string) {
+    if (activeToastId) dismissToast(activeToastId);
+    activeToastId = addToast(message, 'error');
+  }
+
+  function loginEnhance({ formData, cancel }: { formData: FormData; cancel: () => void }) {
+    const username = (formData.get('username') as string | null)?.trim();
+    const password = formData.get('password') as string | null;
+
+    usernameError = !username;
+    passwordError = !password;
+
+    if (!username || !password) {
+      cancel();
+      return;
+    }
+
+    return async ({ result }: { result: { type: string; data?: Record<string, unknown> } }) => {
+      if (result.type === 'failure') {
+        const fe = result.data?.fieldError as string | undefined;
+        usernameError = fe === 'username' || fe === 'both';
+        passwordError = fe === 'password' || fe === 'both';
+        showError((result.data?.error as string) ?? 'Errore durante il login.');
+      }
+    };
+  }
 </script>
 
 <svelte:head>
@@ -17,18 +51,30 @@
       <p class="success">Password reimpostata con successo. Puoi accedere ora.</p>
     {/if}
 
+    <!-- Fallback no-JS: con use:enhance e senza update() form resta null lato client -->
     {#if form?.error}
       <p class="error">{form.error}</p>
     {/if}
 
-    <form method="POST">
+    <form method="POST" use:enhance={loginEnhance}>
       <div class="field">
         <label for="username">Username</label>
-        <input id="username" name="username" type="text" autocomplete="username" required value={form?.username ?? ''} />
+        <input
+          id="username" name="username" type="text"
+          autocomplete="username" required
+          value={form?.username ?? ''}
+          class:input--error={usernameError}
+          oninput={() => (usernameError = false)}
+        />
       </div>
       <div class="field">
         <label for="password">Password</label>
-        <input id="password" name="password" type="password" autocomplete="current-password" required />
+        <input
+          id="password" name="password" type="password"
+          autocomplete="current-password" required
+          class:input--error={passwordError}
+          oninput={() => (passwordError = false)}
+        />
       </div>
       <button type="submit" class="btn-primary">Entra</button>
     </form>
@@ -45,12 +91,19 @@
   h1 { font-family: var(--font-sans); font-size: var(--text-sm); font-weight: var(--weight-medium); color: var(--color-lilla); margin-bottom: var(--space-6); text-align: center; }
   .field { display: flex; flex-direction: column; gap: var(--space-2); margin-bottom: var(--space-4); }
   label { font-size: var(--text-sm); font-weight: var(--weight-medium); color: var(--color-prugna); }
-  input { padding: 10px var(--space-3); border: 0.5px solid var(--color-bordo); border-radius: var(--radius-md); font-family: var(--font-sans); font-size: var(--text-base); color: var(--color-notte); background: var(--color-nebbia); transition: border-color var(--transition-fast); outline: none; }
+  input {
+    padding: 10px var(--space-3); border: 0.5px solid var(--color-bordo); border-radius: var(--radius-md);
+    font-family: var(--font-sans); font-size: var(--text-base); color: var(--color-notte);
+    background: var(--color-nebbia); transition: border-color var(--transition-fast), background var(--transition-fast); outline: none;
+  }
   input:focus { border-color: var(--color-lavanda); background: white; }
+  input.input--error { border-color: #ef4444; background: #fef2f2; }
+  input.input--error:focus { border-color: #dc2626; background: #fef2f2; }
   .error { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); font-size: var(--text-sm); margin-bottom: var(--space-4); }
   .btn-primary { width: 100%; padding: 11px; margin-top: var(--space-2); background: var(--color-lavanda); color: white; border: none; border-radius: var(--radius-md); font-family: var(--font-sans); font-size: var(--text-sm); font-weight: var(--weight-medium); cursor: pointer; transition: background var(--transition-fast); }
   .btn-primary:hover { background: var(--color-viola); }
   .success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); font-size: var(--text-sm); margin-bottom: var(--space-4); }
   .forgot-link { text-align: center; font-size: var(--text-xs); color: var(--color-lilla); margin-top: var(--space-4); }
   .forgot-link a { color: var(--color-viola); }
+
 </style>

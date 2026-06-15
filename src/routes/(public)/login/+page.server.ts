@@ -19,26 +19,26 @@ export const actions: Actions = {
     const password = data.get('password');
 
     if (typeof email !== 'string' || !email.trim())
-      return fail(400, { error: "L'email è obbligatoria.", email: '' });
+      return fail(400, { error: "L'email è obbligatoria.", email: '', fieldError: 'email' as const });
     if (typeof password !== 'string' || !password)
-      return fail(400, { error: 'La password è obbligatoria.', email: '' });
+      return fail(400, { error: 'La password è obbligatoria.', email: '', fieldError: 'password' as const });
 
     const cleanEmail = email.trim().toLowerCase();
     const reader = await getReaderByEmail(cleanEmail);
 
     if (!reader) {
-      return fail(400, { error: 'Email o password non corretti.', email: cleanEmail });
+      return fail(400, { error: 'Email o password non corretti.', email: cleanEmail, fieldError: 'both' as const });
     }
 
     let valid = false;
     try {
       valid = await verify(reader.passwordHash, password);
     } catch {
-      return fail(500, { error: 'Errore durante il login. Riprova.', email: cleanEmail });
+      return fail(500, { error: 'Errore durante il login. Riprova.', email: cleanEmail, fieldError: 'both' as const });
     }
 
     if (!valid) {
-      return fail(400, { error: 'Email o password non corretti.', email: cleanEmail });
+      return fail(400, { error: 'Email o password non corretti.', email: cleanEmail, fieldError: 'both' as const });
     }
 
     if (!reader.emailVerified) {
@@ -46,6 +46,7 @@ export const actions: Actions = {
         error: 'Verifica la tua email prima di accedere. Controlla la posta in arrivo.',
         email: cleanEmail,
         notVerified: true,
+        fieldError: 'none' as const,
       });
     }
 
