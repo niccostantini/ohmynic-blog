@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>502 — Il server ha detto no</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    /* ── Token ─────────────────────────────────────── */
+    :root {
+      --color-notte:      #1e1630;
+      --color-prugna:     #3b2f5e;
+      --color-viola:      #7c55d4;
+      --color-lavanda:    #9b6ff0;
+      --color-nebbia:     #f5f3fb;
+      --color-iris:       #ece7fa;
+      --color-bordo:      #d8d0f0;
+      --color-bordo-soft: #ede9f8;
+      --color-grafite:    #6b5f8a;
+      --color-lilla:      #8e82b0;
+
+      --font-serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
+      --font-sans:  'Inter', system-ui, sans-serif;
+
+      --radius-md:   8px;
+      --radius-lg:   12px;
+      --radius-xl:   16px;
+      --radius-pill: 999px;
+
+      --shadow-md: 0 4px 16px rgba(30, 22, 48, 0.10);
+      --shadow-lg: 0 8px 32px rgba(30, 22, 48, 0.14);
+
+      --transition-base: 200ms ease;
+      --transition-fast: 120ms ease;
+    }
+
+    /* ── Reset ─────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Base ──────────────────────────────────────── */
+    html, body {
+      height: 100%;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--color-nebbia);
+      color: var(--color-notte);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    /* ── Card ──────────────────────────────────────── */
+    .card {
+      background: var(--color-iris);
+      border: 0.5px solid var(--color-bordo);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-lg);
+      padding: 52px 48px 48px;
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+    }
+
+    /* ── Eyebrow ───────────────────────────────────── */
+    .eyebrow {
+      display: inline-block;
+      font-family: var(--font-sans);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--color-lavanda);
+      background: white;
+      border: 0.5px solid var(--color-bordo);
+      border-radius: var(--radius-pill);
+      padding: 3px 12px;
+      margin-bottom: 24px;
+    }
+
+    /* ── Error code ────────────────────────────────── */
+    .error-code {
+      font-family: var(--font-serif);
+      font-size: 100px;
+      font-weight: 600;
+      line-height: 1;
+      color: var(--color-lavanda);
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+      /* Subtle inner gradient to make it feel more premium */
+      background: linear-gradient(135deg, var(--color-lavanda) 30%, var(--color-viola));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ── Divider ───────────────────────────────────── */
+    .divider {
+      width: 40px;
+      height: 1.5px;
+      background: var(--color-bordo);
+      border: none;
+      margin: 20px auto 24px;
+    }
+
+    /* ── Title ─────────────────────────────────────── */
+    .title {
+      font-family: var(--font-serif);
+      font-size: 26px;
+      font-weight: 600;
+      line-height: 1.2;
+      color: var(--color-notte);
+      letter-spacing: -0.01em;
+      margin-bottom: 20px;
+    }
+
+    /* ── Scenario list ─────────────────────────────── */
+    .scenarios {
+      list-style: none;
+      text-align: left;
+      background: white;
+      border: 0.5px solid var(--color-bordo-soft);
+      border-radius: var(--radius-lg);
+      padding: 16px 20px;
+      margin-bottom: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .scenarios li {
+      font-size: 14px;
+      color: var(--color-grafite);
+      line-height: 1.5;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .scenarios li::before {
+      content: '';
+      display: block;
+      flex-shrink: 0;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--color-lavanda);
+      margin-top: 6px;
+    }
+
+    /* ── Button ────────────────────────────────────── */
+    .btn {
+      display: inline-block;
+      font-family: var(--font-sans);
+      font-size: 13px;
+      font-weight: 500;
+      background: var(--color-notte);
+      color: var(--color-nebbia);
+      padding: 10px 24px;
+      border-radius: var(--radius-md);
+      border: none;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      text-decoration: none;
+      transition: background var(--transition-fast), transform var(--transition-fast);
+      border-bottom: none;
+    }
+
+    .btn:hover {
+      background: var(--color-prugna);
+      color: var(--color-nebbia);
+      border-bottom: none;
+      transform: translateY(-1px);
+    }
+
+    /* ── Footer note ───────────────────────────────── */
+    .footnote {
+      display: block;
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--color-lilla);
+      letter-spacing: 0.02em;
+    }
+
+    /* ── Background decoration ─────────────────────── */
+    .bg-orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.35;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .bg-orb-1 {
+      width: 400px;
+      height: 400px;
+      background: var(--color-lavanda);
+      top: -100px;
+      right: -100px;
+    }
+
+    .bg-orb-2 {
+      width: 300px;
+      height: 300px;
+      background: var(--color-viola);
+      bottom: -80px;
+      left: -80px;
+    }
+
+    /* ── Responsive ────────────────────────────────── */
+    @media (max-width: 520px) {
+      .card {
+        padding: 40px 28px 36px;
+      }
+
+      .error-code {
+        font-size: 80px;
+      }
+
+      .title {
+        font-size: 22px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+
+  <div class="card">
+    <span class="eyebrow">Server Error</span>
+
+    <div class="error-code">502</div>
+
+    <hr class="divider">
+
+    <h1 class="title">Il server ha detto&nbsp;«no»</h1>
+
+    <ul class="scenarios">
+      <li>Sei un dev e hai sbagliato qualcosa.</li>
+      <li>Non sei un dev e non dovresti essere qui.</li>
+    </ul>
+
+    <a class="btn" href="https://ohmynic.co">Torna al blog</a>
+    <small class="footnote">quello giusto</small>
+  </div>
+
+</body>
+</html>
