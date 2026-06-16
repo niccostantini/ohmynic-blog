@@ -29,6 +29,47 @@
         hydratePoll(el);
       }
 
+      // Bullet list items with Tabler icon bullets
+      proseEl.querySelectorAll<HTMLElement>('p[data-bullet-icon]').forEach(p => {
+        const iconName = p.dataset.bulletIcon;
+        if (!iconName) return;
+        const li = p.parentElement;
+        if (!li || li.tagName !== 'LI') return;
+        const icon = document.createElement('i');
+        icon.className = `ti ti-${iconName} bullet-icon`;
+        icon.setAttribute('aria-hidden', 'true');
+        li.insertBefore(icon, p);
+        li.classList.add('has-icon-bullet');
+      });
+
+      // Click-to-load gate per gli embed (YouTube, Spotify, Gist, Codepen)
+      proseEl.querySelectorAll<HTMLElement>('.embed-gate').forEach(gate => {
+        const btn = gate.querySelector<HTMLButtonElement>('.embed-load-btn');
+        if (!btn) return;
+        btn.addEventListener('click', () => {
+          const embedUrl = gate.dataset.embedUrl;
+          const service  = gate.dataset.service;
+          const embedH   = gate.dataset.embedHeight;
+          if (!embedUrl) return;
+
+          const iframe = document.createElement('iframe');
+          iframe.src = embedUrl;
+          iframe.style.cssText = 'width:100%;border:none;border-radius:8px;display:block;';
+          iframe.allowFullscreen = true;
+          iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen');
+          iframe.setAttribute('loading', 'lazy');
+
+          if (service === 'youtube') {
+            iframe.style.aspectRatio = '16/9';
+            iframe.style.height = 'auto';
+          } else {
+            iframe.style.height = (embedH ? embedH : '300') + 'px';
+          }
+
+          gate.replaceWith(iframe);
+        });
+      });
+
       // Fallback: se data.polls ha sondaggi non trovati nell'HTML (blocks_json
       // in sync ma content non ha il placeholder), iniettali alla fine del prose
       if (data.polls) {

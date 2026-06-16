@@ -7,7 +7,7 @@
 <article class="article-wrap is-page">
   <div class="article-header">
     <h1 class="article-title">Cookie policy</h1>
-    <p class="article-updated">Ultimo aggiornamento: 13 giugno 2026</p>
+    <p class="article-updated">Ultimo aggiornamento: 16 giugno 2026</p>
   </div>
 
   <div class="prose">
@@ -178,11 +178,34 @@
       I dati di analytics vengono conservati per un massimo di 13 mesi, poi eliminati automaticamente.
     </p>
 
-    <h2>6. Nessun cookie di terze parti</h2>
+    <h2>6. Contenuti di terze parti e contenuti incorporati</h2>
     <p>
-      Il sito non utilizza servizi di terze parti che impostano cookie o tracker esterni.
-      Non sono presenti script di profilazione, pixel pubblicitari o reti di distribuzione che tracciano gli utenti.
+      Il sito non utilizza servizi di analisi o pubblicità di terze parti.
+      Non sono presenti pixel di tracciamento, script di profilazione o CDN che raccolgono dati sull'utente.
     </p>
+
+    <h3>Contenuti incorporati (embed)</h3>
+    <p>
+      Alcuni articoli possono contenere contenuti incorporati da piattaforme esterne
+      (YouTube, Spotify, GitHub Gist, Codepen).
+      Questi contenuti sono presentati tramite un meccanismo di <strong>caricamento su richiesta</strong>:
+      il contenuto di terze parti — inclusi eventuali script, cookie e dati della piattaforma — non viene
+      caricato finché l'utente non fa esplicitamente click sul pulsante <strong>Carica</strong>.
+    </p>
+    <p>
+      Finché non si clicca su <strong>Carica</strong>, nessun dato viene trasmesso alle piattaforme
+      e nessun cookie di terze parti viene impostato.
+    </p>
+    <p>
+      Cliccando su <strong>Carica</strong> si attiva l'iframe della piattaforma corrispondente.
+      Da quel momento si applicano le rispettive informative sulla privacy:
+    </p>
+    <ul>
+      <li><strong>YouTube</strong> (tramite youtube-nocookie.com, versione senza cookie di profilazione) — <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">policies.google.com/privacy</a></li>
+      <li><strong>Spotify</strong> — <a href="https://www.spotify.com/legal/privacy-policy/" target="_blank" rel="noopener noreferrer">spotify.com/legal/privacy-policy</a></li>
+      <li><strong>GitHub Gist</strong> — <a href="https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement" target="_blank" rel="noopener noreferrer">docs.github.com/privacy</a></li>
+      <li><strong>Codepen</strong> — <a href="https://codepen.io/legal/privacy-policy" target="_blank" rel="noopener noreferrer">codepen.io/legal/privacy-policy</a></li>
+    </ul>
 
     <h2>7. Come gestire cookie e storage locale</h2>
     <p>

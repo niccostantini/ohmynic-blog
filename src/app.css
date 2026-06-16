@@ -365,6 +365,142 @@ body {
   background: var(--color-iris) !important;
 }
 
+/* ── Embed block (click-to-load gate + float layout) ────────────────────────── */
+.prose .embed-block {
+  margin: var(--space-6) 0;
+}
+.prose .embed-block[data-embed-position="float-right"] { float: right; margin: 0.25rem 0 1rem 1.5rem; }
+.prose .embed-block[data-embed-position="float-left"]  { float: left;  margin: 0.25rem 1.5rem 1rem 0; }
+.prose .embed-block[data-embed-position="center"]      { float: none;  margin: 1rem auto; }
+.prose .embed-block[data-embed-position="full"]        { float: none;  width: 100% !important; }
+
+.prose .embed-gate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  background: var(--color-nebbia);
+  border: 0.5px solid var(--color-bordo);
+  border-radius: var(--radius-md);
+  padding: 1.5rem 1rem;
+  text-align: center;
+  box-sizing: border-box;
+}
+.prose .embed-youtube .embed-gate { aspect-ratio: 16 / 9; }
+.prose .embed-gate i  { font-size: 1.75rem; color: var(--color-lilla); }
+.prose .embed-gate p  { font-size: 0.82rem; color: var(--color-grafite); margin: 0; }
+.prose .embed-codepen .embed-gate p { font-family: monospace; }
+
+.prose .embed-load-btn {
+  background: var(--color-viola);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 6px 18px;
+  font-size: 0.82rem;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 0.25rem;
+}
+.prose .embed-load-btn:hover { opacity: 0.85; }
+
+.prose .embed-block iframe {
+  width: 100%;
+  border: none;
+  border-radius: var(--radius-md);
+  display: block;
+}
+.prose .embed-youtube iframe { aspect-ratio: 16 / 9; height: auto; }
+
+@media (max-width: 640px) {
+  .prose .embed-block[data-embed-position="float-right"],
+  .prose .embed-block[data-embed-position="float-left"] {
+    float: none;
+    width: 100% !important;
+    margin: 0 0 1rem;
+  }
+}
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+/* ── Hierarchical numbered lists (custom BlockNote block) ─────────────────────
+   BlockNote wraps consecutive numberedListItem blocks in <ol><li>.
+   The label (e.g. "1.2.a") is embedded as data-list-label on the <p> inside.
+   CSS uses attr(data-list-label) so mixed styles (1.a, a.1, etc.) work without JS.
+   ────────────────────────────────────────────────────────────────────────────── */
+
+/* Suppress native <ol> marker — we render our own label via ::before */
+.prose ol:has(p[data-list-label]) {
+  list-style: none;
+  padding-left: 0;
+  margin-left: 0;
+}
+/* Each <li> provides indentation; position:relative anchors the absolute label */
+.prose li:has(> p[data-list-label]) {
+  padding-left: 2.5em;
+  position: relative;
+}
+.prose li p[data-list-label] {
+  margin: 0.15em 0;
+}
+/* The label text rendered before each item */
+.prose li p[data-list-label]::before {
+  content: attr(data-list-label) "  ";
+  position: absolute;
+  left: 0;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ── Bullet lists (custom BlockNote block) ────────────────────────────────────
+   BlockNote wraps consecutive bulletListItem blocks in <ul><li>.
+   The resolved bullet char is in data-bullet-char; icon name in data-bullet-icon.
+   Character bullets: CSS ::before with content: attr(data-bullet-char).
+   Icon bullets: onMount JS adds <i class="ti ..."> and .has-icon-bullet class.
+   ────────────────────────────────────────────────────────────────────────────── */
+
+.prose ul:has(p[data-bullet-style]) {
+  list-style: none;
+  padding-left: 0;
+  margin-left: 0;
+}
+.prose li:has(> p[data-bullet-style]) {
+  padding-left: 1.8em;
+  position: relative;
+}
+.prose li p[data-bullet-style] {
+  margin: 0.15em 0;
+}
+/* Character bullets */
+.prose li p[data-bullet-char]::before {
+  content: attr(data-bullet-char);
+  position: absolute;
+  left: 0.1em;
+  line-height: inherit;
+}
+/* Icon bullets — layout injected by onMount JS */
+.prose li.has-icon-bullet {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4em;
+  padding-left: 0;
+}
+.prose li.has-icon-bullet p[data-bullet-icon] {
+  flex: 1;
+  min-width: 0;
+}
+.prose .bullet-icon {
+  flex-shrink: 0;
+  font-size: 0.85em;
+  line-height: inherit;
+}
+
+/* ── Inline font size (exported by BlockNote editor) ────────────────────────── */
+.prose .article-font-small { font-size: 0.8em; }
+.prose .article-font-large { font-size: 1.25em; }
+
 /* ── High contrast — additional rules ───────────────────────────────────────── */
 [data-theme-hc='on'] p,
 [data-theme-hc='on'] li { line-height: 1.8; }
