@@ -13,6 +13,7 @@
     onReadyGetBlockMapFn = undefined as ((fn: () => Record<string, string>) => void) | undefined,
     onReadyGetBlocksJsonFn = undefined as ((fn: () => string) => void) | undefined,
     onReadyGetContentFn = undefined as ((fn: () => string) => void) | undefined,
+    onSave = undefined as (() => void) | undefined,
   }: {
     content: string;
     blocksJson?: string | null;
@@ -23,6 +24,7 @@
     onReadyGetBlockMapFn?: (fn: () => Record<string, string>) => void;
     onReadyGetBlocksJsonFn?: (fn: () => string) => void;
     onReadyGetContentFn?: (fn: () => string) => void;
+    onSave?: () => void;
   } = $props();
 
   let mountEl: HTMLDivElement;
@@ -32,12 +34,46 @@
 
   // Bridge: React sets this so the Svelte toolbar can call it
   let insertFootnoteFn: (() => void) | null = null;
+  let setFontSizeFn: ((size: string | null) => void) | null = null;
+  let setListStyleFn: ((style: string) => void) | null = null;
+  let setBulletStyleFn: ((style: string) => void) | null = null;
+  let openBulletIconPickerFn: (() => void) | null = null;
+  // Reactive: React notifies Svelte of current block type on selection change
+  let cursorBlockType = $state('');
 
   // Bridge: update block comment indicators in React
   let updateBlockCommentsFn: ((c: Record<string, { count: number; preview: string }>) => void) | null = null;
 
+  const BULLET_OPTIONS = [
+    { value: 'auto',    char: '↺', title: 'Auto (default per livello)' },
+    { value: 'disc',    char: '•', title: 'Pallino'  },
+    { value: 'circle',  char: '○', title: 'Cerchio'  },
+    { value: 'square',  char: '■', title: 'Quadrato' },
+    { value: 'diamond', char: '◆', title: 'Rombo'    },
+    { value: 'dash',    char: '–', title: 'Trattino' },
+    { value: 'arrow',   char: '→', title: 'Freccia'  },
+  ];
+
   $effect(() => {
     updateBlockCommentsFn?.(blockComments);
+  });
+
+  // Auto-save — globale via sessionStorage (si resetta a ON ad ogni sessione browser)
+  const AUTOSAVE_KEY = 'ohmynic_autosave';
+  let autoSaveEnabled = $state(true);
+  let lastSavedContent = content;
+  let lastAutoSaveTime = $state<string | null>(null);
+
+  $effect(() => {
+    if (!autoSaveEnabled || !onSave) return;
+    const timer = setInterval(() => {
+      if (content !== lastSavedContent) {
+        lastSavedContent = content;
+        onSave();
+        lastAutoSaveTime = new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+      }
+    }, 60_000);
+    return () => clearInterval(timer);
   });
 
   function applySource() {
@@ -102,6 +138,12 @@
     const { imageBlockSpec } = await import('./ImageBlock.js');
     const { footnoteInlineContentSpec, footnoteListBlockSpec, FootnoteContext } = await import('$lib/editor/footnotes/index.js');
     const { pollBlockSpec } = await import('./PollBlock.js');
+    const { embedBlockSpec } = await import('./EmbedBlock.js');
+    const { numberedListItemSpec } = await import('./NumberedListBlock.js');
+    const { bulletListItemSpec } = await import('./BulletListBlock.js');
+    const { fontSizeStyle } = await import('$lib/editor/FontSizeStyle.js');
+    const { tablerIconInlineContentSpec } = await import('$lib/editor/TablerIconSpec.js');
+    const { defaultStyleSpecs } = await import('@blocknote/core');
 
     await import('@blocknote/mantine/style.css');
 
@@ -113,12 +155,20 @@
         callout: calloutBlockSpec(),
         footnoteList: footnoteListBlockSpec(),
         poll: pollBlockSpec(),
+        embed: embedBlockSpec(),
+        numberedListItem: numberedListItemSpec(),
+        bulletListItem: bulletListItemSpec(),
       },
       inlineContentSpecs: {
         ...defaultInlineContentSpecs,
         footnote: footnoteInlineContentSpec,
+        tablerIcon: tablerIconInlineContentSpec,
       },
-    });
+      styleSpecs: {
+        ...defaultStyleSpecs,
+        fontSize: fontSizeStyle,
+      },
+    } as any);
 
     // ── Block snapshot extractor ──────────────────────────────────────────────
 
@@ -288,6 +338,11 @@
       onReadyGetBlockMapFnCb,
       onReadyGetBlocksJsonFnCb,
       onReadyGetContentFnCb,
+      onReadySetFontSizeFnCb,
+      onReadySetListStyleFnCb,
+      onReadySetBulletStyleFnCb,
+      onReadyOpenBulletIconPickerCb,
+      onCursorBlockTypeChangeCb,
       readonlyProp,
     }: {
       html: string;
@@ -300,6 +355,11 @@
       onReadyGetBlockMapFnCb?: (fn: () => Record<string, string>) => void;
       onReadyGetBlocksJsonFnCb?: (fn: () => string) => void;
       onReadyGetContentFnCb?: (fn: () => string) => void;
+      onReadySetFontSizeFnCb?: (fn: (size: string | null) => void) => void;
+      onReadySetListStyleFnCb?: (fn: (style: string) => void) => void;
+      onReadySetBulletStyleFnCb?: (fn: (style: string) => void) => void;
+      onReadyOpenBulletIconPickerCb?: (fn: () => void) => void;
+      onCursorBlockTypeChangeCb?: (type: string) => void;
       readonlyProp: boolean;
     }) {
       const editor = useCreateBlockNote({ schema } as any);
@@ -373,6 +433,108 @@
         return CM;
       // eslint-disable-next-line react-hooks/exhaustive-deps
       }, []);
+
+      // Font size bridge
+      useEffect(() => {
+        onReadySetFontSizeFnCb?.((size: string | null) => {
+          if (size === null) {
+            (editor as any).removeStyles({ fontSize: '' });
+          } else {
+            (editor as any).addStyles({ fontSize: size });
+          }
+          (editor as any).focus();
+        });
+      }, []);
+
+      // List style bridge
+      useEffect(() => {
+        onReadySetListStyleFnCb?.((style: string) => {
+          const pos = (editor as any).getTextCursorPosition?.();
+          if (pos?.block?.type === 'numberedListItem') {
+            (editor as any).updateBlock(pos.block, { props: { listStyle: style } });
+            (editor as any).focus();
+          }
+        });
+      }, []);
+
+      // Bullet style bridge
+      useEffect(() => {
+        onReadySetBulletStyleFnCb?.((style: string) => {
+          const pos = (editor as any).getTextCursorPosition?.();
+          if (pos?.block?.type === 'bulletListItem') {
+            (editor as any).updateBlock(pos.block, { props: { bulletStyle: style } });
+            (editor as any).focus();
+          }
+        });
+      }, []);
+
+      // Bullet icon picker bridge
+      useEffect(() => {
+        onReadyOpenBulletIconPickerCb?.(() => {
+          setBulletIconPickerOpen(true);
+        });
+      }, []);
+
+      // Cursor block type bridge — notifies Svelte on every selection change
+      useEffect(() => {
+        const handler = () => {
+          try {
+            const pos = (editor as any).getTextCursorPosition?.();
+            onCursorBlockTypeChangeCb?.(pos?.block?.type ?? '');
+          } catch {}
+        };
+        document.addEventListener('selectionchange', handler);
+        return () => document.removeEventListener('selectionchange', handler);
+      }, [editor]);
+
+      // List Enter behavior — restores standard word-processor behavior lost with createReactBlockSpec:
+      //   • Enter on empty item  → exit list (convert to paragraph)
+      //   • Enter on non-empty   → BlockNote splits the block; we fix type + inherit style props
+      useEffect(() => {
+        const handleListEnter = (e: KeyboardEvent) => {
+          if (e.key !== 'Enter' || e.shiftKey || e.ctrlKey || e.metaKey || e.altKey) return;
+          try {
+            const pos = (editor as any).getTextCursorPosition?.();
+            const block = pos?.block;
+            if (!block) return;
+            const isBullet   = block.type === 'bulletListItem';
+            const isNumbered = block.type === 'numberedListItem';
+            if (!isBullet && !isNumbered) return;
+
+            const content = block.content ?? [];
+            const allText = content.map((c: any) => c.text ?? '').join('');
+            const isEmpty = allText === '' && content.every((c: any) => c.type === 'text');
+            const listType = block.type;
+            const inheritedProps = isBullet
+              ? { bulletStyle: block.props?.bulletStyle ?? 'auto' }
+              : { listStyle:   block.props?.listStyle   ?? 'auto' };
+            const blockId = block.id;
+
+            if (isEmpty) {
+              // Empty item → exit list
+              e.preventDefault();
+              e.stopPropagation();
+              (editor as any).updateBlock(block, { type: 'paragraph', props: {} });
+            } else {
+              // Non-empty: let BlockNote split at cursor, then fix type + props on new block
+              requestAnimationFrame(() => {
+                try {
+                  const newPos = (editor as any).getTextCursorPosition?.();
+                  const newBlock = newPos?.block;
+                  if (!newBlock || newBlock.id === blockId) return;
+                  (editor as any).updateBlock(newBlock, { type: listType, props: inheritedProps });
+                } catch {}
+              });
+            }
+          } catch {}
+        };
+        document.addEventListener('keydown', handleListEnter, true);
+        return () => document.removeEventListener('keydown', handleListEnter, true);
+      }, [editor]);
+
+      // Icon picker state
+      const [iconPickerOpen, setIconPickerOpen] = useState(false);
+      const [bulletIconPickerOpen, setBulletIconPickerOpen] = useState(false);
 
       // Footnote state
       const [indices, setIndices] = useState<Record<string, number>>({});
@@ -523,17 +685,48 @@
                 const pos = b.props.position;
                 const isFloat = pos === 'float-right' || pos === 'float-left';
                 if (!('width' in b.props)) {
-                  // Missing prop: use correct default per position
                   return { ...b, props: { ...b.props, width: isFloat ? '42' : '100' } };
                 }
                 if (isFloat && b.props.width === '100') {
-                  // Old default was 100 for floats — normalize to 42 so CSS float works correctly
                   return { ...b, props: { ...b.props, width: '42' } };
                 }
+              }
+              if (b.type === 'numberedListItem' && b.props && !('listStyle' in b.props)) {
+                return { ...b, props: { ...b.props, listStyle: 'auto' } };
+              }
+              if (b.type === 'bulletListItem' && b.props && !('bulletStyle' in b.props)) {
+                return { ...b, props: { ...b.props, bulletStyle: 'auto' } };
+              }
+              if (b.type === 'embed' && b.props) {
+                // Backfill any prop added after initial save
+                const defaults: Record<string, string> = {
+                  url: '', service: '', embedUrl: '', label: '', icon: '',
+                  position: 'full', width: '100', height: '',
+                };
+                const filled: Record<string, string> = {};
+                let changed = false;
+                for (const [k, v] of Object.entries(defaults)) {
+                  if (!(k in b.props)) { filled[k] = v as string; changed = true; }
+                }
+                if (changed) return { ...b, props: { ...b.props, ...filled } };
               }
               return b;
             });
           } catch { /* fall through to HTML */ }
+        }
+        // Recursive pass: bulletListItem can be nested in children (Tab key),
+        // so the top-level map above isn't enough.
+        if (blocks) {
+          const deepBulletBackfill = (b: any): any => {
+            if (b.type === 'bulletListItem' && b.props && !('bulletStyle' in b.props)) {
+              b = { ...b, props: { ...b.props, bulletStyle: 'auto' } };
+            }
+            if (b.children?.length > 0) {
+              b = { ...b, children: b.children.map(deepBulletBackfill) };
+            }
+            return b;
+          };
+          blocks = blocks.map(deepBulletBackfill);
         }
         if (!blocks || blocks.length === 0) {
           blocks = (editor as any).tryParseHTMLToBlocks(html);
@@ -602,7 +795,25 @@
             );
           },
         };
-        return filterSuggestionItems([...defaults, imageItem, pollItem, ...callouts] as any, query) as any;
+        const iconItem = {
+          title: 'Icona',
+          group: 'Media',
+          icon: createElement('i', { className: 'ti ti-icons', style: { fontSize: '1.1rem' } }),
+          onItemClick: () => { setIconPickerOpen(true); },
+        };
+        const embedItem = {
+          title: 'Embed',
+          group: 'Media',
+          icon: createElement('i', { className: 'ti ti-link', style: { fontSize: '1.1rem' } }),
+          onItemClick: () => {
+            (editor as any).insertBlocks(
+              [{ type: 'embed', props: { url: '', service: '', embedUrl: '', label: '', icon: '', position: 'full', width: '100', height: '' } }],
+              (editor as any).getTextCursorPosition().block,
+              'after',
+            );
+          },
+        };
+        return filterSuggestionItems([...defaults, imageItem, pollItem, iconItem, embedItem, ...callouts] as any, query) as any;
       }, [editor]);
 
       // ── Context value ────────────────────────────────────────────────────────
@@ -644,6 +855,133 @@
             onClose: () => setPopover(null),
           }),
           document.body
+        ),
+        iconPickerOpen && createPortal(
+          createElement(IconPicker, {
+            onInsert: (name: string) => {
+              (editor as any).insertInlineContent([{ type: 'tablerIcon', props: { name } }]);
+              setIconPickerOpen(false);
+              (editor as any).focus();
+            },
+            onClose: () => setIconPickerOpen(false),
+          }),
+          document.body
+        ),
+        bulletIconPickerOpen && createPortal(
+          createElement(IconPicker, {
+            onInsert: (name: string) => {
+              const pos = (editor as any).getTextCursorPosition?.();
+              if (pos?.block?.type === 'bulletListItem') {
+                (editor as any).updateBlock(pos.block, { props: { bulletStyle: `icon:${name}` } });
+                (editor as any).focus();
+              }
+              setBulletIconPickerOpen(false);
+            },
+            onClose: () => setBulletIconPickerOpen(false),
+          }),
+          document.body
+        )
+      );
+    }
+
+    // ── Icon picker component ─────────────────────────────────────────────────
+
+    const ICON_CATEGORIES: { label: string; icons: string[] }[] = [
+      { label: 'Comuni', icons: ['heart', 'star', 'thumbs-up', 'thumbs-down', 'bookmark', 'eye', 'search', 'check', 'x', 'plus', 'minus', 'copy', 'share', 'link', 'external-link', 'refresh', 'edit', 'trash', 'download', 'upload'] },
+      { label: 'Persone e social', icons: ['user', 'users', 'user-circle', 'mail', 'phone', 'message-circle', 'brand-twitter', 'brand-linkedin', 'brand-instagram', 'brand-github', 'brand-youtube', 'brand-facebook'] },
+      { label: 'Navigazione e UI', icons: ['home', 'settings', 'bell', 'menu', 'arrow-up', 'arrow-down', 'arrow-left', 'arrow-right', 'chevron-right', 'chevron-down', 'dots-vertical', 'dots-horizontal', 'layout-dashboard', 'filter', 'sort-ascending', 'sort-descending'] },
+      { label: 'Contenuto', icons: ['file', 'folder', 'calendar', 'clock', 'tag', 'flag', 'map-pin', 'chart-bar', 'chart-pie', 'table', 'list', 'quote', 'code', 'terminal'] },
+      { label: 'Simboli', icons: ['info-circle', 'alert-triangle', 'alert-circle', 'circle-check', 'circle-x', 'question-mark', 'lock', 'lock-open', 'bulb', 'rocket', 'flame', 'trophy', 'crown', 'diamond', 'gift'] },
+      { label: 'Media', icons: ['photo', 'video', 'music', 'microphone', 'volume', 'camera', 'player-play', 'player-pause', 'player-stop'] },
+    ];
+    const ALL_ICONS = ICON_CATEGORIES.flatMap((c) => c.icons);
+
+    function IconPicker({ onInsert, onClose }: { onInsert: (name: string) => void; onClose: () => void }) {
+      const [query, setQuery] = React.useState('');
+      const inputRef = React.useRef<HTMLInputElement>(null);
+
+      React.useEffect(() => { inputRef.current?.focus(); }, []);
+
+      const filtered = query.trim()
+        ? ALL_ICONS.filter((n) => n.includes(query.toLowerCase()))
+        : null;
+
+      const overlayStyle: React.CSSProperties = {
+        position: 'fixed', inset: 0, background: 'rgba(20,10,40,0.35)', zIndex: 10000,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      };
+      const pickerStyle: React.CSSProperties = {
+        background: 'white', borderRadius: '12px', padding: '1rem',
+        boxShadow: '0 8px 40px rgba(100,70,180,0.18)', width: '480px', maxWidth: '95vw',
+        maxHeight: '70vh', display: 'flex', flexDirection: 'column', gap: '0.75rem',
+        fontFamily: 'var(--font-sans, sans-serif)',
+      };
+      const iconBtnStyle: React.CSSProperties = {
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px',
+        padding: '8px 4px', borderRadius: '6px', border: '0.5px solid transparent',
+        background: 'transparent', cursor: 'pointer', fontSize: '1.35rem',
+        color: '#3b2f5e', transition: 'background 0.1s',
+        width: '52px',
+      };
+
+      const renderIconGrid = (icons: string[]) =>
+        createElement('div', {
+          style: { display: 'flex', flexWrap: 'wrap' as const, gap: '4px' },
+        }, ...icons.map((name) =>
+          createElement('button', {
+            key: name,
+            type: 'button',
+            title: name,
+            style: iconBtnStyle,
+            onMouseEnter: (e: React.MouseEvent<HTMLButtonElement>) => { (e.currentTarget as HTMLButtonElement).style.background = '#f0ecff'; },
+            onMouseLeave: (e: React.MouseEvent<HTMLButtonElement>) => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; },
+            onMouseDown: (e: React.MouseEvent) => { e.preventDefault(); onInsert(name); },
+          },
+            createElement('i', { className: `ti ti-${name}`, style: { fontSize: '1.4rem' } }),
+            createElement('span', { style: { fontSize: '8px', color: '#b0a4d0', lineHeight: 1.2, textAlign: 'center' as const, wordBreak: 'break-all' as const, maxWidth: '44px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const } }, name)
+          )
+        ));
+
+      return createElement('div', {
+        style: overlayStyle,
+        onMouseDown: (e: React.MouseEvent) => { if (e.target === e.currentTarget) onClose(); },
+      },
+        createElement('div', { style: pickerStyle },
+          createElement('div', { style: { display: 'flex', alignItems: 'center', gap: '0.5rem' } },
+            createElement('i', { className: 'ti ti-icons', style: { fontSize: '1.1rem', color: '#7c55d4' } }),
+            createElement('span', { style: { fontWeight: 700, fontSize: '0.85rem', color: '#3b2f5e', flex: 1 } }, 'Inserisci icona'),
+            createElement('button', {
+              type: 'button',
+              onMouseDown: (e: React.MouseEvent) => { e.preventDefault(); onClose(); },
+              style: { background: 'transparent', border: 'none', cursor: 'pointer', color: '#b0a4d0', fontSize: '1rem', padding: '0 4px' },
+            }, createElement('i', { className: 'ti ti-x' }))
+          ),
+          createElement('input', {
+            ref: inputRef,
+            type: 'text',
+            placeholder: 'Cerca icona (es. heart, arrow-right…)',
+            value: query,
+            onChange: (e: React.ChangeEvent<HTMLInputElement>) => setQuery(e.target.value),
+            onKeyDown: (e: React.KeyboardEvent) => { if (e.key === 'Escape') { e.preventDefault(); onClose(); } },
+            style: {
+              width: '100%', padding: '7px 12px', border: '0.5px solid #d8d0f0',
+              borderRadius: '6px', fontSize: '0.85rem', fontFamily: 'inherit',
+              color: '#1a1330', outline: 'none', boxSizing: 'border-box' as const,
+            },
+          }),
+          createElement('div', { style: { overflowY: 'auto' as const, flex: 1, display: 'flex', flexDirection: 'column' as const, gap: '0.75rem' } },
+            filtered !== null
+              ? (filtered.length > 0
+                  ? renderIconGrid(filtered)
+                  : createElement('p', { style: { fontSize: '0.8rem', color: '#b0a4d0', margin: 0 } }, 'Nessuna icona trovata. Prova un altro nome.')
+                )
+              : ICON_CATEGORIES.map(({ label, icons }) =>
+                  createElement('div', { key: label },
+                    createElement('p', { style: { fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: '#b0a4d0', margin: '0 0 6px' } }, label),
+                    renderIconGrid(icons)
+                  )
+                )
+          )
         )
       );
     }
@@ -670,12 +1008,18 @@
         onReadyGetBlockMapFnCb: onReadyGetBlockMapFn,
         onReadyGetBlocksJsonFnCb: onReadyGetBlocksJsonFn,
         onReadyGetContentFnCb: onReadyGetContentFn,
+        onReadySetFontSizeFnCb: (fn: (size: string | null) => void) => { setFontSizeFn = fn; },
+        onReadySetListStyleFnCb: (fn: (style: string) => void) => { setListStyleFn = fn; },
+        onReadySetBulletStyleFnCb: (fn: (style: string) => void) => { setBulletStyleFn = fn; },
+        onReadyOpenBulletIconPickerCb: (fn: () => void) => { openBulletIconPickerFn = fn; },
+        onCursorBlockTypeChangeCb: (type: string) => { cursorBlockType = type; },
         readonlyProp: readonly,
       })
     );
   }
 
   onMount(() => {
+    autoSaveEnabled = sessionStorage.getItem(AUTOSAVE_KEY) !== 'false';
     mountEditor(content);
   });
 
@@ -686,26 +1030,83 @@
 
 <div class="editor-wrap">
   <div class="editor-toolbar">
+    <!-- Font size -->
+    <div class="toolbar-group">
+      <button type="button" class="toolbar-btn font-size-btn" onclick={() => setFontSizeFn?.('small')} title="Testo piccolo">S</button>
+      <button type="button" class="toolbar-btn font-size-btn font-size-mid" onclick={() => setFontSizeFn?.(null)} title="Testo normale">M</button>
+      <button type="button" class="toolbar-btn font-size-btn font-size-lg" onclick={() => setFontSizeFn?.('large')} title="Testo grande">L</button>
+    </div>
+
+    <!-- Numbered list style — only visible when cursor is in a numbered list -->
+    {#if cursorBlockType === 'numberedListItem'}
+      <div class="toolbar-sep"></div>
+      <div class="toolbar-group">
+        {#each [['↺','auto','Auto (default per livello)'],['1','decimal','1, 2, 3'],['a','lower-alpha','a, b, c'],['A','upper-alpha','A, B, C'],['i','lower-roman','i, ii, iii'],['I','upper-roman','I, II, III']] as [lbl, style, title]}
+          <button type="button" class="toolbar-btn list-style-btn" onclick={() => setListStyleFn?.(style)} title="Lista: {title}">{lbl}</button>
+        {/each}
+      </div>
+    {/if}
+
+    <!-- Bullet list style — only visible when cursor is in a bullet list -->
+    {#if cursorBlockType === 'bulletListItem'}
+      <div class="toolbar-sep"></div>
+      <div class="toolbar-group">
+        {#each BULLET_OPTIONS as opt}
+          <button type="button" class="toolbar-btn bullet-style-btn" onclick={() => setBulletStyleFn?.(opt.value)} title={opt.title}>{opt.char}</button>
+        {/each}
+      </div>
+      <button
+        type="button"
+        class="toolbar-btn"
+        onclick={() => openBulletIconPickerFn?.()}
+        title="Icona come bullet"
+      ><i class="ti ti-icons"></i></button>
+    {/if}
+
+    <div class="toolbar-sep"></div>
+
+    <!-- Footnote -->
     <button
       type="button"
       class="toolbar-btn footnote-btn"
       onclick={() => insertFootnoteFn?.()}
-      title="Inserisci nota a piè di pagina (footnote)"
-    >¹</button>
+      title="Inserisci nota a piè di pagina"
+    ><i class="ti ti-superscript"></i></button>
+
+    <!-- Source HTML -->
     <button
       type="button"
-      class="source-toggle toolbar-btn"
+      class="toolbar-btn source-toggle"
       class:active={showSource}
       onclick={() => {
-        if (!showSource) {
-          sourceValue = content;
-          showSource = true;
-        } else {
-          applySource();
-        }
+        if (!showSource) { sourceValue = content; showSource = true; }
+        else { applySource(); }
       }}
       title="Mostra/modifica HTML sorgente"
-    >&lt;/&gt;</button>
+    ><i class="ti ti-code"></i></button>
+
+    {#if onSave}
+      <div class="toolbar-sep"></div>
+      <button
+        type="button"
+        class="toolbar-btn autosave-btn"
+        class:active={autoSaveEnabled}
+        onclick={() => {
+          autoSaveEnabled = !autoSaveEnabled;
+          sessionStorage.setItem(AUTOSAVE_KEY, autoSaveEnabled ? 'true' : 'false');
+        }}
+        title={autoSaveEnabled ? 'Auto-save ON — ogni 60s (clicca per disattivare)' : 'Auto-save OFF (clicca per attivare)'}
+      ><i class="ti ti-clock"></i></button>
+      {#if lastAutoSaveTime}
+        <span class="autosave-time">{lastAutoSaveTime}</span>
+      {/if}
+      <button
+        type="button"
+        class="toolbar-btn save-btn"
+        onclick={() => { onSave?.(); lastSavedContent = content; }}
+        title="Salva"
+      ><i class="ti ti-device-floppy"></i></button>
+    {/if}
   </div>
 
   <div class="bn-mount" bind:this={mountEl}></div>
@@ -725,17 +1126,38 @@
   .editor-wrap {
     border: 0.5px solid var(--color-bordo);
     border-radius: var(--radius-lg);
-    overflow: hidden;
     background: white;
+    /* No overflow:hidden — toolbar needs to be sticky */
   }
 
   .editor-toolbar {
     display: flex;
-    justify-content: flex-end;
-    gap: var(--space-2);
+    align-items: center;
+    gap: var(--space-1);
     padding: var(--space-2) var(--space-3);
     border-bottom: 0.5px solid var(--color-bordo);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     background: var(--color-nebbia);
+    /* Sticky: sticks just below the navbar (60px) */
+    position: sticky;
+    top: 60px;
+    z-index: 20;
+  }
+
+  .toolbar-group {
+    display: inline-flex;
+    align-items: center;
+    border: 0.5px solid var(--color-bordo);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+
+  .toolbar-sep {
+    width: 1px;
+    height: 18px;
+    background: var(--color-bordo);
+    margin: 0 var(--space-1);
+    flex-shrink: 0;
   }
 
   .toolbar-btn {
@@ -761,15 +1183,39 @@
     border-color: var(--color-bordo);
   }
 
-  .footnote-btn {
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--color-viola);
-    letter-spacing: -0.02em;
+  /* Font size buttons inside the group — no individual border */
+  .toolbar-group .font-size-btn {
+    border: none;
+    border-radius: 0;
+    border-right: 0.5px solid var(--color-bordo);
+    height: 28px;
+    padding: 0 10px;
+  }
+  .toolbar-group .font-size-btn:last-child { border-right: none; }
+  .font-size-btn         { font-size: 11px; }
+  .font-size-mid         { font-size: 13px; }
+  .font-size-lg          { font-size: 15px; font-weight: 600; }
+
+  .footnote-btn { font-size: 0.95rem; color: var(--color-viola); }
+
+  .save-btn { color: var(--color-viola); font-size: 1rem; }
+  .save-btn:hover { background: var(--color-iris); }
+
+  .autosave-btn { font-size: 0.95rem; color: var(--color-lilla); }
+  .autosave-btn.active { color: var(--color-viola); }
+  .autosave-time {
+    font-size: 10px;
+    color: var(--color-lilla);
+    white-space: nowrap;
+    padding: 0 2px;
   }
 
-  /* Keep old class for compat */
-  .source-toggle { /* inherits from .toolbar-btn */ }
+  /* In-editor font size marks */
+  :global(.bn-font-size-small) { font-size: 0.8em; }
+  :global(.bn-font-size-large) { font-size: 1.25em; }
+
+  .list-style-btn { font-family: monospace; font-size: 11px; }
+  .bullet-style-btn { font-size: 1rem; line-height: 1; }
 
   .bn-mount {
     min-height: 400px;
@@ -882,6 +1328,32 @@
 
   /* Resize handle — visibile al hover del blocco immagine */
   :global([data-img-pos]:hover .img-resize-handle) {
+    opacity: 1 !important;
+  }
+
+  /* Embed block in-editor float layout */
+  :global(.bn-editor .bn-block-outer:has([data-embed-pos="float-right"])) {
+    float: right;
+    width: 42%;
+    margin: 0.25rem 0 0.5rem 1rem;
+  }
+  :global(.bn-editor .bn-block-outer:has([data-embed-pos="float-left"])) {
+    float: left;
+    width: 42%;
+    margin: 0.25rem 1rem 0.5rem 0;
+  }
+  :global(.bn-editor .bn-block-outer:has([data-embed-pos="center"])) {
+    float: none;
+    width: 70%;
+    margin: 0.5rem auto;
+    clear: both;
+  }
+  :global(.bn-editor .bn-block-outer:has([data-embed-pos="full"])) {
+    float: none;
+    width: 100%;
+    clear: both;
+  }
+  :global([data-embed-pos]:hover .embed-resize-handle) {
     opacity: 1 !important;
   }
   /* Clearfix so floats don't bleed past the editor */

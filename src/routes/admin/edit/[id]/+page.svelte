@@ -399,6 +399,7 @@
         onReadyGetBlocksJsonFn={(fn) => { getBlocksJsonFn = fn; }}
         onReadyGetContentFn={(fn) => { getContentFn = fn; }}
         blocksJson={data.article.blocksJson}
+        onSave={isReadOnly ? undefined : () => { (document.getElementById('save-form') as HTMLFormElement | null)?.requestSubmit(); }}
       />
     </div>
 
