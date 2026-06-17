@@ -117,6 +117,8 @@
     object-fit: cover;
     display: block;
     background: var(--color-iris);
+    margin: 0;         /* override .prose img margin */
+    border-radius: 0;  /* card border-radius handles corners via overflow:hidden */
   }
 
   .ace-body {
