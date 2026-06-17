@@ -9,6 +9,7 @@
   import { trackPageview, initCompletionTracking } from '$lib/analytics';
   import ReadingProgress from '$lib/components/ReadingProgress.svelte';
   import Poll from '$lib/components/Poll.svelte';
+  import ArticleCardEmbed from '$lib/components/ArticleCardEmbed.svelte';
   import { buildSrcset } from '$lib/utils/image';
   import type { PageData } from './$types';
 
@@ -28,6 +29,11 @@
       for (const el of placeholders) {
         hydratePoll(el);
       }
+
+      // Idrata i placeholder delle card articolo
+      proseEl.querySelectorAll<HTMLElement>('.article-card-embed[data-url]').forEach(el => {
+        hydrateArticleCard(el);
+      });
 
       // Bullet list items with Tabler icon bullets — insert <i> as first child of <p>
       // so it sits in the absolute-positioned area carved out by padding-left on <p>
@@ -114,6 +120,27 @@
 
     return cleanup;
   });
+
+  function hydrateArticleCard(el: HTMLElement) {
+    const cardType = el.getAttribute('data-type') ?? 'internal';
+    const url = el.getAttribute('data-url') ?? '';
+    const position = el.getAttribute('data-position') ?? 'center';
+    const showImage = el.getAttribute('data-show-image') !== 'false';
+
+    const props: Record<string, unknown> = { cardType, url, position, showImage };
+
+    if (cardType === 'internal') {
+      props.article = data.linkedArticles?.[url] ?? null;
+    } else {
+      props.extTitle = el.getAttribute('data-ext-title') ?? '';
+      props.extDescription = el.getAttribute('data-ext-description') ?? '';
+      props.extImage = el.getAttribute('data-ext-image') ?? '';
+      props.extSiteName = el.getAttribute('data-ext-site-name') ?? '';
+    }
+
+    el.innerHTML = '';
+    mount(ArticleCardEmbed, { target: el, props });
+  }
 
   async function hydratePoll(el: HTMLElement) {
     const pollId = el.getAttribute('data-poll-id');
@@ -281,6 +308,9 @@
 
   <!-- JSON-LD -->
   {@html `<script type="application/ld+json">${jsonLd}</script>`}
+
+  <!-- Tabler Icons: needed for callouts, bullet icons, embeds, comments in article body (all below fold). -->
+  <link rel="stylesheet" href="{base}/fonts/tabler-icons.css" media="print" onload={(e) => { (e.target as HTMLLinkElement).media = 'all'; }}>
 </svelte:head>
 
 <article class="article-wrap" class:is-page={data.article.type === 'page'}>

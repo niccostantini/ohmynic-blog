@@ -78,6 +78,25 @@ export async function getArticleBySlug(slug: string) {
   return result[0] ?? null;
 }
 
+export async function getArticlesBySlugList(slugs: string[]) {
+  if (slugs.length === 0) return [];
+  return db
+    .select({
+      id: articles.id,
+      title: articles.title,
+      slug: articles.slug,
+      excerpt: articles.excerpt,
+      coverImage: articles.coverImage,
+      coverImageFocus: articles.coverImageFocus,
+    })
+    .from(articles)
+    .where(and(
+      inArray(articles.slug, slugs),
+      eq(articles.status, 'published'),
+      or(isNull(articles.publishedAt), lte(articles.publishedAt, new Date())),
+    ));
+}
+
 export async function getArticleById(id: string) {
   const result = await db
     .select()

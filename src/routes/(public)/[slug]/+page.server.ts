@@ -6,6 +6,7 @@ import {
   getTagsForArticle,
   getRelatedArticles,
   readingTime,
+  getArticlesBySlugList,
 } from '$lib/db/queries/articles';
 import { getApprovedComments } from '$lib/db/queries/comments';
 import { isBookmarked } from '$lib/db/queries/readers';
@@ -60,8 +61,11 @@ export const load: PageServerLoad = async ({ params, locals, url }) => {
     }))
   );
 
-  // Load poll data for all poll blocks embedded in the article
-  const polls = await loadPollsFromBlocks(article.blocksJson ?? null, locals.reader?.id ?? null);
+  // Load poll data and linked article cards in parallel
+  const [polls, linkedArticles] = await Promise.all([
+    loadPollsFromBlocks(article.blocksJson ?? null, locals.reader?.id ?? null),
+    loadLinkedArticles(article.blocksJson ?? null),
+  ]);
 
   return {
     article: { ...article, readingTimeMinutes },
@@ -72,8 +76,44 @@ export const load: PageServerLoad = async ({ params, locals, url }) => {
     bookmarked,
     isPreview: !!previewToken,
     polls,
+    linkedArticles,
   };
 };
+
+// ── Linked article cards loader ───────────────────────────────────────────────
+
+async function loadLinkedArticles(
+  blocksJson: string | null,
+): Promise<Record<string, { id: string; title: string; slug: string; excerpt: string | null; coverImage: string | null; coverImageFocus: string | null }>> {
+  if (!blocksJson) return {};
+
+  function extractSlugs(blocks: any[]): string[] {
+    const slugs: string[] = [];
+    for (const b of blocks) {
+      if (b.type === 'articleCard' && b.props?.cardType === 'internal' && b.props?.url) {
+        slugs.push(b.props.url as string);
+      }
+      if (Array.isArray(b.children)) slugs.push(...extractSlugs(b.children));
+    }
+    return slugs;
+  }
+
+  let slugs: string[];
+  try {
+    slugs = [...new Set(extractSlugs(JSON.parse(blocksJson)))];
+  } catch {
+    return {};
+  }
+
+  if (slugs.length === 0) return {};
+
+  try {
+    const rows = await getArticlesBySlugList(slugs);
+    return Object.fromEntries(rows.map((a) => [a.slug, a]));
+  } catch {
+    return {};
+  }
+}
 
 // ── Poll loader helper ────────────────────────────────────────────────────────
 
