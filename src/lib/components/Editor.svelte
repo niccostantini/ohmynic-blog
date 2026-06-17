@@ -146,6 +146,7 @@
     const { embedBlockSpec } = await import('./EmbedBlock.js');
     const { numberedListItemSpec } = await import('./NumberedListBlock.js');
     const { bulletListItemSpec } = await import('./BulletListBlock.js');
+    const { articleCardBlockSpec } = await import('./ArticleCardBlock.js');
     const { fontSizeStyle } = await import('$lib/editor/FontSizeStyle.js');
     const { tablerIconInlineContentSpec } = await import('$lib/editor/TablerIconSpec.js');
     const { defaultStyleSpecs } = await import('@blocknote/core');
@@ -163,6 +164,7 @@
         embed: embedBlockSpec(),
         numberedListItem: numberedListItemSpec(),
         bulletListItem: bulletListItemSpec(),
+        articleCard: articleCardBlockSpec(),
       },
       inlineContentSpecs: {
         ...defaultInlineContentSpecs,
@@ -818,7 +820,19 @@
             );
           },
         };
-        return filterSuggestionItems([...defaults, imageItem, pollItem, iconItem, embedItem, ...callouts] as any, query) as any;
+        const articleCardItem = {
+          title: 'Link articolo',
+          group: 'Media',
+          icon: createElement('i', { className: 'ti ti-bookmark', style: { fontSize: '1.1rem' } }),
+          onItemClick: () => {
+            (editor as any).insertBlocks(
+              [{ type: 'articleCard', props: { cardType: 'internal', url: '', position: 'center', intTitle: '', extTitle: '', extDescription: '', extImage: '', extSiteName: '' } }],
+              (editor as any).getTextCursorPosition().block,
+              'after',
+            );
+          },
+        };
+        return filterSuggestionItems([...defaults, imageItem, pollItem, iconItem, embedItem, articleCardItem, ...callouts] as any, query) as any;
       }, [editor]);
 
       // ── Context value ────────────────────────────────────────────────────────
