@@ -7,7 +7,7 @@
 <article class="article-wrap is-page">
   <div class="article-header">
     <h1 class="article-title">Cookie policy</h1>
-    <p class="article-updated">Ultimo aggiornamento: 16 giugno 2026</p>
+    <p class="article-updated">Ultimo aggiornamento: 17 giugno 2026</p>
   </div>
 
   <div class="prose">
@@ -125,6 +125,11 @@
         <tr>
           <td><code>ohmynic-sid</code></td>
           <td>UUID casuale generato lato client per identificare la sessione di navigazione nelle statistiche interne. Non è collegato a nessun profilo o account.</td>
+          <td>Durata della scheda del browser</td>
+        </tr>
+        <tr>
+          <td><code>ohmynic_autosave</code></td>
+          <td>Preferenza auto-salvataggio nell'editor CMS. Usato solo dagli utenti staff autenticati; non presente per i visitatori normali.</td>
           <td>Durata della scheda del browser</td>
         </tr>
       </tbody>
