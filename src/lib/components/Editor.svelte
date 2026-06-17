@@ -14,6 +14,7 @@
     onReadyGetBlocksJsonFn = undefined as ((fn: () => string) => void) | undefined,
     onReadyGetContentFn = undefined as ((fn: () => string) => void) | undefined,
     onSave = undefined as (() => void) | undefined,
+    onAutoSave = undefined as (() => void | Promise<void>) | undefined,
   }: {
     content: string;
     blocksJson?: string | null;
@@ -25,6 +26,7 @@
     onReadyGetBlocksJsonFn?: (fn: () => string) => void;
     onReadyGetContentFn?: (fn: () => string) => void;
     onSave?: () => void;
+    onAutoSave?: () => void | Promise<void>;
   } = $props();
 
   let mountEl: HTMLDivElement;
@@ -65,11 +67,14 @@
   let lastAutoSaveTime = $state<string | null>(null);
 
   $effect(() => {
-    if (!autoSaveEnabled || !onSave) return;
-    const timer = setInterval(() => {
+    // onAutoSave: silent background save (no page invalidation → no focus loss)
+    // onSave: fallback if onAutoSave not provided
+    const saveCallback = onAutoSave ?? onSave;
+    if (!autoSaveEnabled || !saveCallback) return;
+    const timer = setInterval(async () => {
       if (content !== lastSavedContent) {
         lastSavedContent = content;
-        onSave();
+        try { await saveCallback(); } catch { /* silent fail */ }
         lastAutoSaveTime = new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
       }
     }, 60_000);

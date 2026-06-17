@@ -103,13 +103,15 @@ export const numberedListItemSpec = createReactBlockSpec(
     toExternalHTML: (props: any) => {
       const { block, contentRef } = props;
       const doc = (props.editor as any)?.document as any[] ?? [];
-      const label = computeLabel(doc, block.id) ?? '';
+      const label = computeLabel(doc, block.id) ?? '1';
+      const depth = (label.match(/\./g) ?? []).length;
 
       return (
         <p
           ref={contentRef as React.Ref<HTMLParagraphElement>}
           data-list-style={block.props.listStyle || 'auto'}
-          {...(label ? { 'data-list-label': label } : {})}
+          data-list-label={label}
+          data-list-depth={String(depth)}
         />
       );
     },

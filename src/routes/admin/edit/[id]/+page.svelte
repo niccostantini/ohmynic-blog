@@ -181,6 +181,23 @@
   let getBlocksJsonFn: (() => string) | null = null;
   let getContentFn: (() => string) | null = null;
 
+  // Auto-save: direct fetch to ?/save without page invalidation so the editor
+  // doesn't lose focus (requestSubmit + update() re-renders the page).
+  async function doAutoSave() {
+    const form = document.getElementById('save-form') as HTMLFormElement | null;
+    if (!form) return;
+    const fd = new FormData(form);
+    const html = getContentFn?.();
+    if (html) fd.set('content', html);
+    fd.set('blockSnapshots', JSON.stringify(getBlockMapFn?.() ?? {}));
+    fd.set('blocksJson', getBlocksJsonFn?.() ?? '[]');
+    const res = await fetch(`${base}/admin/edit/${data.article.id}?/save`, {
+      method: 'POST',
+      body: fd,
+    });
+    if (res.ok) addToast('Salvato automaticamente', 'success');
+  }
+
   const blockComments = $derived(
     Object.fromEntries(
       (data.editorialComments ?? [])
@@ -400,6 +417,7 @@
         onReadyGetContentFn={(fn) => { getContentFn = fn; }}
         blocksJson={data.article.blocksJson}
         onSave={isReadOnly ? undefined : () => { (document.getElementById('save-form') as HTMLFormElement | null)?.requestSubmit(); }}
+        onAutoSave={isReadOnly ? undefined : doAutoSave}
       />
     </div>
 

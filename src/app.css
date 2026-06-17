@@ -426,27 +426,29 @@ body {
 /* ─────────────────────────────────────────────────────────────────────────── */
 
 /* ── Hierarchical numbered lists (custom BlockNote block) ─────────────────────
-   BlockNote wraps consecutive numberedListItem blocks in <ol><li>.
-   The label (e.g. "1.2.a") is embedded as data-list-label on the <p> inside.
-   CSS uses attr(data-list-label) so mixed styles (1.a, a.1, etc.) work without JS.
+   toExternalHTML outputs <p data-list-label="1.a" data-list-style="auto">.
+   BlockNote may wrap in <ol><li> or in <div> depending on spec override behavior,
+   so all indentation/label CSS lives on the <p> directly — no <li> ancestor needed.
    ────────────────────────────────────────────────────────────────────────────── */
 
-/* Suppress native <ol> marker — we render our own label via ::before */
+/* If <ol> wrapper is present, suppress native marker */
 .prose ol:has(p[data-list-label]) {
   list-style: none;
   padding-left: 0;
   margin-left: 0;
 }
-/* Each <li> provides indentation; position:relative anchors the absolute label */
+/* If <li> wrapper is present, zero its padding — indentation is on the <p> */
 .prose li:has(> p[data-list-label]) {
-  padding-left: 2.5em;
-  position: relative;
+  padding-left: 0;
+  list-style: none;
 }
-.prose li p[data-list-label] {
+/* All indentation and label rendering directly on <p> */
+.prose p[data-list-label] {
+  position: relative;
+  padding-left: 2.5em;
   margin: 0.15em 0;
 }
-/* The label text rendered before each item */
-.prose li p[data-list-label]::before {
+.prose p[data-list-label]::before {
   content: attr(data-list-label) "  ";
   position: absolute;
   left: 0;
@@ -455,46 +457,42 @@ body {
 }
 
 /* ── Bullet lists (custom BlockNote block) ────────────────────────────────────
-   BlockNote wraps consecutive bulletListItem blocks in <ul><li>.
-   The resolved bullet char is in data-bullet-char; icon name in data-bullet-icon.
-   Character bullets: CSS ::before with content: attr(data-bullet-char).
-   Icon bullets: onMount JS adds <i class="ti ..."> and .has-icon-bullet class.
+   toExternalHTML outputs <p data-bullet-char="•"> or <p data-bullet-icon="name">.
+   All styling targets <p> directly. Icon bullets: onMount JS inserts <i> as
+   first child of <p> so it's positioned relative to the <p>'s padding area.
    ────────────────────────────────────────────────────────────────────────────── */
 
+/* If <ul> wrapper is present, suppress native marker */
 .prose ul:has(p[data-bullet-style]) {
   list-style: none;
   padding-left: 0;
   margin-left: 0;
 }
+/* If <li> wrapper is present, zero its padding — indentation is on the <p> */
 .prose li:has(> p[data-bullet-style]) {
-  padding-left: 1.8em;
-  position: relative;
+  padding-left: 0;
+  list-style: none;
 }
-.prose li p[data-bullet-style] {
+/* All bullet items share base indentation and positioning context */
+.prose p[data-bullet-style] {
+  position: relative;
+  padding-left: 1.8em;
   margin: 0.15em 0;
 }
-/* Character bullets */
-.prose li p[data-bullet-char]::before {
+/* Character bullets via ::before */
+.prose p[data-bullet-char]::before {
   content: attr(data-bullet-char);
   position: absolute;
   left: 0.1em;
   line-height: inherit;
 }
-/* Icon bullets — layout injected by onMount JS */
-.prose li.has-icon-bullet {
-  display: flex;
-  align-items: baseline;
-  gap: 0.4em;
-  padding-left: 0;
-}
-.prose li.has-icon-bullet p[data-bullet-icon] {
-  flex: 1;
-  min-width: 0;
-}
+/* Icon bullets — <i> inserted as first child of <p> by onMount JS */
 .prose .bullet-icon {
-  flex-shrink: 0;
+  position: absolute;
+  left: 0.1em;
   font-size: 0.85em;
   line-height: inherit;
+  pointer-events: none;
 }
 
 /* ── Inline font size (exported by BlockNote editor) ────────────────────────── */

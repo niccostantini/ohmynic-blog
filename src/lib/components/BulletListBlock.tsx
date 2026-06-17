@@ -90,12 +90,15 @@ export const bulletListItemSpec = createReactBlockSpec(
       const depth = computeDepth(doc, block.id);
       const style = resolveBulletStyle(block.props?.bulletStyle ?? 'auto', depth < 0 ? 0 : depth);
 
+      const resolvedDepth = depth < 0 ? 0 : depth;
+
       if (style.startsWith('icon:')) {
         return (
           <p
             ref={contentRef as React.Ref<HTMLParagraphElement>}
             data-bullet-style={block.props.bulletStyle || 'auto'}
             data-bullet-icon={style.slice(5)}
+            data-bullet-depth={String(resolvedDepth)}
           />
         );
       }
@@ -105,6 +108,7 @@ export const bulletListItemSpec = createReactBlockSpec(
           ref={contentRef as React.Ref<HTMLParagraphElement>}
           data-bullet-style={block.props.bulletStyle || 'auto'}
           data-bullet-char={BULLET_CHARS[style] ?? '•'}
+          data-bullet-depth={String(resolvedDepth)}
         />
       );
     },

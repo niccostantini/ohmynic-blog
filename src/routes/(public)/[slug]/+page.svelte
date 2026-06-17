@@ -29,17 +29,41 @@
         hydratePoll(el);
       }
 
-      // Bullet list items with Tabler icon bullets
+      // Bullet list items with Tabler icon bullets — insert <i> as first child of <p>
+      // so it sits in the absolute-positioned area carved out by padding-left on <p>
       proseEl.querySelectorAll<HTMLElement>('p[data-bullet-icon]').forEach(p => {
         const iconName = p.dataset.bulletIcon;
         if (!iconName) return;
-        const li = p.parentElement;
-        if (!li || li.tagName !== 'LI') return;
         const icon = document.createElement('i');
         icon.className = `ti ti-${iconName} bullet-icon`;
         icon.setAttribute('aria-hidden', 'true');
-        li.insertBefore(icon, p);
-        li.classList.add('has-icon-bullet');
+        p.insertBefore(icon, p.firstChild);
+      });
+
+      // Depth-based indentation for numbered list items.
+      // Use margin-left (not padding-left) so the entire <p> — including the
+      // absolute-positioned ::before label — shifts right together.
+      // Depth derived from dots in the label ("1.a" → 1) so it works on old HTML too.
+      proseEl.querySelectorAll<HTMLElement>('p[data-list-label]').forEach(p => {
+        const label = p.dataset.listLabel ?? '';
+        const depth = (label.match(/\./g) ?? []).length;
+        if (depth > 0) p.style.marginLeft = `${depth * 2}em`;
+      });
+
+      // Depth-based indentation for bullet list items via DOM nesting.
+      // data-bullet-depth is unreliable: BlockNote's headless serializer passes an empty
+      // document to toExternalHTML so computeDepth always returns 0.
+      // Instead, count ancestor elements that directly contain a p[data-bullet-style]
+      // child — works for both <ul><li> and <div> wrapper structures.
+      proseEl.querySelectorAll<HTMLElement>('p[data-bullet-style]').forEach(p => {
+        let containerCount = 0;
+        let el: Element | null = p.parentElement;
+        while (el && el !== proseEl) {
+          if (el.querySelector(':scope > p[data-bullet-style]')) containerCount++;
+          el = el.parentElement;
+        }
+        const depth = Math.max(0, containerCount - 1);
+        if (depth > 0) p.style.marginLeft = `${depth * 1.8}em`;
       });
 
       // Click-to-load gate per gli embed (YouTube, Spotify, Gist, Codepen)
