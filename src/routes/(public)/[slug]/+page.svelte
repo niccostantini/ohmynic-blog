@@ -125,8 +125,9 @@
     const cardType = el.getAttribute('data-type') ?? 'internal';
     const url = el.getAttribute('data-url') ?? '';
     const position = el.getAttribute('data-position') ?? 'center';
+    const showImage = el.getAttribute('data-show-image') !== 'false';
 
-    const props: Record<string, unknown> = { cardType, url, position };
+    const props: Record<string, unknown> = { cardType, url, position, showImage };
 
     if (cardType === 'internal') {
       props.article = data.linkedArticles?.[url] ?? null;

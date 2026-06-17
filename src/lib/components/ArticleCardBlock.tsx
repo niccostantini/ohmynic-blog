@@ -189,6 +189,7 @@ export const articleCardBlockSpec = createReactBlockSpec(
       cardType: { default: 'internal' as string },   // 'internal' | 'external'
       url: { default: '' as string },                 // slug (internal) or full URL (external)
       position: { default: 'center' as string },     // 'left'|'center'|'right'|'full'
+      showImage: { default: true },
       intTitle: { default: '' as string },            // frozen title for editor display only
       extTitle: { default: '' as string },
       extDescription: { default: '' as string },
@@ -199,7 +200,7 @@ export const articleCardBlockSpec = createReactBlockSpec(
   },
   {
     render: ({ block, editor }) => {
-      const { cardType, url, position, intTitle, extTitle, extDescription, extImage, extSiteName } = block.props;
+      const { cardType, url, position, showImage, intTitle, extTitle, extDescription, extImage, extSiteName } = block.props;
 
       // 'pick' = type chooser; 'search' = internal search; 'ext' = external URL input; null = card preview
       const [mode, setMode] = React.useState<'pick' | 'search' | 'ext' | null>(
@@ -306,10 +307,8 @@ export const articleCardBlockSpec = createReactBlockSpec(
                 borderRadius: '8px',
                 overflow: 'hidden',
                 marginBottom: '0.7rem',
-                display: 'flex',
-                gap: 0,
               }}>
-                {cardType === 'external' && extImage && (
+                {showImage && cardType === 'external' && extImage && (
                   <img src={extImage} alt="" style={{ width: '100%', height: '120px', objectFit: 'cover', display: 'block' }} />
                 )}
                 <div style={{ padding: '0.6rem 0.8rem' }}>
@@ -335,7 +334,7 @@ export const articleCardBlockSpec = createReactBlockSpec(
                 </div>
               </div>
 
-              {/* Position selector */}
+              {/* Controls: position + show image */}
               <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap', alignItems: 'center' }}>
                 <span style={{ fontSize: '0.72rem', color: '#b0a4d0', lineHeight: 2 }}>Posizione:</span>
                 {(['left', 'center', 'right', 'full'] as const).map((pos) => (
@@ -353,6 +352,22 @@ export const articleCardBlockSpec = createReactBlockSpec(
                     {positionLabels[pos]}
                   </button>
                 ))}
+                <span style={{ color: '#d8d0f0', margin: '0 0.1rem' }}>|</span>
+                <button
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    editor.updateBlock(block, { props: { showImage: !showImage } as any });
+                  }}
+                  style={{
+                    ...btnBase,
+                    background: showImage ? '#d8d0f0' : 'transparent',
+                    fontWeight: showImage ? 700 : 400,
+                    border: showImage ? '0.5px solid #b0a0e0' : '0.5px solid #d8d0f0',
+                  }}
+                >
+                  <i className={`ti ti-${showImage ? 'photo' : 'photo-off'}`}></i> Immagine
+                </button>
               </div>
             </>
           )}
@@ -362,13 +377,14 @@ export const articleCardBlockSpec = createReactBlockSpec(
 
     // ── HTML export (saved to DB) ──────────────────────────────────────────────
     toExternalHTML: ({ block }) => {
-      const { cardType, url, position, extTitle, extDescription, extImage, extSiteName } = block.props;
+      const { cardType, url, position, showImage, extTitle, extDescription, extImage, extSiteName } = block.props;
       if (!url) return <div />;
 
       const attrs: Record<string, string> = {
         'data-type': cardType || 'internal',
         'data-url': url,
         'data-position': position || 'center',
+        'data-show-image': showImage === false ? 'false' : 'true',
       };
       if (cardType === 'external') {
         if (extTitle) attrs['data-ext-title'] = extTitle;
@@ -387,6 +403,7 @@ export const articleCardBlockSpec = createReactBlockSpec(
         cardType: element.getAttribute('data-type') || 'internal',
         url: element.getAttribute('data-url') || '',
         position: element.getAttribute('data-position') || 'center',
+        showImage: element.getAttribute('data-show-image') !== 'false',
         intTitle: '',
         extTitle: element.getAttribute('data-ext-title') || '',
         extDescription: element.getAttribute('data-ext-description') || '',

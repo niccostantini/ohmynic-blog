@@ -15,6 +15,7 @@
     cardType,
     url,
     position,
+    showImage = true,
     article,
     extTitle,
     extDescription,
@@ -24,6 +25,7 @@
     cardType: string;
     url: string;
     position: string;
+    showImage?: boolean;
     article?: Article | null;
     extTitle?: string;
     extDescription?: string;
@@ -35,7 +37,7 @@
 {#if cardType === 'internal' && article}
   <div class="ace-wrap ace-{position}">
     <a href="{base}/{article.slug}" class="ace ace--internal">
-      {#if article.coverImage}
+      {#if showImage && article.coverImage}
         <img
           src={article.coverImage}
           alt={article.title}
@@ -64,7 +66,7 @@
 {:else if cardType === 'external' && url}
   <div class="ace-wrap ace-{position}">
     <a href={url} target="_blank" rel="noopener noreferrer" class="ace ace--external">
-      {#if extImage}
+      {#if showImage && extImage}
         <img src={extImage} alt={extTitle || ''} class="ace-image" loading="lazy" decoding="async" />
       {/if}
       <div class="ace-body">
