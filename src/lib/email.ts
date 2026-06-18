@@ -1,6 +1,15 @@
 import { Resend } from 'resend';
 import { env } from '$env/dynamic/private';
 
+function e(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 export function sendVerificationEmail({
   to,
   displayName,
@@ -22,7 +31,7 @@ export function sendVerificationEmail({
       to,
       subject: 'Conferma il tuo account su OhMyNic!',
       html: `
-        <p>Ciao ${displayName},</p>
+        <p>Ciao ${e(displayName)},</p>
         <p>Grazie per esserti registrato su <strong>OhMyNic!</strong>.</p>
         <p>Clicca il link qui sotto per confermare il tuo indirizzo email:</p>
         <p style="margin:24px 0;">
@@ -63,11 +72,11 @@ export function sendWelcomeEmail({
       to,
       subject: 'Il tuo account su OhMyNic! è pronto',
       html: `
-        <p>Ciao ${displayName},</p>
+        <p>Ciao ${e(displayName)},</p>
         <p>Il tuo account su <strong>OhMyNic!</strong> è stato creato.</p>
         <p>
-          <strong>Username:</strong> ${username}<br>
-          <strong>Password temporanea:</strong> <code style="background:#f1efe8;padding:2px 6px;border-radius:4px;font-size:1rem;">${tempPassword}</code>
+          <strong>Username:</strong> ${e(username)}<br>
+          <strong>Password temporanea:</strong> <code style="background:#f1efe8;padding:2px 6px;border-radius:4px;font-size:1rem;">${e(tempPassword)}</code>
         </p>
         <p style="margin-top:24px;">
           <a href="${loginUrl}" style="background:#7c55d4;color:white;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:500;">
@@ -105,9 +114,9 @@ export function sendCommentReply({
     .send({
       from: 'OhMyNic! Blog <noreply@ohmynic.co>',
       to,
-      subject: `Re: il tuo commento su "${articleTitle}"`,
+      subject: `Re: il tuo commento su "${e(articleTitle)}"`,
       html: `
-        <p>${replyText.replace(/\n/g, '<br>')}</p>
+        <p>${e(replyText).replace(/\n/g, '<br>')}</p>
         <p style="margin-top:24px;">
           <a href="${articleUrl}">Leggi l'articolo</a>
         </p>
@@ -141,23 +150,23 @@ export function notifyNewComment({
   const adminUrl = 'https://ohmynic.co/blog/admin/comments';
 
   const authorLine = authorName
-    ? `<p><strong>Autore:</strong> ${authorName}</p>`
+    ? `<p><strong>Autore:</strong> ${e(authorName)}</p>`
     : '';
   const emailLine = authorEmail
-    ? `<p><strong>Email:</strong> <a href="mailto:${authorEmail}">${authorEmail}</a></p>`
+    ? `<p><strong>Email:</strong> <a href="mailto:${e(authorEmail)}">${e(authorEmail)}</a></p>`
     : '';
 
   resend.emails
     .send({
       from: 'OhMyNic! Blog <noreply@ohmynic.co>',
       to: notifyEmail,
-      subject: `Nuovo commento su "${articleTitle}"`,
+      subject: `Nuovo commento su "${e(articleTitle)}"`,
       html: `
         ${authorLine}
         ${emailLine}
         <p><strong>Commento:</strong></p>
         <blockquote style="border-left:3px solid #7c5cbf;padding-left:12px;color:#555;">
-          ${content.replace(/\n/g, '<br>')}
+          ${e(content).replace(/\n/g, '<br>')}
         </blockquote>
         <p>
           <a href="${articleUrl}">Vai all'articolo</a> &nbsp;·&nbsp;
@@ -195,11 +204,11 @@ export function notifyReviewSubmitted({
     resend.emails.send({
       from: 'OhMyNic! Blog <noreply@ohmynic.co>',
       to: reviewer.email,
-      subject: `Nuovo articolo in revisione: ${articleTitle}`,
+      subject: `Nuovo articolo in revisione: ${e(articleTitle)}`,
       html: `
-        <p>Ciao ${reviewer.displayName ?? ''},</p>
-        <p><strong>${authorName}</strong> ha inviato un articolo in revisione.</p>
-        <p><strong>Titolo:</strong> ${articleTitle}</p>
+        <p>Ciao ${e(reviewer.displayName ?? '')},</p>
+        <p><strong>${e(authorName)}</strong> ha inviato un articolo in revisione.</p>
+        <p><strong>Titolo:</strong> ${e(articleTitle)}</p>
         <p style="margin-top:24px;">
           <a href="${adminUrl}" style="background:#7c55d4;color:white;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:500;">
             Apri nell'admin
@@ -235,10 +244,10 @@ export function notifyArticleApproved({
     resend.emails.send({
       from: 'OhMyNic! Blog <noreply@ohmynic.co>',
       to: admin.email,
-      subject: `Articolo approvato pronto per pubblicazione: ${articleTitle}`,
+      subject: `Articolo approvato pronto per pubblicazione: ${e(articleTitle)}`,
       html: `
-        <p>Ciao ${admin.displayName ?? ''},</p>
-        <p><strong>${approvedByName}</strong> ha approvato l'articolo "${articleTitle}".</p>
+        <p>Ciao ${e(admin.displayName ?? '')},</p>
+        <p><strong>${e(approvedByName)}</strong> ha approvato l'articolo "${e(articleTitle)}".</p>
         <p>È pronto per la pubblicazione.</p>
         <p style="margin-top:24px;">
           <a href="${adminUrl}" style="background:#7c55d4;color:white;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:500;">
@@ -275,13 +284,13 @@ export function notifyReturnedToDraft({
   resend.emails.send({
     from: 'OhMyNic! Blog <noreply@ohmynic.co>',
     to,
-    subject: `Revisione richiesta per: ${articleTitle}`,
+    subject: `Revisione richiesta per: ${e(articleTitle)}`,
     html: `
-      <p>Ciao ${authorName},</p>
-      <p>Il tuo articolo "<strong>${articleTitle}</strong>" è stato rimandato in bozza per una revisione.</p>
+      <p>Ciao ${e(authorName)},</p>
+      <p>Il tuo articolo "<strong>${e(articleTitle)}</strong>" è stato rimandato in bozza per una revisione.</p>
       <p><strong>Nota del revisore:</strong></p>
       <blockquote style="border-left:3px solid #7c5cbf;padding-left:12px;color:#555;margin:12px 0;">
-        ${note.replace(/\n/g, '<br>')}
+        ${e(note).replace(/\n/g, '<br>')}
       </blockquote>
       <p style="margin-top:24px;">
         <a href="${editUrl}" style="background:#7c55d4;color:white;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:500;">
@@ -317,7 +326,7 @@ export function notifyNewEditorialComment({
   const resend = new Resend(apiKey);
   const adminUrl = `https://ohmynic.co/blog/admin/edit/${articleId}`;
   const blockHtml = blockSnapshot
-    ? `<blockquote style="border-left:3px solid #d8d0f0;padding-left:10px;color:#888;font-style:italic;margin:0 0 12px;">${blockSnapshot}</blockquote>`
+    ? `<blockquote style="border-left:3px solid #d8d0f0;padding-left:10px;color:#888;font-style:italic;margin:0 0 12px;">${e(blockSnapshot)}</blockquote>`
     : '';
 
   for (const recipient of recipients) {
@@ -325,13 +334,13 @@ export function notifyNewEditorialComment({
     resend.emails.send({
       from: 'OhMyNic! Blog <noreply@ohmynic.co>',
       to: recipient.email,
-      subject: `[${articleTitle}] Nuovo commento di ${authorName}`,
+      subject: `[${e(articleTitle)}] Nuovo commento di ${e(authorName)}`,
       html: `
-        <p>Ciao ${recipient.displayName ?? ''},</p>
-        <p><strong>${authorName}</strong> ha commentato l'articolo "<strong>${articleTitle}</strong>".</p>
+        <p>Ciao ${e(recipient.displayName ?? '')},</p>
+        <p><strong>${e(authorName)}</strong> ha commentato l'articolo "<strong>${e(articleTitle)}</strong>".</p>
         ${blockHtml}
         <blockquote style="border-left:3px solid #7c5cbf;padding-left:12px;color:#555;margin:12px 0;">
-          ${commentContent.replace(/\n/g, '<br>')}
+          ${e(commentContent).replace(/\n/g, '<br>')}
         </blockquote>
         <p style="margin-top:24px;">
           <a href="${adminUrl}" style="background:#7c55d4;color:white;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:500;">
@@ -371,14 +380,14 @@ export function notifyEditorialCommentReply({
   resend.emails.send({
     from: 'OhMyNic! Blog <noreply@ohmynic.co>',
     to,
-    subject: `[${articleTitle}] ${replierName} ha risposto al tuo commento`,
+    subject: `[${e(articleTitle)}] ${e(replierName)} ha risposto al tuo commento`,
     html: `
-      <p>Ciao ${recipientName},</p>
-      <p><strong>${replierName}</strong> ha risposto al tuo commento sull'articolo "<strong>${articleTitle}</strong>".</p>
+      <p>Ciao ${e(recipientName)},</p>
+      <p><strong>${e(replierName)}</strong> ha risposto al tuo commento sull'articolo "<strong>${e(articleTitle)}</strong>".</p>
       <p style="color:#888;font-size:0.9em;margin-bottom:4px;">Il tuo commento:</p>
-      <blockquote style="border-left:3px solid #d8d0f0;padding-left:12px;color:#888;margin:0 0 16px;">${originalContent.replace(/\n/g, '<br>')}</blockquote>
+      <blockquote style="border-left:3px solid #d8d0f0;padding-left:12px;color:#888;margin:0 0 16px;">${e(originalContent).replace(/\n/g, '<br>')}</blockquote>
       <p style="color:#555;font-size:0.9em;margin-bottom:4px;">Risposta:</p>
-      <blockquote style="border-left:3px solid #7c5cbf;padding-left:12px;color:#555;margin:0 0 16px;">${replyContent.replace(/\n/g, '<br>')}</blockquote>
+      <blockquote style="border-left:3px solid #7c5cbf;padding-left:12px;color:#555;margin:0 0 16px;">${e(replyContent).replace(/\n/g, '<br>')}</blockquote>
       <p style="margin-top:24px;">
         <a href="${adminUrl}" style="background:#7c55d4;color:white;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:500;">
           Vedi nell'admin
@@ -413,7 +422,7 @@ export function sendReaderPasswordReset({
       to,
       subject: 'Reimposta la tua password su OhMyNic!',
       html: `
-        <p>Ciao ${displayName},</p>
+        <p>Ciao ${e(displayName)},</p>
         <p>Abbiamo ricevuto una richiesta di reimpostazione della password per il tuo account su <strong>OhMyNic!</strong>.</p>
         <p>Clicca il link qui sotto per scegliere una nuova password:</p>
         <p style="margin:24px 0;">
@@ -452,7 +461,7 @@ export function sendAdminPasswordReset({
       to,
       subject: 'Reimposta la tua password admin su OhMyNic!',
       html: `
-        <p>Ciao ${displayName},</p>
+        <p>Ciao ${e(displayName)},</p>
         <p>Abbiamo ricevuto una richiesta di reimpostazione della password per il tuo account admin su <strong>OhMyNic!</strong>.</p>
         <p>Clicca il link qui sotto per scegliere una nuova password:</p>
         <p style="margin:24px 0;">
@@ -492,21 +501,21 @@ export function notifyNewFeedback({
   const resend = new Resend(apiKey);
   const typeLabel = type === 'bug' ? '🐛 Bug' : type === 'suggestion' ? '💡 Suggerimento' : '💬 Altro';
   const adminUrl = 'https://ohmynic.co/blog/admin/feedback';
-  const urlLine = url ? `<p><strong>Pagina:</strong> <a href="${url}">${url}</a></p>` : '';
-  const authorLine = authorName ? `<p><strong>Da:</strong> ${authorName}</p>` : '';
+  const urlLine = url ? `<p><strong>Pagina:</strong> <a href="${e(url)}">${e(url)}</a></p>` : '';
+  const authorLine = authorName ? `<p><strong>Da:</strong> ${e(authorName)}</p>` : '';
 
   resend.emails.send({
     from: 'OhMyNic! Blog <noreply@ohmynic.co>',
     to: notifyEmail,
-    subject: `[${typeLabel}] ${title} — nuovo feedback`,
+    subject: `[${typeLabel}] ${e(title)} — nuovo feedback`,
     html: `
       <p><strong>Tipo:</strong> ${typeLabel}</p>
-      <p><strong>Titolo:</strong> ${title}</p>
+      <p><strong>Titolo:</strong> ${e(title)}</p>
       ${authorLine}
       ${urlLine}
       <p><strong>Descrizione:</strong></p>
       <blockquote style="border-left:3px solid #7c5cbf;padding-left:12px;color:#555;margin:12px 0;">
-        ${description.replace(/\n/g, '<br>')}
+        ${e(description).replace(/\n/g, '<br>')}
       </blockquote>
       <p style="margin-top:24px;">
         <a href="${adminUrl}" style="background:#7c55d4;color:white;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:500;">
@@ -540,10 +549,10 @@ export function notifyArticlePublished({
   resend.emails.send({
     from: 'OhMyNic! Blog <noreply@ohmynic.co>',
     to,
-    subject: `Il tuo articolo è online: ${articleTitle}`,
+    subject: `Il tuo articolo è online: ${e(articleTitle)}`,
     html: `
-      <p>Ciao ${authorName},</p>
-      <p>Il tuo articolo "<strong>${articleTitle}</strong>" è stato pubblicato ed è ora visibile online.</p>
+      <p>Ciao ${e(authorName)},</p>
+      <p>Il tuo articolo "<strong>${e(articleTitle)}</strong>" è stato pubblicato ed è ora visibile online.</p>
       <p style="margin-top:24px;">
         <a href="${publicUrl}" style="background:#7c55d4;color:white;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:500;">
           Leggi l'articolo

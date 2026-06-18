@@ -2,9 +2,18 @@
   import { toasts, dismissToast } from '$lib/stores/toast';
 
   const VARIANTS = {
-    success: { icon: 'ti-check',        bg: '#eaf3de', border: '#c0dd97', color: '#3b6d11' },
-    error:   { icon: 'ti-x',            bg: '#faeeda', border: '#fac775', color: '#633806' },
-    info:    { icon: 'ti-info-circle',  bg: '#ece7fa', border: '#c9b8f0', color: '#3b2f5e' },
+    success: {
+      paths: '<path d="M5 12l5 5l10 -10"/>',
+      bg: '#eaf3de', border: '#c0dd97', color: '#3b6d11'
+    },
+    error: {
+      paths: '<path d="M18 6l-12 12"/><path d="M6 6l12 12"/>',
+      bg: '#faeeda', border: '#fac775', color: '#633806'
+    },
+    info: {
+      paths: '<path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M12 9h.01"/><path d="M11 12h1v4h1"/>',
+      bg: '#ece7fa', border: '#c9b8f0', color: '#3b2f5e'
+    },
   };
 </script>
 
@@ -16,10 +25,14 @@
       style="--bg:{v.bg};--border:{v.border};--color:{v.color}"
       role="alert"
     >
-      <i class="ti {v.icon} toast-icon"></i>
+      <svg class="toast-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        {@html v.paths}
+      </svg>
       <span class="toast-msg">{toast.message}</span>
       <button class="toast-dismiss" onclick={() => dismissToast(toast.id)} aria-label="Chiudi">
-        <i class="ti ti-x"></i>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M18 6l-12 12"/><path d="M6 6l12 12"/>
+        </svg>
       </button>
     </div>
   {/each}
@@ -53,9 +66,7 @@
   }
 
   .toast-icon {
-    font-size: 16px;
     flex-shrink: 0;
-    line-height: 1;
   }
 
   .toast-msg {
@@ -73,8 +84,6 @@
     opacity: 0.6;
     cursor: pointer;
     padding: 0;
-    font-size: 12px;
-    line-height: 1;
     flex-shrink: 0;
     display: flex;
     align-items: center;

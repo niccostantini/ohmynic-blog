@@ -18,6 +18,11 @@ export const GET: RequestHandler = async ({ url, locals }) => {
     error(400, 'URL non valida');
   }
 
+  // Block SSRF: refuse requests to private/loopback/link-local addresses
+  if (isPrivateHost(parsed.hostname)) {
+    error(400, 'URL non consentita');
+  }
+
   let html: string;
   try {
     const res = await fetch(parsed.href, {
@@ -67,6 +72,27 @@ export const GET: RequestHandler = async ({ url, locals }) => {
     siteName: decodeHtmlEntities(getMeta('site_name')),
   });
 };
+
+function isPrivateHost(hostname: string): boolean {
+  const h = hostname.toLowerCase();
+  if (h === 'localhost' || h === '::1' || h === '0000::1') return true;
+
+  const ipv4 = h.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (ipv4) {
+    const [a, b] = [Number(ipv4[1]), Number(ipv4[2])];
+    if (a === 0) return true;                             // 0.x.x.x
+    if (a === 10) return true;                            // 10.x.x.x
+    if (a === 127) return true;                           // 127.x.x.x loopback
+    if (a === 169 && b === 254) return true;              // 169.254.x.x link-local / metadata
+    if (a === 172 && b >= 16 && b <= 31) return true;    // 172.16–31.x.x
+    if (a === 192 && b === 168) return true;              // 192.168.x.x
+    if (a === 198 && (b === 18 || b === 19)) return true; // 198.18–19.x.x benchmarking
+    if (a === 240) return true;                           // 240.x.x.x reserved
+    if (a === 255 && h === '255.255.255.255') return true;
+  }
+
+  return false;
+}
 
 function decodeHtmlEntities(str: string): string {
   return str

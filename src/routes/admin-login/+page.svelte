@@ -1,7 +1,9 @@
 <script lang="ts">
-  import { enhance } from '$app/forms';
+  import { enhance, applyAction } from '$app/forms';
   import { addToast, dismissToast } from '$lib/stores/toast';
+  import Toast from '$lib/components/Toast.svelte';
   import type { ActionData, PageData } from './$types';
+  import type { ActionResult } from '@sveltejs/kit';
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -26,12 +28,14 @@
       return;
     }
 
-    return async ({ result }: { result: { type: string; data?: Record<string, unknown> } }) => {
+    return async ({ result }: { result: ActionResult }) => {
       if (result.type === 'failure') {
         const fe = result.data?.fieldError as string | undefined;
         usernameError = fe === 'username' || fe === 'both';
         passwordError = fe === 'password' || fe === 'both';
         showError((result.data?.error as string) ?? 'Errore durante il login.');
+      } else {
+        await applyAction(result);
       }
     };
   }
@@ -82,6 +86,7 @@
     <p class="forgot-link"><a href="/blog/admin-forgot-password">Password dimenticata?</a></p>
   </div>
 </div>
+<Toast />
 
 <style>
   .login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--color-nebbia); padding: var(--space-4); }

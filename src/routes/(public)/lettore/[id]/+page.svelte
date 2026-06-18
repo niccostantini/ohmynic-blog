@@ -29,6 +29,7 @@
 <svelte:head>
   <title>{p.displayName} — OhMyNic!</title>
   <meta name="robots" content="noindex" />
+  <link rel="stylesheet" href="{base}/fonts/tabler-icons.css" media="print" onload={(e) => { (e.target as HTMLLinkElement).media = 'all'; }}>
 </svelte:head>
 
 <div class="page-wrap">

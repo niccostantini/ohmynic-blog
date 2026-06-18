@@ -1,5 +1,6 @@
 import { error, redirect } from '@sveltejs/kit';
 import { base } from '$app/paths';
+import DOMPurify from 'isomorphic-dompurify';
 import {
   getArticleBySlugWithAuthor,
   getArticleBySlugForPreview,
@@ -68,7 +69,7 @@ export const load: PageServerLoad = async ({ params, locals, url }) => {
   ]);
 
   return {
-    article: { ...article, readingTimeMinutes },
+    article: { ...article, readingTimeMinutes, content: DOMPurify.sanitize(article.content ?? '', { ADD_ATTR: ['target'] }) },
     author,
     tags,
     comments,

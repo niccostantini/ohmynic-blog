@@ -11,7 +11,8 @@ const config = {
 		adapter: adapter(),
 		paths: {
 			base
-		}
+		},
+		inlineStyleThreshold: 2048
 	}
 };
 

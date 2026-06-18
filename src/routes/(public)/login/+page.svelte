@@ -1,8 +1,9 @@
 <script lang="ts">
-  import { enhance } from '$app/forms';
+  import { enhance, applyAction } from '$app/forms';
   import { base } from '$app/paths';
   import { addToast, dismissToast } from '$lib/stores/toast';
   import type { ActionData, PageData } from './$types';
+  import type { ActionResult } from '@sveltejs/kit';
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -27,12 +28,14 @@
       return;
     }
 
-    return async ({ result }: { result: { type: string; data?: Record<string, unknown> } }) => {
+    return async ({ result }: { result: ActionResult }) => {
       if (result.type === 'failure') {
         const fe = result.data?.fieldError as string | undefined;
         emailError = fe === 'email' || fe === 'both';
         passwordError = fe === 'password' || fe === 'both';
         showError((result.data?.error as string) ?? 'Errore durante il login.');
+      } else {
+        await applyAction(result);
       }
     };
   }
