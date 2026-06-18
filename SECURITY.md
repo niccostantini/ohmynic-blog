@@ -75,7 +75,9 @@ Impostati a livello `server` in `/etc/nginx/sites-enabled/ohmynic`, ereditati da
 | `X-Content-Type-Options` | `nosniff` |
 | `Referrer-Policy` | `strict-origin-when-cross-origin` |
 | `X-Permitted-Cross-Domain-Policies` | `none` |
-| `Content-Security-Policy` | `default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data: blob:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'self';` |
+| `Content-Security-Policy` | `default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data: blob:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; frame-src 'self' https://www.youtube-nocookie.com https://open.spotify.com https://gist.github.com https://codepen.io;` |
+
+`frame-src` autorizza esplicitamente i servizi embed usati dall'editor (YouTube privacy-enhanced, Spotify, GitHub Gist, CodePen). Senza questa direttiva il fallback `default-src 'self'` blocca tutti gli iframe esterni.
 
 > **Nota**: I location block con `add_header` propri (font cache, asset immutabili) non ereditano questi header — accettabile perché sono risposte binarie, non HTML.
 
