@@ -15,6 +15,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     error(400, 'Titolo non valido');
   if (typeof description !== 'string' || description.trim().length < 20)
     error(400, 'Descrizione troppo breve (min 20 caratteri)');
+  if (description.length > 2000)
+    error(400, 'Descrizione troppo lunga (max 2000 caratteri)');
 
   const authorId = locals.user?.id ?? null;
   const readerId = locals.reader?.id ?? null;

@@ -20,6 +20,7 @@
   async function handleSubmit(e: SubmitEvent) {
     e.preventDefault();
     if (!content.trim()) { error = 'Il commento non può essere vuoto.'; return; }
+    if (content.length > 1000) { error = 'Il commento non può superare i 1000 caratteri.'; return; }
     loading = true;
     error = '';
     try {
@@ -80,7 +81,7 @@
       {/if}
       <div class="field">
         <label for="comment-content">Commento</label>
-        <textarea id="comment-content" rows="5" placeholder="Scrivi qui il tuo commento..." bind:value={content} required></textarea>
+        <textarea id="comment-content" rows="5" maxlength="1000" placeholder="Scrivi qui il tuo commento..." bind:value={content} required></textarea>
       </div>
       <button type="submit" class="btn-accent" disabled={loading}>
         {loading ? 'Invio...' : 'Invia commento'}

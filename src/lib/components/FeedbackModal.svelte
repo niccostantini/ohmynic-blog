@@ -36,6 +36,7 @@
     if (!title.trim()) { error = 'Il titolo è obbligatorio.'; return; }
     if (title.length > 100) { error = 'Titolo troppo lungo (max 100 caratteri).'; return; }
     if (description.trim().length < 20) { error = 'Descrizione troppo breve (min 20 caratteri).'; return; }
+    if (description.length > 2000) { error = 'Descrizione troppo lunga (max 2000 caratteri).'; return; }
 
     submitting = true;
     try {
@@ -109,6 +110,7 @@
           <textarea
             bind:value={description}
             rows="5"
+            maxlength="2000"
             placeholder="Descrivi il problema o il suggerimento in dettaglio (min 20 caratteri)..."
           ></textarea>
         </label>

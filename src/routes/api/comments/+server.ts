@@ -14,6 +14,9 @@ export const POST: RequestHandler = async ({ request, locals }) => {
   if (!body.content.trim()) {
     error(400, 'Il commento non può essere vuoto');
   }
+  if (body.content.length > 1000) {
+    error(400, 'Il commento non può superare i 1000 caratteri');
+  }
 
   const article = await getArticleById(body.articleId);
   if (!article || article.status !== 'published') {
